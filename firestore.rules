@@ -1,0 +1,95 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner() {
+      return isAuthenticated() && (
+        request.auth.token.email == 'arjunjareda2007@gmail.com' ||
+        request.auth.token.email == 'arjunbhartimina@gmail.com'
+      );
+    }
+
+    // Public readable content collections
+    match /profiles/{document} {
+      allow read: if true;
+      allow write: if isOwner();
+    }
+
+    match /siteSettings/{document} {
+      allow read: if true;
+      allow write: if isOwner();
+    }
+
+    match /homepage/{document} {
+      allow read: if true;
+      allow write: if isOwner();
+    }
+
+    match /songs/{document} {
+      allow read: if true;
+      allow write: if isOwner();
+    }
+
+    match /lyrics/{document} {
+      allow read: if true;
+      allow write: if isOwner();
+    }
+
+    match /gallery/{document} {
+      allow read: if true;
+      allow write: if isOwner();
+    }
+
+    match /videos/{document} {
+      allow read: if true;
+      allow write: if isOwner();
+    }
+
+    match /projects/{document} {
+      allow read: if true;
+      allow write: if isOwner();
+    }
+
+    match /books/{document} {
+      allow read: if true;
+      allow write: if isOwner();
+    }
+
+    match /timeline/{document} {
+      allow read: if true;
+      allow write: if isOwner();
+    }
+
+    match /socialLinks/{document} {
+      allow read: if true;
+      allow write: if isOwner();
+    }
+
+    // Contact messages: anyone can submit a message, only owner can read/delete
+    match /messages/{document} {
+      allow create: if true;
+      allow read, update, delete: if isOwner();
+    }
+
+    // Analytics: public can increment, owner can view/manage
+    match /analytics/{document} {
+      allow read, write: if true;
+    }
+
+    // User accounts
+    match /users/{userId} {
+      allow read, write: if isAuthenticated() && (request.auth.uid == userId || isOwner());
+    }
+
+    // Default fallback
+    match /{document=**} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+  }
+}

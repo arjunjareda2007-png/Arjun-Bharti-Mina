@@ -1,0 +1,253 @@
+import React, { useState } from 'react';
+import { useStore } from '../../context/StoreContext';
+import { HomepageConfig } from '../../types';
+import { Layout, Save, CheckCircle2, Eye, EyeOff, Sparkles, MoveVertical } from 'lucide-react';
+
+export const HomepageTab: React.FC = () => {
+  const { homepage, updateHomepage } = useStore();
+  const [formData, setFormData] = useState<HomepageConfig>(homepage);
+  const [isSaving, setIsSaving] = useState(false);
+  const [savedSuccess, setSavedSuccess] = useState(false);
+
+  const handleChange = (field: keyof HomepageConfig, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleCtaChange = (cta: 'ctaPrimary' | 'ctaSecondary', key: 'text' | 'link', value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [cta]: {
+        ...prev[cta],
+        [key]: value
+      }
+    }));
+  };
+
+  const handleSectionToggle = (sectionId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      sections: prev.sections.map(s => s.id === sectionId ? { ...s, visible: !s.visible } : s)
+    }));
+  };
+
+  const moveSection = (index: number, direction: 'up' | 'down') => {
+    const newSections = [...formData.sections];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= newSections.length) return;
+    const temp = newSections[index];
+    newSections[index] = newSections[targetIndex];
+    newSections[targetIndex] = temp;
+    // update order numbers
+    newSections.forEach((s, i) => s.order = i + 1);
+    setFormData(prev => ({ ...prev, sections: newSections }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+    await updateHomepage(formData);
+    setIsSaving(false);
+    setSavedSuccess(true);
+    setTimeout(() => setSavedSuccess(false), 3000);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-8 animate-fadeIn max-w-4xl">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-neutral-200 dark:border-neutral-800">
+        <div>
+          <h2 className="text-xl font-bold text-neutral-900 dark:text-white flex items-center gap-2">
+            <Layout className="w-5 h-5 text-amber-500" />
+            <span>Homepage Architecture & Layout</span>
+          </h2>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+            Configure the hero stage, action callouts, and reorder homepage showcase modules.
+          </p>
+        </div>
+
+        <button
+          type="submit"
+          disabled={isSaving}
+          className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs sm:text-sm rounded-xl transition-all shadow-md flex items-center gap-2 disabled:opacity-60"
+        >
+          {savedSuccess ? (
+            <>
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Saved!</span>
+            </>
+          ) : (
+            <>
+              <Save className="w-4 h-4" />
+              <span>{isSaving ? 'Saving...' : 'Save Homepage Layout'}</span>
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* Hero Headline & Texts */}
+      <div className="p-6 rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 space-y-6">
+        <h3 className="text-sm font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-amber-500" />
+          <span>Hero Stage Text & Copy</span>
+        </h3>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+              Hero Main Headline
+            </label>
+            <input
+              type="text"
+              value={formData.heroHeading}
+              onChange={(e) => handleChange('heroHeading', e.target.value)}
+              className="w-full px-3.5 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs sm:text-sm focus:outline-none focus:border-amber-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+              Hero Subtitle / Artistic Identity
+            </label>
+            <input
+              type="text"
+              value={formData.heroSubtitle}
+              onChange={(e) => handleChange('heroSubtitle', e.target.value)}
+              className="w-full px-3.5 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs sm:text-sm focus:outline-none focus:border-amber-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+              Hero Narrative Introduction
+            </label>
+            <textarea
+              rows={3}
+              value={formData.heroIntro}
+              onChange={(e) => handleChange('heroIntro', e.target.value)}
+              className="w-full px-3.5 py-2.5 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs sm:text-sm focus:outline-none focus:border-amber-500"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Call to Action Buttons */}
+      <div className="p-6 rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 space-y-6">
+        <h3 className="text-sm font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+          Hero Call-to-Action (CTA) Buttons
+        </h3>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700/60 space-y-3">
+            <h4 className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase">Primary CTA</h4>
+            <div>
+              <label className="block text-xs text-neutral-600 dark:text-neutral-400 mb-1">Button Label</label>
+              <input
+                type="text"
+                value={formData.ctaPrimary.text}
+                onChange={(e) => handleCtaChange('ctaPrimary', 'text', e.target.value)}
+                className="w-full px-3 py-1.5 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg text-xs"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-neutral-600 dark:text-neutral-400 mb-1">Target Section / Tab</label>
+              <input
+                type="text"
+                value={formData.ctaPrimary.link}
+                onChange={(e) => handleCtaChange('ctaPrimary', 'link', e.target.value)}
+                className="w-full px-3 py-1.5 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg text-xs font-mono"
+              />
+            </div>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700/60 space-y-3">
+            <h4 className="text-xs font-bold text-neutral-700 dark:text-neutral-300 uppercase">Secondary CTA</h4>
+            <div>
+              <label className="block text-xs text-neutral-600 dark:text-neutral-400 mb-1">Button Label</label>
+              <input
+                type="text"
+                value={formData.ctaSecondary.text}
+                onChange={(e) => handleCtaChange('ctaSecondary', 'text', e.target.value)}
+                className="w-full px-3 py-1.5 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg text-xs"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-neutral-600 dark:text-neutral-400 mb-1">Target Section / Tab</label>
+              <input
+                type="text"
+                value={formData.ctaSecondary.link}
+                onChange={(e) => handleCtaChange('ctaSecondary', 'link', e.target.value)}
+                className="w-full px-3 py-1.5 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg text-xs font-mono"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Section Ordering & Visibility Controls */}
+      <div className="p-6 rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 space-y-4">
+        <h3 className="text-sm font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 flex items-center gap-2">
+          <MoveVertical className="w-4 h-4 text-amber-500" />
+          <span>Homepage Sections Order & Visibility</span>
+        </h3>
+        <p className="text-xs text-neutral-500 dark:text-neutral-400">
+          Use the arrows to reorder sections on the homepage. Toggle the eye button to show or hide a section.
+        </p>
+
+        <div className="space-y-2 pt-2">
+          {formData.sections.map((section, idx) => (
+            <div
+              key={section.id}
+              className={`flex items-center justify-between p-3 rounded-2xl border transition-all ${
+                section.visible
+                  ? 'bg-neutral-50 dark:bg-neutral-800/70 border-neutral-200 dark:border-neutral-700'
+                  : 'bg-neutral-100/50 dark:bg-neutral-900/50 border-neutral-200/50 dark:border-neutral-800 opacity-60'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <span className="w-6 h-6 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xs font-mono font-bold">
+                  {idx + 1}
+                </span>
+                <span className="text-xs sm:text-sm font-semibold text-neutral-900 dark:text-white">
+                  {section.title}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    disabled={idx === 0}
+                    onClick={() => moveSection(idx, 'up')}
+                    className="p-1.5 rounded-lg text-neutral-500 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700 disabled:opacity-30"
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    disabled={idx === formData.sections.length - 1}
+                    onClick={() => moveSection(idx, 'down')}
+                    className="p-1.5 rounded-lg text-neutral-500 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700 disabled:opacity-30"
+                  >
+                    ▼
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleSectionToggle(section.id)}
+                  className={`p-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+                    section.visible
+                      ? 'bg-amber-500/15 border-amber-500/30 text-amber-700 dark:text-amber-300'
+                      : 'bg-neutral-200 dark:bg-neutral-700 border-transparent text-neutral-500'
+                  }`}
+                >
+                  {section.visible ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                  <span className="hidden sm:inline">{section.visible ? 'Visible' : 'Hidden'}</span>
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </form>
+  );
+};

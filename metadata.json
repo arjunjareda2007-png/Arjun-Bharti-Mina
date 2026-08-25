@@ -1,0 +1,6 @@
+{
+  "name": "Arjun Bharti Mina — Personal Creator Hub & Archive",
+  "description": "Official digital home, music library, creative portfolio, and archive for independent artist and creator Arjun Bharti Mina (ABM).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
