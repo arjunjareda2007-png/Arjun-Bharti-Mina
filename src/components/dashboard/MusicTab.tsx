@@ -576,9 +576,12 @@ export const MusicTab: React.FC = () => {
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[11px] text-neutral-400 mb-0.5">Spotify URL</label>
+                    <label className="block text-[11px] text-neutral-400 mb-0.5">
+                      Spotify Track / Artist URL or URI
+                    </label>
                     <input
-                      type="url"
+                      type="text"
+                      placeholder="https://open.spotify.com/track/... or spotify:track:..."
                       value={editingSong.streamingLinks?.spotify || ''}
                       onChange={(e) => setEditingSong({
                         ...editingSong,
@@ -586,6 +589,9 @@ export const MusicTab: React.FC = () => {
                       })}
                       className="w-full px-3 py-1.5 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-xs font-mono"
                     />
+                    <p className="text-[10px] text-neutral-500 mt-1">
+                      Paste track link (e.g. <code className="text-[#1DB954]">open.spotify.com/track/...</code>) for direct player streaming.
+                    </p>
                   </div>
 
                   <div>

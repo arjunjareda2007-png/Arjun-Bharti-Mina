@@ -1,5 +1,6 @@
 import React from 'react';
 import { useStore } from '../context/StoreContext';
+import { getSpotifyEmbedForSong, getSpotifyWebUrlForSong } from '../utils/spotifyUtils';
 import { 
   X, 
   Play, 
@@ -262,6 +263,44 @@ export const SongDetailModal: React.FC = () => {
                 </div>
               )}
 
+            </div>
+          </div>
+
+          {/* Spotify Embedded Player Section */}
+          <div className="p-4 sm:p-5 rounded-3xl bg-neutral-950 border border-neutral-800 text-white shadow-xl space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-[#1DB954] fill-current" viewBox="0 0 24 24">
+                  <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.503 17.308c-.215.354-.677.466-1.031.251-2.822-1.724-6.374-2.114-10.558-1.159-.404.093-.807-.16-.9-.564-.093-.404.16-.807.564-.9 4.582-1.047 8.514-.606 11.674 1.341.354.215.466.677.251 1.032zm1.47-3.266c-.27.44-.848.58-1.288.31-3.23-1.985-8.154-2.559-11.974-1.4-1.498.455-.499-.33-.954-.83-.455-.499.33-.954.83-1.498 4.37-1.326 9.805-.688 13.518 1.588.44.27.58.848.31 1.288zm.126-3.414c-3.873-2.3-10.258-2.512-13.966-1.385-.594.18-1.222-.156-1.402-.75-.18-.594.156-1.222.75-1.402 4.26-1.294 11.298-1.043 15.753 1.603.534.317.708 1.01.39 1.544-.317.534-1.01.708-1.544.39z"/>
+                </svg>
+                <div>
+                  <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-white">Spotify Stream Player</h3>
+                  <p className="text-[11px] text-neutral-400">Stream "{song.title}" directly via official Spotify Web Embed</p>
+                </div>
+              </div>
+              <a
+                href={getSpotifyWebUrlForSong(song)}
+                target="_blank"
+                rel="noreferrer"
+                className="px-3 py-1.5 rounded-xl bg-[#1DB954] text-neutral-950 text-xs font-bold flex items-center gap-1.5 hover:bg-[#1ed760] transition-colors"
+              >
+                <span>Open in App</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
+
+            {/* Embedded Iframe */}
+            <div className="rounded-2xl overflow-hidden bg-neutral-900 border border-neutral-800">
+              <iframe
+                src={getSpotifyEmbedForSong(song)}
+                width="100%"
+                height="152"
+                frameBorder="0"
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                loading="lazy"
+                title={`Spotify Player - ${song.title}`}
+                className="rounded-2xl"
+              />
             </div>
           </div>
 

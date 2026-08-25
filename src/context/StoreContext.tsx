@@ -103,6 +103,19 @@ interface StoreContextType {
   setIsLyricsExpanded: (val: boolean) => void;
   playerMode: 'spotify' | 'custom';
   setPlayerMode: (mode: 'spotify' | 'custom') => void;
+  spotifyPlayerSize: 'compact' | 'standard' | 'large';
+  setSpotifyPlayerSize: (size: 'compact' | 'standard' | 'large') => void;
+  isFullScreenPlayerOpen: boolean;
+  openFullScreenPlayer: () => void;
+  closeFullScreenPlayer: () => void;
+  isShuffle: boolean;
+  setIsShuffle: (val: boolean) => void;
+  isLoop: boolean;
+  setIsLoop: (val: boolean) => void;
+  playbackSpeed: number;
+  setPlaybackSpeed: (speed: number) => void;
+  sleepTimerMinutes: number | null;
+  setSleepTimerMinutes: (mins: number | null) => void;
   playSong: (song: Song) => void;
   togglePlay: () => void;
   pauseSong: () => void;
@@ -748,6 +761,20 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [isLyricsExpanded, setIsLyricsExpanded] = useState<boolean>(false);
   const [playerMode, setPlayerMode] = useState<'spotify' | 'custom'>('spotify');
+  const [spotifyPlayerSize, setSpotifyPlayerSize] = useState<'compact' | 'standard' | 'large'>('standard');
+  const [isFullScreenPlayerOpen, setIsFullScreenPlayerOpen] = useState<boolean>(false);
+  const [isShuffle, setIsShuffle] = useState<boolean>(false);
+  const [isLoop, setIsLoop] = useState<boolean>(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
+  const [sleepTimerMinutes, setSleepTimerMinutes] = useState<number | null>(null);
+
+  const openFullScreenPlayer = useCallback(() => {
+    setIsFullScreenPlayerOpen(true);
+  }, []);
+
+  const closeFullScreenPlayer = useCallback(() => {
+    setIsFullScreenPlayerOpen(false);
+  }, []);
 
   // Modals & Cropper
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
@@ -922,11 +949,24 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   // Audio Handlers
   const nextSong = useCallback(() => {
     if (!currentSong || songs.length === 0) return;
+    if (isLoop) {
+      // Replay current song
+      playSong(currentSong);
+      return;
+    }
+    if (isShuffle && songs.length > 1) {
+      let randomIndex = Math.floor(Math.random() * songs.length);
+      while (songs[randomIndex].id === currentSong.id) {
+        randomIndex = Math.floor(Math.random() * songs.length);
+      }
+      playSong(songs[randomIndex]);
+      return;
+    }
     const currentIndex = songs.findIndex(s => s.id === currentSong.id);
     const nextIndex = (currentIndex + 1) % songs.length;
     const next = songs[nextIndex];
     playSong(next);
-  }, [currentSong, songs]);
+  }, [currentSong, songs, isLoop, isShuffle]);
 
   const playSong = (song: Song) => {
     setCurrentSong(song);
@@ -947,16 +987,18 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     // Update playCount in songs list
     setSongs(prev => prev.map(s => s.id === song.id ? { ...s, playCount: s.playCount + 1 } : s));
 
-    audioSynth.play(
-      song.audioToneSequence || [261.63, 329.63, 392.00, 523.25],
-      dur,
-      (time) => {
-        setPlaybackTime(time);
-      },
-      () => {
-        nextSong();
-      }
-    );
+    if (playerMode === 'custom') {
+      audioSynth.play(
+        song.audioToneSequence || [261.63, 329.63, 392.00, 523.25],
+        dur,
+        (time) => {
+          setPlaybackTime(time);
+        },
+        () => {
+          nextSong();
+        }
+      );
+    }
   };
 
   const pauseSong = () => {
@@ -1490,6 +1532,19 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         setIsLyricsExpanded,
         playerMode,
         setPlayerMode,
+        spotifyPlayerSize,
+        setSpotifyPlayerSize,
+        isFullScreenPlayerOpen,
+        openFullScreenPlayer,
+        closeFullScreenPlayer,
+        isShuffle,
+        setIsShuffle,
+        isLoop,
+        setIsLoop,
+        playbackSpeed,
+        setPlaybackSpeed,
+        sleepTimerMinutes,
+        setSleepTimerMinutes,
         playSong,
         togglePlay,
         pauseSong,

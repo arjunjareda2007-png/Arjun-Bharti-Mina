@@ -143,7 +143,7 @@ Still rising.`,
       label: 'ABM Records Independent'
     },
     streamingLinks: {
-      spotify: 'https://open.spotify.com/artist/arjunbhartimina',
+      spotify: 'https://open.spotify.com/track/6rqhFgbbKwnb9MLmUQDhG6',
       youtube: 'https://youtube.com/@arjunbhartimina',
       gaana: 'https://gaana.com/artist/arjun-bharti-mina',
       jiosaavn: 'https://jiosaavn.com/artist/arjun-bharti-mina',
@@ -204,7 +204,7 @@ ABM.`,
       label: 'Independent'
     },
     streamingLinks: {
-      spotify: 'https://open.spotify.com/artist/arjunbhartimina',
+      spotify: 'https://open.spotify.com/track/2t990xZpYg37f2Gg9aN01k',
       youtube: 'https://youtube.com/@arjunbhartimina',
       jiosaavn: 'https://jiosaavn.com/artist/arjun-bharti-mina',
       appleMusic: 'https://music.apple.com/artist/arjun-bharti-mina'
@@ -258,7 +258,7 @@ Kitne pahaad paar kiye, soch ke muskurata hoon.`,
       label: 'Independent'
     },
     streamingLinks: {
-      spotify: 'https://open.spotify.com/artist/arjunbhartimina',
+      spotify: 'https://open.spotify.com/track/5HQEVPgB0q5mm4dhn6xCdK',
       youtube: 'https://youtube.com/@arjunbhartimina',
       gaana: 'https://gaana.com/artist/arjun-bharti-mina',
       jiosaavn: 'https://jiosaavn.com/artist/arjun-bharti-mina'
@@ -300,7 +300,7 @@ Dono ko jodd diya, set my ultimate goals!`,
       label: 'Independent'
     },
     streamingLinks: {
-      spotify: 'https://open.spotify.com/artist/arjunbhartimina',
+      spotify: 'https://open.spotify.com/track/7iK4bX494ZfL5L309a909k',
       youtube: 'https://youtube.com/@arjunbhartimina',
       appleMusic: 'https://music.apple.com/artist/arjun-bharti-mina'
     },
@@ -336,7 +336,7 @@ ABM on the verse!`,
       label: 'Independent'
     },
     streamingLinks: {
-      spotify: 'https://open.spotify.com/artist/arjunbhartimina',
+      spotify: 'https://open.spotify.com/track/3n3Ppam7vgaVa1iaRUc9Lp',
       youtube: 'https://youtube.com/@arjunbhartimina'
     },
     youtubeEmbedId: 'kJQP7kiw5Fk',
