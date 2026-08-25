@@ -79,9 +79,9 @@ export const Navbar: React.FC = () => {
   };
 
   const toggleTheme = () => {
-    if (theme === 'dark') setTheme('light');
-    else if (theme === 'light') setTheme('system');
-    else setTheme('dark');
+    const next = theme === 'dark' ? 'light' : 'dark';
+    setTheme(next);
+    showToast(`Switched to ${next === 'dark' ? 'Dark' : 'Light'} theme`, 'info');
   };
 
   return (

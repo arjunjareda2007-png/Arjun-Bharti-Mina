@@ -101,10 +101,13 @@ interface StoreContextType {
   isMuted: boolean;
   isLyricsExpanded: boolean;
   setIsLyricsExpanded: (val: boolean) => void;
+  playerMode: 'spotify' | 'custom';
+  setPlayerMode: (mode: 'spotify' | 'custom') => void;
   playSong: (song: Song) => void;
   togglePlay: () => void;
   pauseSong: () => void;
   resumeSong: () => void;
+  closePlayer: () => void;
   seekSong: (time: number) => void;
   nextSong: () => void;
   prevSong: () => void;
@@ -744,6 +747,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [volume, setVolumeState] = useState<number>(0.75);
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [isLyricsExpanded, setIsLyricsExpanded] = useState<boolean>(false);
+  const [playerMode, setPlayerMode] = useState<'spotify' | 'custom'>('spotify');
 
   // Modals & Cropper
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
@@ -966,6 +970,13 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       audioSynth.resume();
     }
   };
+
+  const closePlayer = useCallback(() => {
+    setIsPlaying(false);
+    setCurrentSong(null);
+    setPlaybackTime(0);
+    audioSynth.pause();
+  }, []);
 
   const togglePlay = () => {
     if (isPlaying) {
@@ -1477,10 +1488,13 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         isMuted,
         isLyricsExpanded,
         setIsLyricsExpanded,
+        playerMode,
+        setPlayerMode,
         playSong,
         togglePlay,
         pauseSong,
         resumeSong,
+        closePlayer,
         seekSong,
         nextSong,
         prevSong,
