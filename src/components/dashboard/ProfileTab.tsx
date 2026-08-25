@@ -16,11 +16,12 @@ import {
   Save,
   CheckCircle2,
   Image as ImageIcon,
-  GraduationCap
+  GraduationCap,
+  Crop
 } from 'lucide-react';
 
 export const ProfileTab: React.FC = () => {
-  const { profile, updateProfile } = useStore();
+  const { profile, updateProfile, openCropper } = useStore();
   const [formData, setFormData] = useState<UserProfile>(profile);
   const [isSaving, setIsSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
@@ -139,9 +140,30 @@ export const ProfileTab: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Profile Photo */}
           <div className="space-y-3">
-            <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300">
-              Profile Photo URL
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300">
+                Profile Photo URL
+              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  openCropper({
+                    initialImageUrl: formData.profileImage,
+                    title: 'Crop & Refine Profile Photo',
+                    aspectRatioPreset: '1:1',
+                    outputWidth: 800,
+                    outputHeight: 800,
+                    onCropComplete: (dataUrl) => {
+                      handleChange('profileImage', dataUrl);
+                    }
+                  });
+                }}
+                className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-bold rounded-lg border border-amber-500/20 flex items-center gap-1 transition-colors"
+              >
+                <Crop className="w-3.5 h-3.5" />
+                <span>Crop / Adjust Image</span>
+              </button>
+            </div>
             <input
               type="url"
               value={formData.profileImage}
@@ -159,17 +181,38 @@ export const ProfileTab: React.FC = () => {
                 }}
               />
               <div className="text-xs text-neutral-500 dark:text-neutral-400">
-                <span className="font-semibold text-neutral-800 dark:text-neutral-200">Live Preview</span>
-                <p className="text-[11px] mt-0.5">Shown across the site header, hero spotlight, and cards.</p>
+                <span className="font-semibold text-neutral-800 dark:text-neutral-200">Live Preview (1:1 Ratio)</span>
+                <p className="text-[11px] mt-0.5">Click "Crop / Adjust Image" to zoom, rotate, crop, or upload a custom file.</p>
               </div>
             </div>
           </div>
 
           {/* Hero Banner Image */}
           <div className="space-y-3">
-            <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300">
-              Hero Banner Image URL
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300">
+                Hero Banner Image URL
+              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  openCropper({
+                    initialImageUrl: formData.heroImage,
+                    title: 'Crop & Refine Hero Banner',
+                    aspectRatioPreset: '16:9',
+                    outputWidth: 1600,
+                    outputHeight: 900,
+                    onCropComplete: (dataUrl) => {
+                      handleChange('heroImage', dataUrl);
+                    }
+                  });
+                }}
+                className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-bold rounded-lg border border-amber-500/20 flex items-center gap-1 transition-colors"
+              >
+                <Crop className="w-3.5 h-3.5" />
+                <span>Crop / Adjust Banner</span>
+              </button>
+            </div>
             <input
               type="url"
               value={formData.heroImage}
@@ -187,7 +230,7 @@ export const ProfileTab: React.FC = () => {
                 }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-2">
-                <span className="text-[10px] text-white/90 font-medium">Hero Background Preview</span>
+                <span className="text-[10px] text-white/90 font-medium">Hero Background (16:9 Ratio)</span>
               </div>
             </div>
           </div>

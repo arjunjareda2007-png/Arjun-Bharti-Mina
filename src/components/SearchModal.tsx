@@ -19,11 +19,21 @@ export const SearchModal: React.FC = () => {
     setSelectedLyricId,
     openLightbox,
     openVideoPlayer,
-    playSong
+    playSong,
+    recordSearchQuery
   } = useStore();
 
   const [query, setQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (query && query.trim().length >= 3) {
+      const timer = setTimeout(() => {
+        recordSearchQuery(query.trim());
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [query, recordSearchQuery]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -52,39 +62,39 @@ export const SearchModal: React.FC = () => {
 
   // Search Results aggregation
   const matchedSongs = q ? songs.filter(s => 
-    s.title.toLowerCase().includes(q) || 
-    s.genre.toLowerCase().includes(q) || 
-    s.description.toLowerCase().includes(q) ||
-    s.lyrics.toLowerCase().includes(q)
+    (s.title || '').toLowerCase().includes(q) || 
+    (s.genre || '').toLowerCase().includes(q) || 
+    (s.description || '').toLowerCase().includes(q) ||
+    (s.lyrics || '').toLowerCase().includes(q)
   ) : [];
 
   const matchedLyrics = q ? lyrics.filter(l => 
-    l.title.toLowerCase().includes(q) || 
-    l.lyrics.toLowerCase().includes(q) || 
-    l.genre.toLowerCase().includes(q)
+    (l.title || '').toLowerCase().includes(q) || 
+    (l.lyrics || '').toLowerCase().includes(q) || 
+    (l.genre || '').toLowerCase().includes(q)
   ) : [];
 
   const matchedProjects = q ? projects.filter(p => 
-    p.title.toLowerCase().includes(q) || 
-    p.shortDescription.toLowerCase().includes(q) || 
-    p.technologies.some(t => t.toLowerCase().includes(q))
+    (p.title || '').toLowerCase().includes(q) || 
+    (p.shortDescription || '').toLowerCase().includes(q) || 
+    (p.technologies || []).some(t => t.toLowerCase().includes(q))
   ) : [];
 
   const matchedVideos = q ? videos.filter(v => 
-    v.title.toLowerCase().includes(q) || 
-    v.category.toLowerCase().includes(q) || 
-    v.description.toLowerCase().includes(q)
+    (v.title || '').toLowerCase().includes(q) || 
+    (v.category || '').toLowerCase().includes(q) || 
+    (v.description || '').toLowerCase().includes(q)
   ) : [];
 
   const matchedGallery = q ? gallery.filter(g => 
-    g.title.toLowerCase().includes(q) || 
-    g.category.toLowerCase().includes(q) || 
-    g.tags.some(t => t.toLowerCase().includes(q))
+    (g.title || '').toLowerCase().includes(q) || 
+    (g.category || '').toLowerCase().includes(q) || 
+    (g.tags || []).some(t => t.toLowerCase().includes(q))
   ) : [];
 
   const matchedBooks = q ? books.filter(b => 
-    b.title.toLowerCase().includes(q) || 
-    b.description.toLowerCase().includes(q)
+    (b.title || '').toLowerCase().includes(q) || 
+    (b.description || '').toLowerCase().includes(q)
   ) : [];
 
   const totalResults = matchedSongs.length + matchedLyrics.length + matchedProjects.length + matchedVideos.length + matchedGallery.length + matchedBooks.length;

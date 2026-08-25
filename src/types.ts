@@ -238,9 +238,16 @@ export interface ContactMessage {
 
 export interface SiteAnalytics {
   pageViews: number;
+  uniqueVisitors: number;
+  tabViews: Record<string, number>;
   songPlays: Record<string, number>;
   projectClicks: Record<string, number>;
   searches: { query: string; timestamp: string }[];
+  dailyActivity: { date: string; views: number; plays: number }[];
+  devices: { mobile: number; desktop: number; tablet: number };
+  browsers: Record<string, number>;
+  interactionEvents: { type: string; label: string; timestamp: string }[];
+  lastActiveTimestamp?: string;
 }
 
 export interface SiteBranding {
@@ -335,4 +342,20 @@ export type ActiveTab =
   | 'social'
   | 'contact'
   | 'admin';
+
+export interface ShareData {
+  title: string;
+  text: string;
+  url: string;
+  type?: 'song' | 'image' | 'lyrics' | 'video' | 'project' | 'book' | 'profile' | 'general';
+  imageUrl?: string;
+  artist?: string;
+  genre?: string;
+  year?: number;
+  lyricsText?: string;
+  meaning?: string;
+  streamingLinks?: StreamingLinks;
+  downloadFilename?: string;
+  itemData?: any;
+}
 

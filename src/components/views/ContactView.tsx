@@ -3,7 +3,7 @@ import { useStore } from '../../context/StoreContext';
 import { Mail, Phone, MapPin, Send, MessageCircle, CheckCircle2, Clock, Sparkles } from 'lucide-react';
 
 export const ContactView: React.FC = () => {
-  const { profile, addContactMessage } = useStore();
+  const { profile, submitContactMessage } = useStore();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -15,14 +15,14 @@ export const ContactView: React.FC = () => {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.message) {
       setError('Please fill in all required fields.');
       return;
     }
 
-    addContactMessage({
+    await submitContactMessage({
       name: formData.name,
       email: formData.email,
       subject: formData.subject,
@@ -85,8 +85,8 @@ export const ContactView: React.FC = () => {
                 </div>
                 <div>
                   <span className="text-neutral-400 block text-[11px]">Phone / WhatsApp</span>
-                  <a href={`tel:${profile.phone}`} className="font-semibold hover:text-emerald-400 transition-colors">
-                    {profile.phone}
+                  <a href={`tel:${profile.whatsappNumber}`} className="font-semibold hover:text-emerald-400 transition-colors">
+                    {profile.whatsappNumber}
                   </a>
                 </div>
               </div>

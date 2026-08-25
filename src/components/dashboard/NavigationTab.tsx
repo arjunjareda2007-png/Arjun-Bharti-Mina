@@ -14,7 +14,7 @@ export const NavigationTab: React.FC = () => {
   };
 
   const handleVisibilityToggle = (id: string) => {
-    setNavItems(prev => prev.map(item => item.id === id ? { ...item, isVisible: !item.isVisible } : item));
+    setNavItems(prev => prev.map(item => item.id === id ? { ...item, visible: !item.visible } : item));
   };
 
   const moveItem = (index: number, direction: 'up' | 'down') => {
@@ -74,7 +74,7 @@ export const NavigationTab: React.FC = () => {
           <div
             key={item.id}
             className={`p-3.5 rounded-2xl border flex items-center justify-between gap-3 transition-all ${
-              item.isVisible
+              item.visible
                 ? 'bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 shadow-sm'
                 : 'bg-neutral-100/50 dark:bg-neutral-900/40 border-neutral-200/50 dark:border-neutral-800 opacity-60'
             }`}
@@ -120,13 +120,13 @@ export const NavigationTab: React.FC = () => {
                 type="button"
                 onClick={() => handleVisibilityToggle(item.id)}
                 className={`p-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 ${
-                  item.isVisible
+                  item.visible
                     ? 'bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400'
                     : 'bg-neutral-200 dark:bg-neutral-800 border-transparent text-neutral-400'
                 }`}
               >
-                {item.isVisible ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
-                <span className="hidden sm:inline">{item.isVisible ? 'Visible' : 'Hidden'}</span>
+                {item.visible ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                <span className="hidden sm:inline">{item.visible ? 'Visible' : 'Hidden'}</span>
               </button>
             </div>
           </div>

@@ -96,19 +96,21 @@ export const ProjectDetailModal: React.FC = () => {
           </div>
 
           {/* Tech Stack Badges */}
-          <div className="flex flex-wrap items-center gap-1.5 pt-2">
-            <span className="text-xs font-mono text-neutral-400 mr-2 flex items-center gap-1">
-              <Layers className="w-3.5 h-3.5" /> Technologies:
-            </span>
-            {project.technologies.map(tech => (
-              <span 
-                key={tech}
-                className="px-2.5 py-1 rounded-md text-xs font-mono bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 border border-neutral-200 dark:border-neutral-700"
-              >
-                {tech}
+          {project.technologies && project.technologies.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5 pt-2">
+              <span className="text-xs font-mono text-neutral-400 mr-2 flex items-center gap-1">
+                <Layers className="w-3.5 h-3.5" /> Technologies:
               </span>
-            ))}
-          </div>
+              {project.technologies.map(tech => (
+                <span 
+                  key={tech}
+                  className="px-2.5 py-1 rounded-md text-xs font-mono bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 border border-neutral-200 dark:border-neutral-700"
+                >
+                  {tech}
+                </span>
+              ))}
+            </div>
+          )}
 
           {/* Deep Concept & Problem Solved */}
           <div className="space-y-4 pt-2">
@@ -130,7 +132,7 @@ export const ProjectDetailModal: React.FC = () => {
           </div>
 
           {/* Key Features */}
-          {project.features.length > 0 && (
+          {project.features && project.features.length > 0 && (
             <div className="space-y-2 pt-2">
               <h3 className="text-xs font-mono uppercase tracking-wider text-neutral-500 font-semibold mb-2">
                 Core Architectural Features

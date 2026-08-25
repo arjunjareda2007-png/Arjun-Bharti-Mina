@@ -11,15 +11,24 @@ import {
   Eye, 
   EyeOff, 
   Play, 
-  X
+  X,
+  Sparkles,
+  RefreshCw,
+  ExternalLink,
+  CheckCircle2
 } from 'lucide-react';
+import { 
+  extractYouTubeId, 
+  getYouTubeThumbnail, 
+  fetchYouTubeMetadata 
+} from '../../utils/youtubeUtils';
 
 const EMPTY_VIDEO: VideoItem = {
   id: '',
   title: '',
   youtubeEmbedId: 'dQw4w9WgXcQ',
-  youtubeUrl: 'https://youtube.com',
-  thumbnail: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=800',
+  youtubeUrl: 'https://youtube.com/watch?v=dQw4w9WgXcQ',
+  thumbnail: 'https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg',
   category: 'Music Video',
   duration: '3:30',
   description: '',
@@ -30,11 +39,13 @@ const EMPTY_VIDEO: VideoItem = {
 };
 
 export const VideosTab: React.FC = () => {
-  const { videos, addVideo, updateVideo, deleteVideo, openVideoPlayer } = useStore();
+  const { videos, addVideo, updateVideo, deleteVideo, openVideoPlayer, showToast } = useStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [editingVideo, setEditingVideo] = useState<VideoItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<VideoItem | null>(null);
+  const [fetchingMeta, setFetchingMeta] = useState(false);
+  const [fetchedSuccess, setFetchedSuccess] = useState(false);
 
   const filteredVideos = videos.filter(v => 
     v.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -46,12 +57,78 @@ export const VideosTab: React.FC = () => {
       ...EMPTY_VIDEO,
       id: `vid-${Date.now()}`
     });
+    setFetchedSuccess(false);
     setIsModalOpen(true);
   };
 
   const handleOpenEdit = (v: VideoItem) => {
     setEditingVideo({ ...v });
+    setFetchedSuccess(false);
     setIsModalOpen(true);
+  };
+
+  const handleFetchMetadata = async (urlOrId?: string) => {
+    if (!editingVideo) return;
+    const target = urlOrId || editingVideo.youtubeUrl || editingVideo.youtubeEmbedId;
+    if (!target || !target.trim()) {
+      showToast('Please enter a YouTube link or ID first', 'error');
+      return;
+    }
+
+    setFetchingMeta(true);
+    try {
+      const extractedId = extractYouTubeId(target);
+      if (!extractedId) {
+        showToast('Invalid YouTube URL or ID', 'error');
+        setFetchingMeta(false);
+        return;
+      }
+
+      const meta = await fetchYouTubeMetadata(target);
+      const thumb = meta?.thumbnail || getYouTubeThumbnail(extractedId, 'maxres');
+      
+      let category = editingVideo.category;
+      if (meta?.title) {
+        const titleLower = meta.title.toLowerCase();
+        if (titleLower.includes('short') || titleLower.includes('#shorts')) {
+          category = 'Shorts';
+        } else if (titleLower.includes('live') || titleLower.includes('performance')) {
+          category = 'Live Performance';
+        } else if (titleLower.includes('bts') || titleLower.includes('behind the scene')) {
+          category = 'BTS';
+        } else if (titleLower.includes('music video') || titleLower.includes('official audio')) {
+          category = 'Music Video';
+        }
+      }
+
+      setEditingVideo(prev => prev ? {
+        ...prev,
+        youtubeEmbedId: extractedId,
+        youtubeUrl: `https://www.youtube.com/watch?v=${extractedId}`,
+        thumbnail: thumb,
+        title: prev.title.trim() && prev.title !== EMPTY_VIDEO.title ? prev.title : (meta?.title || prev.title),
+        category,
+        description: prev.description.trim() ? prev.description : `Official video release by Arjun Bharti Mina. Watch on YouTube.`
+      } : null);
+
+      setFetchedSuccess(true);
+      showToast('YouTube title & thumbnail auto-fetched!', 'success');
+      setTimeout(() => setFetchedSuccess(false), 3000);
+    } catch (e) {
+      console.warn('Auto fetch note:', e);
+      const extractedId = extractYouTubeId(target);
+      if (extractedId) {
+        setEditingVideo(prev => prev ? {
+          ...prev,
+          youtubeEmbedId: extractedId,
+          youtubeUrl: `https://www.youtube.com/watch?v=${extractedId}`,
+          thumbnail: getYouTubeThumbnail(extractedId, 'maxres')
+        } : null);
+        showToast('YouTube ID and thumbnail linked!', 'success');
+      }
+    } finally {
+      setFetchingMeta(false);
+    }
   };
 
   const handleSaveModal = async (e: React.FormEvent) => {
@@ -96,7 +173,7 @@ export const VideosTab: React.FC = () => {
           type="text"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Search videos..."
+          placeholder="Search videos by title or category..."
           className="w-full pl-10 pr-4 py-2 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl text-xs sm:text-sm focus:outline-none focus:border-amber-500"
         />
       </div>
@@ -105,7 +182,7 @@ export const VideosTab: React.FC = () => {
         {filteredVideos.map((video) => (
           <div
             key={video.id}
-            className="group bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl overflow-hidden shadow-sm"
+            className="group bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
           >
             <div className="aspect-video relative overflow-hidden bg-black">
               <img
@@ -117,52 +194,48 @@ export const VideosTab: React.FC = () => {
                 onClick={() => openVideoPlayer(video)}
                 className="absolute inset-0 bg-black/40 flex items-center justify-center text-white opacity-90 group-hover:opacity-100 transition-opacity"
               >
-                <div className="w-10 h-10 rounded-full bg-amber-500 text-neutral-950 flex items-center justify-center shadow-lg">
-                  <Play className="w-5 h-5 fill-current ml-0.5" />
+                <div className="w-10 h-10 rounded-full bg-amber-500 text-neutral-950 flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
+                  <Play className="w-4 h-4 fill-current ml-0.5" />
                 </div>
               </button>
-              <span className="absolute bottom-2 right-2 px-2 py-0.5 rounded bg-black/80 text-[10px] text-white font-mono">
+              <span className="absolute bottom-2 right-2 px-2 py-0.5 rounded bg-black/80 text-[10px] font-mono text-white">
                 {video.duration}
+              </span>
+              <span className="absolute top-2 left-2 px-2 py-0.5 rounded bg-black/70 backdrop-blur-sm text-[10px] font-mono text-white">
+                {video.category}
               </span>
             </div>
 
-            <div className="p-4 space-y-2">
-              <div className="flex items-center justify-between text-[11px] text-neutral-400">
-                <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold">
-                  {video.category}
-                </span>
-                <span>{video.date}</span>
+            <div className="p-4 space-y-3">
+              <div>
+                <h4 className="text-sm font-bold text-neutral-900 dark:text-white line-clamp-1">
+                  {video.title}
+                </h4>
+                <p className="text-xs text-neutral-500 line-clamp-2 mt-1">
+                  {video.description}
+                </p>
               </div>
 
-              <h3 className="text-xs font-bold text-neutral-900 dark:text-white line-clamp-1">
-                {video.title}
-              </h3>
+              <div className="pt-2 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between text-xs font-mono text-neutral-400">
+                <span>{video.date}</span>
+                <span>{video.viewsCount || '0'} views</span>
+              </div>
 
-              <div className="pt-2 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
+              <div className="flex items-center justify-end gap-1.5 pt-1">
                 <button
-                  onClick={() => updateVideo({ ...video, published: video.published === false ? true : false })}
-                  className={`text-[10px] font-semibold flex items-center gap-1 ${
-                    video.published !== false ? 'text-emerald-500' : 'text-neutral-400'
-                  }`}
+                  onClick={() => handleOpenEdit(video)}
+                  className="p-2 rounded-lg bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-amber-500 transition-colors"
+                  title="Edit Video"
                 >
-                  {video.published !== false ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-                  <span>{video.published !== false ? 'Live' : 'Draft'}</span>
+                  <Edit3 className="w-4 h-4" />
                 </button>
-
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => handleOpenEdit(video)}
-                    className="p-1 text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
-                  >
-                    <Edit3 className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={() => setDeleteTarget(video)}
-                    className="p-1 text-red-500 hover:text-red-600"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+                <button
+                  onClick={() => setDeleteTarget(video)}
+                  className="p-2 rounded-lg bg-red-50 dark:bg-red-950/40 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/60 transition-colors"
+                  title="Delete Video"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
               </div>
             </div>
           </div>
@@ -177,53 +250,111 @@ export const VideosTab: React.FC = () => {
             if (e.target === e.currentTarget) setIsModalOpen(false);
           }}
         >
-          <div className="relative w-full max-w-lg max-h-[90vh] bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl p-6 shadow-2xl overflow-y-auto space-y-4">
+          <div className="relative w-full max-w-lg max-h-[90vh] bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl p-6 shadow-2xl overflow-y-auto space-y-5">
             <button
               onClick={() => setIsModalOpen(false)}
-              className="absolute top-4 right-4 p-2 rounded-full text-neutral-400"
+              className="absolute top-4 right-4 p-2 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <h3 className="text-base font-bold text-neutral-900 dark:text-white">
-              {videos.some(v => v.id === editingVideo.id) ? 'Edit Video Release' : 'Add Video Release'}
-            </h3>
+            <div>
+              <h3 className="text-base font-bold text-neutral-900 dark:text-white">
+                {videos.some(v => v.id === editingVideo.id) ? 'Edit Video Release' : 'Add Video Release'}
+              </h3>
+              <p className="text-xs text-neutral-400">
+                Paste any YouTube URL to auto-fetch title and thumbnail in 1-click.
+              </p>
+            </div>
 
-            <form onSubmit={handleSaveModal} className="space-y-3">
+            {/* Smart Auto-Fetch Box */}
+            <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 space-y-2">
+              <label className="text-xs font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>YouTube Link (Auto-Fetch Metadata)</span>
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="https://youtube.com/watch?v=... or https://youtu.be/..."
+                  value={editingVideo.youtubeUrl}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    const id = extractYouTubeId(val);
+                    setEditingVideo({
+                      ...editingVideo,
+                      youtubeUrl: val,
+                      youtubeEmbedId: id || editingVideo.youtubeEmbedId,
+                      thumbnail: id ? getYouTubeThumbnail(id, 'maxres') : editingVideo.thumbnail
+                    });
+                  }}
+                  onBlur={() => {
+                    if (editingVideo.youtubeUrl && !editingVideo.title) {
+                      handleFetchMetadata(editingVideo.youtubeUrl);
+                    }
+                  }}
+                  className="flex-1 px-3 py-2 bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 rounded-xl text-xs font-mono focus:outline-none focus:border-amber-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleFetchMetadata(editingVideo.youtubeUrl)}
+                  disabled={fetchingMeta}
+                  className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors shrink-0 disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${fetchingMeta ? 'animate-spin' : ''}`} />
+                  <span>{fetchingMeta ? 'Fetching...' : 'Fetch Info'}</span>
+                </button>
+              </div>
+              {fetchedSuccess && (
+                <div className="flex items-center gap-1 text-[11px] text-emerald-500 font-medium">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Title, thumbnail & embed linked successfully!</span>
+                </div>
+              )}
+            </div>
+
+            <form onSubmit={handleSaveModal} className="space-y-3.5">
               <div>
-                <label className="block text-xs font-semibold mb-1">Video Title *</label>
+                <label className="block text-xs font-semibold mb-1 text-neutral-700 dark:text-neutral-300">
+                  Video Title *
+                </label>
                 <input
                   type="text"
                   required
                   value={editingVideo.title}
                   onChange={(e) => setEditingVideo({ ...editingVideo, title: e.target.value })}
-                  className="w-full px-3 py-1.5 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs"
+                  placeholder="e.g. Arjun Bharti Mina - Desi Cypher (Official Music Video)"
+                  className="w-full px-3.5 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs sm:text-sm"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold mb-1">YouTube Embed ID (or URL)</label>
+                  <label className="block text-xs font-semibold mb-1 text-neutral-700 dark:text-neutral-300">
+                    Embed Video ID
+                  </label>
                   <input
                     type="text"
                     required
                     value={editingVideo.youtubeEmbedId}
                     onChange={(e) => {
-                      let val = e.target.value;
-                      if (val.includes('v=')) {
-                        val = val.split('v=')[1]?.split('&')[0] || val;
-                      } else if (val.includes('youtu.be/')) {
-                        val = val.split('youtu.be/')[1]?.split('?')[0] || val;
-                      }
-                      setEditingVideo({ ...editingVideo, youtubeEmbedId: val, youtubeUrl: `https://youtube.com/watch?v=${val}` });
+                      const id = extractYouTubeId(e.target.value) || e.target.value;
+                      setEditingVideo({ 
+                        ...editingVideo, 
+                        youtubeEmbedId: id, 
+                        youtubeUrl: `https://youtube.com/watch?v=${id}`,
+                        thumbnail: getYouTubeThumbnail(id, 'maxres')
+                      });
                     }}
-                    placeholder="e.g. dQw4w9WgXcQ"
+                    placeholder="11-char ID"
                     className="w-full px-3 py-1.5 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs font-mono"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold mb-1">Category</label>
+                  <label className="block text-xs font-semibold mb-1 text-neutral-700 dark:text-neutral-300">
+                    Category
+                  </label>
                   <select
                     value={editingVideo.category}
                     onChange={(e) => setEditingVideo({ ...editingVideo, category: e.target.value as any })}
@@ -238,7 +369,9 @@ export const VideosTab: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold mb-1">Duration</label>
+                  <label className="block text-xs font-semibold mb-1 text-neutral-700 dark:text-neutral-300">
+                    Duration (e.g. 3:45)
+                  </label>
                   <input
                     type="text"
                     value={editingVideo.duration}
@@ -248,7 +381,9 @@ export const VideosTab: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold mb-1">Release Date</label>
+                  <label className="block text-xs font-semibold mb-1 text-neutral-700 dark:text-neutral-300">
+                    Release Date
+                  </label>
                   <input
                     type="date"
                     value={editingVideo.date}
@@ -258,23 +393,41 @@ export const VideosTab: React.FC = () => {
                 </div>
               </div>
 
+              {/* Thumbnail with Live Preview */}
               <div>
-                <label className="block text-xs font-semibold mb-1">Custom Thumbnail URL</label>
-                <input
-                  type="url"
-                  value={editingVideo.thumbnail}
-                  onChange={(e) => setEditingVideo({ ...editingVideo, thumbnail: e.target.value })}
-                  className="w-full px-3 py-1.5 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs font-mono"
-                />
+                <label className="block text-xs font-semibold mb-1 text-neutral-700 dark:text-neutral-300">
+                  Thumbnail Image URL
+                </label>
+                <div className="flex gap-2 items-center">
+                  <input
+                    type="url"
+                    value={editingVideo.thumbnail}
+                    onChange={(e) => setEditingVideo({ ...editingVideo, thumbnail: e.target.value })}
+                    className="flex-1 px-3 py-1.5 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs font-mono"
+                  />
+                </div>
+                {editingVideo.thumbnail && (
+                  <div className="mt-2 flex items-center gap-3 p-2 rounded-xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700">
+                    <img 
+                      src={editingVideo.thumbnail} 
+                      alt="Thumbnail preview" 
+                      className="w-20 aspect-video rounded-lg object-cover bg-black" 
+                    />
+                    <span className="text-[11px] text-neutral-400">Live thumbnail preview</span>
+                  </div>
+                )}
               </div>
 
               <div>
-                <label className="block text-xs font-semibold mb-1">Description</label>
+                <label className="block text-xs font-semibold mb-1 text-neutral-700 dark:text-neutral-300">
+                  Description / Story
+                </label>
                 <textarea
                   rows={2}
                   value={editingVideo.description}
                   onChange={(e) => setEditingVideo({ ...editingVideo, description: e.target.value })}
-                  className="w-full px-3 py-1.5 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs"
+                  placeholder="Tell viewers about this visual release..."
+                  className="w-full px-3.5 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs"
                 />
               </div>
 
@@ -282,15 +435,15 @@ export const VideosTab: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-1.5 text-xs text-neutral-500"
+                  className="px-4 py-2 text-xs text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs rounded-xl"
+                  className="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs rounded-xl shadow-md"
                 >
-                  Save Video
+                  Save Video Release
                 </button>
               </div>
             </form>

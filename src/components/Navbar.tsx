@@ -18,7 +18,8 @@ import {
   User, 
   Mail, 
   Share2,
-  Lock
+  Lock,
+  Download
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -30,11 +31,30 @@ export const Navbar: React.FC = () => {
     setTheme, 
     profile, 
     discoverRandomWork,
-    isAdminLoggedIn
+    isOwner,
+    authUser,
+    showToast
   } = useStore();
+
+  const isAdminLoggedIn = isOwner || !!authUser;
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [discoveryToast, setDiscoveryToast] = useState<string | null>(null);
+
+  const handlePwaInstall = () => {
+    // If beforeinstallprompt deferred prompt exists on window
+    const promptEvent = (window as any).deferredPwaPrompt;
+    if (promptEvent) {
+      promptEvent.prompt();
+      promptEvent.userChoice.then((choice: any) => {
+        if (choice.outcome === 'accepted') {
+          showToast('App installed successfully!', 'success');
+        }
+      });
+    } else {
+      showToast('Install via Chrome: Click Chrome menu (⋮) -> "Install Arjun Bharti Mina Hub" / "Add to Home screen"', 'info');
+    }
+  };
 
   const navItems: { id: ActiveTab; label: string; icon: React.ReactNode }[] = [
     { id: 'home', label: 'Home', icon: <Sparkles className="w-4 h-4" /> },
@@ -124,6 +144,17 @@ export const Navbar: React.FC = () => {
               <Search className="w-3.5 h-3.5" />
               <span className="hidden md:inline">Search</span>
               <kbd className="hidden sm:inline-block text-[10px] px-1.5 py-0.2 font-mono bg-neutral-200 dark:bg-neutral-800 rounded text-neutral-500">⌘K</kbd>
+            </button>
+
+            {/* Install App Button */}
+            <button
+              id="install-pwa-nav-btn"
+              onClick={handlePwaInstall}
+              title="Install App directly from Chrome"
+              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 transition-colors font-medium"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Install</span>
             </button>
 
             {/* Discover Random Work */}

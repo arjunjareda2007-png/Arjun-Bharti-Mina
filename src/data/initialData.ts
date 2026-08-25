@@ -13,7 +13,8 @@ import {
   NavigationItem,
   AppearanceConfig,
   SEOConfig,
-  YouTubeSettings
+  YouTubeSettings,
+  SiteAnalytics
 } from '../types';
 
 export const initialProfile: UserProfile = {
@@ -61,9 +62,9 @@ export const initialProfile: UserProfile = {
   ],
   profileImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1000&auto=format&fit=crop',
   heroImage: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1600&auto=format&fit=crop',
-  email: 'arjunjareda2007@gmail.com',
+  email: 'contact@arjunbhartimina.com',
   website: 'https://arjunbhartimina.com',
-  whatsappNumber: '+91 98765 43210',
+  whatsappNumber: '+91 98000 00000',
   featuredQuote: 'Art is the blueprint of the soul, and rhythm is its foundation.',
   isVerified: true,
   privacy: {
@@ -975,5 +976,29 @@ export const initialYouTube: YouTubeSettings = {
     { title: 'Acoustic & Studio Sessions', url: 'https://youtube.com/@arjunbhartimina/playlists' },
     { title: 'Shorts & Studio Vlogs', url: 'https://youtube.com/@arjunbhartimina/shorts' }
   ]
+};
+
+export const initialAnalytics: SiteAnalytics = {
+  pageViews: 1,
+  uniqueVisitors: 1,
+  tabViews: {
+    home: 1,
+    about: 0,
+    music: 0,
+    lyrics: 0,
+    gallery: 0,
+    videos: 0,
+    projects: 0,
+    books: 0,
+    social: 0,
+    contact: 0,
+  },
+  songPlays: {},
+  projectClicks: {},
+  searches: [],
+  dailyActivity: [{ date: new Date().toISOString().split('T')[0], views: 1, plays: 0 }],
+  devices: { mobile: 0, desktop: 1, tablet: 0 },
+  browsers: { Chrome: 1 },
+  interactionEvents: []
 };
 

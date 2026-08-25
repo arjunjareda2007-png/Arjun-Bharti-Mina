@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useStore } from '../../context/StoreContext';
 import { SiteBranding } from '../../types';
-import { Sparkles, Save, CheckCircle2, Globe, Layout, Copyright } from 'lucide-react';
+import { Sparkles, Save, CheckCircle2, Globe, Layout, Copyright, Crop } from 'lucide-react';
 
 export const BrandingTab: React.FC = () => {
-  const { branding, updateBranding } = useStore();
+  const { branding, updateBranding, openCropper } = useStore();
   const [formData, setFormData] = useState<SiteBranding>(branding);
   const [isSaving, setIsSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
@@ -131,9 +131,30 @@ export const BrandingTab: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-3">
-            <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300">
-              Custom Logo Image URL (Optional)
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300">
+                Custom Logo Image URL (Optional)
+              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  openCropper({
+                    initialImageUrl: formData.logoUrl,
+                    title: 'Crop & Refine Brand Logo',
+                    aspectRatioPreset: 'free',
+                    outputWidth: 512,
+                    outputHeight: 512,
+                    onCropComplete: (dataUrl) => {
+                      handleChange('logoUrl', dataUrl);
+                    }
+                  });
+                }}
+                className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-bold rounded-lg border border-amber-500/20 flex items-center gap-1 transition-colors"
+              >
+                <Crop className="w-3.5 h-3.5" />
+                <span>Crop Logo</span>
+              </button>
+            </div>
             <input
               type="url"
               value={formData.logoUrl}
@@ -150,9 +171,30 @@ export const BrandingTab: React.FC = () => {
           </div>
 
           <div className="space-y-3">
-            <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300">
-              Favicon URL (Optional)
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300">
+                Favicon URL (Optional)
+              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  openCropper({
+                    initialImageUrl: formData.faviconUrl,
+                    title: 'Crop & Refine Favicon (1:1)',
+                    aspectRatioPreset: '1:1',
+                    outputWidth: 256,
+                    outputHeight: 256,
+                    onCropComplete: (dataUrl) => {
+                      handleChange('faviconUrl', dataUrl);
+                    }
+                  });
+                }}
+                className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-bold rounded-lg border border-amber-500/20 flex items-center gap-1 transition-colors"
+              >
+                <Crop className="w-3.5 h-3.5" />
+                <span>Crop Favicon</span>
+              </button>
+            </div>
             <input
               type="url"
               value={formData.faviconUrl}

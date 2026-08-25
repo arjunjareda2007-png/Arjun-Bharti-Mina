@@ -14,7 +14,9 @@ import {
   Calendar, 
   ArrowRight,
   Disc3,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Share2,
+  Video
 } from 'lucide-react';
 
 export const MusicView: React.FC = () => {
@@ -26,7 +28,10 @@ export const MusicView: React.FC = () => {
     togglePlay, 
     setSelectedSongId, 
     setCurrentTab, 
-    setSelectedLyricId 
+    setSelectedLyricId,
+    openShare,
+    openVideoPlayer,
+    videos
   } = useStore();
 
   const [selectedGenre, setSelectedGenre] = useState<string>('All');
@@ -211,6 +216,58 @@ export const MusicView: React.FC = () => {
                     </button>
 
                     <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => openShare({
+                          type: 'song',
+                          title: `${song.title} — Arjun Bharti Mina`,
+                          text: `${song.genre} (${song.year}) by ${song.artist}. Listen to official release.`,
+                          url: `${window.location.origin}/#music?song=${song.id}`,
+                          imageUrl: song.cover,
+                          artist: song.artist,
+                          genre: song.genre,
+                          year: song.year,
+                          lyricsText: song.lyrics,
+                          streamingLinks: song.streamingLinks,
+                          downloadFilename: `${song.title.toLowerCase().replace(/[^a-z0-9]/g, '_')}_poster.jpg`
+                        })}
+                        className="p-1.5 rounded-lg text-neutral-500 hover:text-amber-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                        title="Share Song & Links"
+                      >
+                        <Share2 className="w-4 h-4" />
+                      </button>
+
+                      {/* Video Player Quick Button if Song has Video */}
+                      {(song.youtubeEmbedId || song.streamingLinks.youtube || videos.some(v => v.title.toLowerCase().includes(song.title.toLowerCase()))) && (
+                        <button
+                          onClick={() => {
+                            const matched = videos.find(v => v.title.toLowerCase().includes(song.title.toLowerCase()));
+                            if (matched) {
+                              openVideoPlayer(matched);
+                            } else {
+                              const ytId = song.youtubeEmbedId || (song.streamingLinks?.youtube?.includes('v=') ? song.streamingLinks.youtube.split('v=')[1]?.split('&')[0] : 'dQw4w9WgXcQ');
+                              openVideoPlayer({
+                                id: `song-vid-${song.id}`,
+                                title: `${song.title} (Official Visualizer)`,
+                                youtubeEmbedId: ytId,
+                                youtubeUrl: song.streamingLinks?.youtube || `https://youtube.com/watch?v=${ytId}`,
+                                thumbnail: song.cover,
+                                category: 'Music Video',
+                                duration: song.duration,
+                                description: `Official music visualizer for "${song.title}" by ${song.artist}.`,
+                                viewsCount: 'Official',
+                                date: song.releaseDate,
+                                featured: song.featured,
+                                published: true
+                              });
+                            }
+                          }}
+                          className="p-1.5 rounded-lg text-red-500 hover:bg-red-500/10 transition-colors"
+                          title="Watch Official Video / Visualizer"
+                        >
+                          <Video className="w-4 h-4" />
+                        </button>
+                      )}
+
                       {song.streamingLinks.spotify && (
                         <a
                           href={song.streamingLinks.spotify}

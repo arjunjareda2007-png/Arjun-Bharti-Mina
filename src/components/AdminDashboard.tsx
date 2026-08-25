@@ -94,7 +94,7 @@ export const AdminDashboard: React.FC = () => {
           {/* Account check banner */}
           <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-[11px] text-amber-300 flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 shrink-0 text-amber-400" />
-            <span>Authorized Creator: <strong className="font-mono">arjunjareda2007@gmail.com</strong></span>
+            <span>Official Portal Verification • Authorized Creator Only</span>
           </div>
 
           {authError && (
@@ -122,7 +122,7 @@ export const AdminDashboard: React.FC = () => {
                   required
                   value={loginEmail}
                   onChange={(e) => setLoginEmail(e.target.value)}
-                  placeholder="arjunjareda2007@gmail.com"
+                  placeholder="creator@arjunbhartimina.com"
                   className="w-full px-3.5 py-2.5 bg-neutral-800 border border-neutral-700 rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:border-amber-500"
                 />
               </div>
@@ -185,7 +185,7 @@ export const AdminDashboard: React.FC = () => {
                     required
                     value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
-                    placeholder="arjunjareda2007@gmail.com"
+                    placeholder="creator@arjunbhartimina.com"
                     className="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:border-amber-500"
                   />
                 </div>

@@ -25,9 +25,16 @@ export const LyricsView: React.FC = () => {
   const handleShare = (lyric: any, e: React.MouseEvent) => {
     e.stopPropagation();
     openShare({
-      title: `${lyric.title} — Lyrics by Arjun Bharti Mina`,
-      text: lyric.lyrics.slice(0, 150) + '...',
-      url: window.location.href
+      type: 'lyrics',
+      title: `${lyric.title} — Lyrics by ${lyric.artist}`,
+      text: lyric.meaning || `Official lyrics written by ${lyric.artist} (${lyric.year}).`,
+      url: `${window.location.origin}/#lyrics?id=${lyric.id}`,
+      lyricsText: lyric.lyrics,
+      meaning: lyric.meaning,
+      artist: lyric.artist,
+      genre: lyric.genre,
+      year: lyric.year,
+      downloadFilename: `${lyric.title.toLowerCase().replace(/[^a-z0-9]/g, '_')}_lyrics.pdf`
     });
   };
 

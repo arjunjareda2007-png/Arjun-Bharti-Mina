@@ -42,7 +42,22 @@ export const SongDetailModal: React.FC = () => {
 
   const isCurrentActive = currentSong?.id === song.id;
   const relatedSongs = songs.filter(s => s.id !== song.id && (s.genre === song.genre || s.year === song.year)).slice(0, 3);
-  const matchedVideo = videos.find(v => v.title.toLowerCase().includes(song.title.toLowerCase()));
+  
+  const matchedVideo = videos.find(v => v.title.toLowerCase().includes(song.title.toLowerCase())) || 
+    (song.youtubeEmbedId || (song.streamingLinks?.youtube && song.streamingLinks.youtube.includes('watch')) ? {
+      id: `song-vid-${song.id}`,
+      title: `${song.title} (Official Visualizer)`,
+      youtubeEmbedId: song.youtubeEmbedId || (song.streamingLinks?.youtube?.split('v=')[1]?.split('&')[0] || 'dQw4w9WgXcQ'),
+      youtubeUrl: song.streamingLinks?.youtube || `https://youtube.com/watch?v=${song.youtubeEmbedId}`,
+      thumbnail: song.cover,
+      category: 'Music Video' as const,
+      duration: song.duration,
+      description: `Official music video for "${song.title}" by ${song.artist}.`,
+      viewsCount: 'Official',
+      date: song.releaseDate,
+      featured: song.featured,
+      published: true
+    } : null);
 
   const handleCopyLyrics = () => {
     navigator.clipboard.writeText(song.lyrics);
@@ -52,9 +67,17 @@ export const SongDetailModal: React.FC = () => {
 
   const handleShare = () => {
     openShare({
+      type: 'song',
       title: `${song.title} — Arjun Bharti Mina`,
-      text: `${song.genre} by Arjun Bharti Mina. Release Year: ${song.year}.`,
-      url: window.location.href
+      text: `${song.genre} (${song.year}) by ${song.artist}. Official stream available.`,
+      url: `${window.location.origin}/#music?song=${song.id}`,
+      imageUrl: song.cover,
+      artist: song.artist,
+      genre: song.genre,
+      year: song.year,
+      lyricsText: song.lyrics,
+      streamingLinks: song.streamingLinks,
+      downloadFilename: `${song.title.toLowerCase().replace(/[^a-z0-9]/g, '_')}_poster.jpg`
     });
   };
 
@@ -183,59 +206,61 @@ export const SongDetailModal: React.FC = () => {
               </div>
 
               {/* Streaming Platforms Hub */}
-              <div className="pt-3 border-t border-neutral-200 dark:border-neutral-800">
-                <span className="text-[11px] font-mono uppercase tracking-wider text-neutral-500 block mb-2">
-                  Stream On
-                </span>
-                <div className="flex flex-wrap gap-2">
-                  {song.streamingLinks.spotify && (
-                    <a
-                      href={song.streamingLinks.spotify}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="px-3 py-1.5 rounded-lg bg-[#1DB954]/10 hover:bg-[#1DB954]/20 text-[#1DB954] text-xs font-medium flex items-center gap-1.5 transition-colors"
-                    >
-                      <Radio className="w-3.5 h-3.5" />
-                      <span>Spotify</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  )}
-                  {song.streamingLinks.youtube && (
-                    <a
-                      href={song.streamingLinks.youtube}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="px-3 py-1.5 rounded-lg bg-red-600/10 hover:bg-red-600/20 text-red-600 dark:text-red-400 text-xs font-medium flex items-center gap-1.5 transition-colors"
-                    >
-                      <Video className="w-3.5 h-3.5" />
-                      <span>YouTube</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  )}
-                  {song.streamingLinks.jiosaavn && (
-                    <a
-                      href={song.streamingLinks.jiosaavn}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="px-3 py-1.5 rounded-lg bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 text-xs font-medium flex items-center gap-1.5 transition-colors"
-                    >
-                      <span>JioSaavn</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  )}
-                  {song.streamingLinks.gaana && (
-                    <a
-                      href={song.streamingLinks.gaana}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="px-3 py-1.5 rounded-lg bg-rose-600/10 hover:bg-rose-600/20 text-rose-600 dark:text-rose-400 text-xs font-medium flex items-center gap-1.5 transition-colors"
-                    >
-                      <span>Gaana</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  )}
+              {song.streamingLinks && Object.values(song.streamingLinks).some(Boolean) && (
+                <div className="pt-3 border-t border-neutral-200 dark:border-neutral-800">
+                  <span className="text-[11px] font-mono uppercase tracking-wider text-neutral-500 block mb-2">
+                    Stream On
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {song.streamingLinks.spotify && (
+                      <a
+                        href={song.streamingLinks.spotify}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-3 py-1.5 rounded-lg bg-[#1DB954]/10 hover:bg-[#1DB954]/20 text-[#1DB954] text-xs font-medium flex items-center gap-1.5 transition-colors"
+                      >
+                        <Radio className="w-3.5 h-3.5" />
+                        <span>Spotify</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+                    {song.streamingLinks.youtube && (
+                      <a
+                        href={song.streamingLinks.youtube}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-3 py-1.5 rounded-lg bg-red-600/10 hover:bg-red-600/20 text-red-600 dark:text-red-400 text-xs font-medium flex items-center gap-1.5 transition-colors"
+                      >
+                        <Video className="w-3.5 h-3.5" />
+                        <span>YouTube</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+                    {song.streamingLinks.jiosaavn && (
+                      <a
+                        href={song.streamingLinks.jiosaavn}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-3 py-1.5 rounded-lg bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 text-xs font-medium flex items-center gap-1.5 transition-colors"
+                      >
+                        <span>JioSaavn</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+                    {song.streamingLinks.gaana && (
+                      <a
+                        href={song.streamingLinks.gaana}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-3 py-1.5 rounded-lg bg-rose-600/10 hover:bg-rose-600/20 text-rose-600 dark:text-rose-400 text-xs font-medium flex items-center gap-1.5 transition-colors"
+                      >
+                        <span>Gaana</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
 
             </div>
           </div>
@@ -248,27 +273,27 @@ export const SongDetailModal: React.FC = () => {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 text-xs">
               <div>
                 <span className="text-neutral-500 block text-[11px]">Lead Artist</span>
-                <span className="font-semibold text-neutral-900 dark:text-neutral-100">{song.credits.artist}</span>
+                <span className="font-semibold text-neutral-900 dark:text-neutral-100">{song.credits?.artist || song.artist || 'Arjun Bharti Mina'}</span>
               </div>
               <div>
                 <span className="text-neutral-500 block text-[11px]">Lyrics & Songwriting</span>
-                <span className="font-semibold text-neutral-900 dark:text-neutral-100">{song.credits.lyrics}</span>
+                <span className="font-semibold text-neutral-900 dark:text-neutral-100">{song.credits?.lyrics || 'Arjun Bharti Mina'}</span>
               </div>
               <div>
                 <span className="text-neutral-500 block text-[11px]">Music & Arrangement</span>
-                <span className="font-semibold text-neutral-900 dark:text-neutral-100">{song.credits.music}</span>
+                <span className="font-semibold text-neutral-900 dark:text-neutral-100">{song.credits?.music || 'Studio Beats'}</span>
               </div>
               <div>
                 <span className="text-neutral-500 block text-[11px]">Studio Production</span>
-                <span className="font-semibold text-neutral-900 dark:text-neutral-100">{song.credits.production}</span>
+                <span className="font-semibold text-neutral-900 dark:text-neutral-100">{song.credits?.production || 'ABM Records'}</span>
               </div>
-              {song.credits.mixMaster && (
+              {song.credits?.mixMaster && (
                 <div>
                   <span className="text-neutral-500 block text-[11px]">Mix & Mastering</span>
                   <span className="font-semibold text-neutral-900 dark:text-neutral-100">{song.credits.mixMaster}</span>
                 </div>
               )}
-              {song.credits.label && (
+              {song.credits?.label && (
                 <div>
                   <span className="text-neutral-500 block text-[11px]">Record Label</span>
                   <span className="font-semibold text-neutral-900 dark:text-neutral-100">{song.credits.label}</span>

@@ -17,8 +17,16 @@ import {
   Save,
   X,
   CheckSquare,
-  Square
+  Square,
+  RefreshCw,
+  CheckCircle2,
+  Video
 } from 'lucide-react';
+import { 
+  extractYouTubeId, 
+  getYouTubeThumbnail, 
+  fetchYouTubeMetadata 
+} from '../../utils/youtubeUtils';
 
 const EMPTY_SONG: Song = {
   id: '',
@@ -72,6 +80,8 @@ export const MusicTab: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [deleteTarget, setDeleteTarget] = useState<Song | null>(null);
+  const [fetchingMeta, setFetchingMeta] = useState(false);
+  const [fetchedSuccess, setFetchedSuccess] = useState(false);
 
   // Filtered list
   const filteredSongs = songs.filter(song => {
@@ -83,6 +93,64 @@ export const MusicTab: React.FC = () => {
     if (filterMode === 'featured') return song.featured;
     return true;
   });
+
+  const handleFetchSongYouTube = async (urlOrId?: string) => {
+    if (!editingSong) return;
+    const target = urlOrId || editingSong.streamingLinks?.youtube || '';
+    if (!target || !target.trim()) return;
+
+    setFetchingMeta(true);
+    try {
+      const extractedId = extractYouTubeId(target);
+      if (!extractedId) {
+        setFetchingMeta(false);
+        return;
+      }
+
+      const meta = await fetchYouTubeMetadata(target);
+      const thumb = meta?.thumbnail || getYouTubeThumbnail(extractedId, 'maxres');
+
+      setEditingSong(prev => {
+        if (!prev) return null;
+        let title = prev.title;
+        // Clean up common YouTube title patterns if song title is generic or empty
+        if ((!title || title.trim() === '' || title === 'Untitled Track') && meta?.title) {
+          title = meta.title
+            .replace(/official\s*(music\s*)?video/gi, '')
+            .replace(/official\s*audio/gi, '')
+            .replace(/\[.*?\]|\(.*?\)/g, '')
+            .replace(/^.*?[-–—]/, '')
+            .trim() || meta.title;
+        }
+
+        return {
+          ...prev,
+          cover: thumb,
+          title: title || prev.title,
+          youtubeEmbedId: extractedId,
+          streamingLinks: {
+            ...prev.streamingLinks,
+            youtube: `https://www.youtube.com/watch?v=${extractedId}`
+          }
+        };
+      });
+
+      setFetchedSuccess(true);
+      setTimeout(() => setFetchedSuccess(false), 3000);
+    } catch (e) {
+      console.warn('YouTube song fetch error:', e);
+      const extractedId = extractYouTubeId(target);
+      if (extractedId) {
+        setEditingSong(prev => prev ? {
+          ...prev,
+          cover: getYouTubeThumbnail(extractedId, 'maxres'),
+          youtubeEmbedId: extractedId
+        } : null);
+      }
+    } finally {
+      setFetchingMeta(false);
+    }
+  };
 
   const handleOpenAdd = () => {
     setEditingSong({
@@ -378,6 +446,47 @@ export const MusicTab: React.FC = () => {
               </p>
             </div>
 
+            {/* Smart YouTube Auto-Fetch Bar */}
+            <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 space-y-2">
+              <label className="text-xs font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Auto-Fetch Song Thumbnail & Details from YouTube</span>
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Paste YouTube or YouTube Music link (e.g. https://youtube.com/watch?v=...)"
+                  value={editingSong.streamingLinks?.youtube || ''}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    const id = extractYouTubeId(val);
+                    setEditingSong({
+                      ...editingSong,
+                      streamingLinks: { ...editingSong.streamingLinks, youtube: val },
+                      cover: id ? getYouTubeThumbnail(id, 'maxres') : editingSong.cover,
+                      youtubeEmbedId: id || editingSong.youtubeEmbedId
+                    });
+                  }}
+                  className="flex-1 px-3 py-2 bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 rounded-xl text-xs font-mono focus:outline-none focus:border-amber-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleFetchSongYouTube()}
+                  disabled={fetchingMeta}
+                  className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors shrink-0 disabled:opacity-50 shadow-sm"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${fetchingMeta ? 'animate-spin' : ''}`} />
+                  <span>{fetchingMeta ? 'Fetching...' : 'Fetch Cover'}</span>
+                </button>
+              </div>
+              {fetchedSuccess && (
+                <div className="flex items-center gap-1 text-[11px] text-emerald-500 font-medium">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Cover artwork & YouTube links fetched successfully!</span>
+                </div>
+              )}
+            </div>
+
             <form onSubmit={handleSaveModal} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
@@ -470,10 +579,10 @@ export const MusicTab: React.FC = () => {
                     <label className="block text-[11px] text-neutral-400 mb-0.5">Spotify URL</label>
                     <input
                       type="url"
-                      value={editingSong.links?.spotify || ''}
+                      value={editingSong.streamingLinks?.spotify || ''}
                       onChange={(e) => setEditingSong({
                         ...editingSong,
-                        links: { ...editingSong.links, spotify: e.target.value }
+                        streamingLinks: { ...editingSong.streamingLinks, spotify: e.target.value }
                       })}
                       className="w-full px-3 py-1.5 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-xs font-mono"
                     />
@@ -483,10 +592,10 @@ export const MusicTab: React.FC = () => {
                     <label className="block text-[11px] text-neutral-400 mb-0.5">YouTube Music URL</label>
                     <input
                       type="url"
-                      value={editingSong.links?.youtube || ''}
+                      value={editingSong.streamingLinks?.youtube || ''}
                       onChange={(e) => setEditingSong({
                         ...editingSong,
-                        links: { ...editingSong.links, youtube: e.target.value }
+                        streamingLinks: { ...editingSong.streamingLinks, youtube: e.target.value }
                       })}
                       className="w-full px-3 py-1.5 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-xs font-mono"
                     />
@@ -496,10 +605,10 @@ export const MusicTab: React.FC = () => {
                     <label className="block text-[11px] text-neutral-400 mb-0.5">JioSaavn URL</label>
                     <input
                       type="url"
-                      value={editingSong.links?.jiosaavn || ''}
+                      value={editingSong.streamingLinks?.jiosaavn || ''}
                       onChange={(e) => setEditingSong({
                         ...editingSong,
-                        links: { ...editingSong.links, jiosaavn: e.target.value }
+                        streamingLinks: { ...editingSong.streamingLinks, jiosaavn: e.target.value }
                       })}
                       className="w-full px-3 py-1.5 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-xs font-mono"
                     />
@@ -509,10 +618,10 @@ export const MusicTab: React.FC = () => {
                     <label className="block text-[11px] text-neutral-400 mb-0.5">Gaana URL</label>
                     <input
                       type="url"
-                      value={editingSong.links?.gaana || ''}
+                      value={editingSong.streamingLinks?.gaana || ''}
                       onChange={(e) => setEditingSong({
                         ...editingSong,
-                        links: { ...editingSong.links, gaana: e.target.value }
+                        streamingLinks: { ...editingSong.streamingLinks, gaana: e.target.value }
                       })}
                       className="w-full px-3 py-1.5 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-xs font-mono"
                     />
@@ -522,10 +631,10 @@ export const MusicTab: React.FC = () => {
                     <label className="block text-[11px] text-neutral-400 mb-0.5">Apple Music URL</label>
                     <input
                       type="url"
-                      value={editingSong.links?.appleMusic || ''}
+                      value={editingSong.streamingLinks?.appleMusic || ''}
                       onChange={(e) => setEditingSong({
                         ...editingSong,
-                        links: { ...editingSong.links, appleMusic: e.target.value }
+                        streamingLinks: { ...editingSong.streamingLinks, appleMusic: e.target.value }
                       })}
                       className="w-full px-3 py-1.5 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-xs font-mono"
                     />

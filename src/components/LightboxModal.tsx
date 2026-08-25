@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useStore } from '../context/StoreContext';
-import { X, ChevronLeft, ChevronRight, Share2, ZoomIn, ZoomOut, MapPin, Calendar, Tag } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Share2, ZoomIn, ZoomOut, MapPin, Calendar, Tag, Download } from 'lucide-react';
+import { downloadImage } from '../utils/shareUtils';
 
 export const LightboxModal: React.FC = () => {
-  const { lightboxItem, closeLightbox, nextLightbox, prevLightbox, openShare } = useStore();
+  const { lightboxItem, closeLightbox, nextLightbox, prevLightbox, openShare, showToast } = useStore();
   const [isZoomed, setIsZoomed] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -20,10 +22,21 @@ export const LightboxModal: React.FC = () => {
 
   const handleShare = () => {
     openShare({
+      type: 'image',
       title: `${lightboxItem.title} — Photography by Arjun Bharti Mina`,
-      text: lightboxItem.description,
-      url: window.location.href
+      text: `${lightboxItem.description} Location: ${lightboxItem.location || 'India'} (${lightboxItem.date}).`,
+      url: `${window.location.origin}/#gallery?id=${lightboxItem.id}`,
+      imageUrl: lightboxItem.imageUrl,
+      downloadFilename: `${lightboxItem.title.toLowerCase().replace(/[^a-z0-9]/g, '_')}.jpg`
     });
+  };
+
+  const handleDownload = async () => {
+    setDownloading(true);
+    const filename = `${lightboxItem.title.toLowerCase().replace(/[^a-z0-9]/g, '_')}.jpg`;
+    await downloadImage(lightboxItem.imageUrl, filename);
+    setDownloading(false);
+    showToast('Photo downloaded successfully!', 'success');
   };
 
   return (
@@ -44,6 +57,14 @@ export const LightboxModal: React.FC = () => {
 
         <div className="flex items-center gap-2">
           <button
+            onClick={handleDownload}
+            disabled={downloading}
+            className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+            title="Download Full Resolution JPG"
+          >
+            <Download className="w-4 h-4" />
+          </button>
+          <button
             onClick={() => setIsZoomed(!isZoomed)}
             className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
             title={isZoomed ? "Zoom Out" : "Zoom In"}
@@ -53,7 +74,7 @@ export const LightboxModal: React.FC = () => {
           <button
             onClick={handleShare}
             className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
-            title="Share Photo"
+            title="Share Photo & App Link"
           >
             <Share2 className="w-4 h-4" />
           </button>
@@ -118,7 +139,7 @@ export const LightboxModal: React.FC = () => {
             <Calendar className="w-3.5 h-3.5 text-neutral-400" />
             {lightboxItem.date}
           </span>
-          {lightboxItem.tags.length > 0 && (
+          {lightboxItem.tags && lightboxItem.tags.length > 0 && (
             <span className="flex items-center gap-1">
               <Tag className="w-3.5 h-3.5 text-amber-500" />
               {lightboxItem.tags.slice(0, 3).join(', ')}

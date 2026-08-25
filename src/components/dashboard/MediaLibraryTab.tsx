@@ -44,13 +44,13 @@ export const MediaLibraryTab: React.FC = () => {
     })),
     ...gallery.map((g, idx) => ({
       id: `media-gal-${idx}`,
-      url: g.url,
+      url: g.imageUrl,
       title: `Gallery: ${g.title}`,
       source: 'Gallery' as const
     })),
     ...projects.map((p, idx) => ({
       id: `media-proj-${idx}`,
-      url: p.image,
+      url: p.thumbnail,
       title: `Project: ${p.title}`,
       source: 'Project' as const
     })),

@@ -17,7 +17,8 @@ import {
   AppearanceConfig,
   SEOConfig,
   YouTubeSettings,
-  ActiveTab 
+  ActiveTab,
+  ShareData
 } from '../types';
 import { 
   initialProfile, 
@@ -34,7 +35,8 @@ import {
   initialNavigation,
   initialAppearance,
   initialSEO,
-  initialYouTube
+  initialYouTube,
+  initialAnalytics
 } from '../data/initialData';
 import { audioSynth } from '../utils/audioSynth';
 import { parseDurationToSeconds } from '../utils/helpers';
@@ -51,12 +53,6 @@ import {
   User 
 } from '../firebase';
 import { firestoreService } from '../services/firestoreService';
-
-interface ShareData {
-  title: string;
-  text: string;
-  url: string;
-}
 
 interface NotificationToast {
   id: string;
@@ -205,6 +201,33 @@ interface StoreContextType {
   submitContactMessage: (msg: Omit<ContactMessage, 'id' | 'date' | 'read' | 'replied'>) => Promise<void>;
   markMessageRead: (id: string) => Promise<void>;
   deleteMessage: (id: string) => Promise<void>;
+
+  // Analytics Handlers
+  recordSongPlay: (songId: string) => void;
+  recordProjectClick: (projectId: string) => void;
+  recordSearchQuery: (query: string) => void;
+  recordInteraction: (type: string, label: string) => void;
+  resetAnalytics: () => void;
+
+  // Image Cropper modal
+  isCropperOpen: boolean;
+  cropperOptions: {
+    initialImageUrl?: string;
+    title?: string;
+    aspectRatioPreset?: '1:1' | '16:9' | '4:3' | '3:1' | '9:16' | 'free';
+    outputWidth?: number;
+    outputHeight?: number;
+    onCropComplete: (dataUrl: string) => void;
+  } | null;
+  openCropper: (options: {
+    initialImageUrl?: string;
+    title?: string;
+    aspectRatioPreset?: '1:1' | '16:9' | '4:3' | '3:1' | '9:16' | 'free';
+    outputWidth?: number;
+    outputHeight?: number;
+    onCropComplete: (dataUrl: string) => void;
+  }) => void;
+  closeCropper: () => void;
 
   // Bulk Operations
   bulkDeleteItems: (type: 'songs' | 'gallery' | 'videos' | 'projects' | 'lyrics', ids: string[]) => Promise<void>;
@@ -457,11 +480,48 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const [analytics, setAnalytics] = useState<SiteAnalytics>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}analytics`);
-    return saved ? JSON.parse(saved) : {
-      pageViews: 1420,
-      songPlays: { 'rutba-2026': 840, 'jaipur-to-delhi-2025': 520, 'khwabeeda-2025': 690 },
-      projectClicks: { 'proj-1': 320, 'proj-2': 210, 'proj-3': 180 },
-      searches: []
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return {
+          pageViews: parsed.pageViews || 1,
+          uniqueVisitors: parsed.uniqueVisitors || 1,
+          tabViews: parsed.tabViews || { home: 1 },
+          songPlays: parsed.songPlays || {},
+          projectClicks: parsed.projectClicks || {},
+          searches: parsed.searches || [],
+          dailyActivity: parsed.dailyActivity || [{ date: new Date().toISOString().split('T')[0], views: 1, plays: 0 }],
+          devices: parsed.devices || { mobile: 0, desktop: 1, tablet: 0 },
+          browsers: parsed.browsers || { Chrome: 1 },
+          interactionEvents: parsed.interactionEvents || [],
+          lastActiveTimestamp: parsed.lastActiveTimestamp || new Date().toISOString()
+        };
+      } catch (e) {
+        // Fallback
+      }
+    }
+    return {
+      pageViews: 124,
+      uniqueVisitors: 68,
+      tabViews: { home: 54, music: 38, lyrics: 16, projects: 12, gallery: 8 },
+      songPlays: { 'rutba-2026': 42, 'jaipur-to-delhi-2025': 28, 'khwabeeda-2025': 35 },
+      projectClicks: { 'proj-1': 14, 'proj-2': 9, 'proj-3': 11 },
+      searches: [
+        { query: 'Rutba song', timestamp: new Date(Date.now() - 3600000).toISOString() },
+        { query: 'Civil Engineering projects', timestamp: new Date(Date.now() - 7200000).toISOString() }
+      ],
+      dailyActivity: [
+        { date: new Date(Date.now() - 86400000 * 2).toISOString().split('T')[0], views: 32, plays: 18 },
+        { date: new Date(Date.now() - 86400000).toISOString().split('T')[0], views: 48, plays: 29 },
+        { date: new Date().toISOString().split('T')[0], views: 44, plays: 32 }
+      ],
+      devices: { mobile: 72, desktop: 46, tablet: 6 },
+      browsers: { Chrome: 88, Safari: 24, Firefox: 8, Edge: 4 },
+      interactionEvents: [
+        { type: 'lyric_copy', label: 'RUTBA - Verse 1', timestamp: new Date(Date.now() - 1800000).toISOString() },
+        { type: 'photo_view', label: 'Stage Performance 2026', timestamp: new Date(Date.now() - 3200000).toISOString() }
+      ],
+      lastActiveTimestamp: new Date().toISOString()
     };
   });
 
@@ -577,12 +637,96 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     localStorage.setItem(`${STORAGE_KEY_PREFIX}analytics`, JSON.stringify(analytics));
   }, [analytics]);
 
-  // Page view tracker
+  // Real Visitor & Session Tracker
   useEffect(() => {
-    setAnalytics(prev => ({
-      ...prev,
-      pageViews: prev.pageViews + 1
-    }));
+    try {
+      const hasVisitedBefore = localStorage.getItem('abm_visitor_id');
+      const sessionActive = sessionStorage.getItem('abm_session_id');
+
+      if (!sessionActive) {
+        const newSessionId = `sess_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+        sessionStorage.setItem('abm_session_id', newSessionId);
+
+        // Compute device
+        const width = window.innerWidth;
+        const ua = (navigator.userAgent || '').toLowerCase();
+        const isMob = /iphone|ipad|ipod|android|mobile/.test(ua) || width < 768;
+        const isTab = !isMob && (/tablet|ipad/.test(ua) || (width >= 768 && width <= 1024));
+        const deviceType: 'mobile' | 'desktop' | 'tablet' = isMob ? 'mobile' : isTab ? 'tablet' : 'desktop';
+
+        // Compute browser
+        let browser = 'Chrome';
+        if (ua.includes('firefox')) browser = 'Firefox';
+        else if (ua.includes('safari') && !ua.includes('chrome')) browser = 'Safari';
+        else if (ua.includes('edg')) browser = 'Edge';
+        else if (ua.includes('opera') || ua.includes('opr')) browser = 'Opera';
+
+        setAnalytics(prev => {
+          const today = new Date().toISOString().split('T')[0];
+          const dailyMap = [...(prev.dailyActivity || [])];
+          const todayEntryIndex = dailyMap.findIndex(d => d.date === today);
+          if (todayEntryIndex >= 0) {
+            dailyMap[todayEntryIndex] = {
+              ...dailyMap[todayEntryIndex],
+              views: dailyMap[todayEntryIndex].views + 1
+            };
+          } else {
+            dailyMap.push({ date: today, views: 1, plays: 0 });
+          }
+
+          return {
+            ...prev,
+            pageViews: (prev.pageViews || 0) + 1,
+            uniqueVisitors: (prev.uniqueVisitors || 0) + (hasVisitedBefore ? 0 : 1),
+            devices: {
+              mobile: (prev.devices?.mobile || 0) + (deviceType === 'mobile' ? 1 : 0),
+              tablet: (prev.devices?.tablet || 0) + (deviceType === 'tablet' ? 1 : 0),
+              desktop: (prev.devices?.desktop || 0) + (deviceType === 'desktop' ? 1 : 0)
+            },
+            browsers: {
+              ...(prev.browsers || {}),
+              [browser]: ((prev.browsers || {})[browser] || 0) + 1
+            },
+            dailyActivity: dailyMap.slice(-30),
+            lastActiveTimestamp: new Date().toISOString()
+          };
+        });
+
+        if (!hasVisitedBefore) {
+          localStorage.setItem('abm_visitor_id', `vis_${Date.now()}`);
+        }
+      }
+    } catch (e) {
+      console.warn('Analytics session tracker notice:', e);
+    }
+  }, []);
+
+  // Real tab view tracker
+  useEffect(() => {
+    setAnalytics(prev => {
+      const today = new Date().toISOString().split('T')[0];
+      const dailyMap = [...(prev.dailyActivity || [])];
+      const todayEntryIndex = dailyMap.findIndex(d => d.date === today);
+      if (todayEntryIndex >= 0) {
+        dailyMap[todayEntryIndex] = {
+          ...dailyMap[todayEntryIndex],
+          views: (dailyMap[todayEntryIndex].views || 0) + 1
+        };
+      } else {
+        dailyMap.push({ date: today, views: 1, plays: 0 });
+      }
+
+      return {
+        ...prev,
+        pageViews: (prev.pageViews || 0) + 1,
+        tabViews: {
+          ...(prev.tabViews || {}),
+          [currentTab]: ((prev.tabViews || {})[currentTab] || 0) + 1
+        },
+        dailyActivity: dailyMap.slice(-30),
+        lastActiveTimestamp: new Date().toISOString()
+      };
+    });
   }, [currentTab]);
 
   // Sync browser title with branding
@@ -601,42 +745,175 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [isLyricsExpanded, setIsLyricsExpanded] = useState<boolean>(false);
 
-  // Modals
+  // Modals & Cropper
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [shareData, setShareData] = useState<ShareData | null>(null);
   const [lightboxItem, setLightboxItem] = useState<GalleryItem | null>(null);
   const [activeVideo, setActiveVideo] = useState<VideoItem | null>(null);
 
-  // Theme & Appearance
+  // Image Cropper modal state
+  const [isCropperOpen, setIsCropperOpen] = useState<boolean>(false);
+  const [cropperOptions, setCropperOptions] = useState<{
+    initialImageUrl?: string;
+    title?: string;
+    aspectRatioPreset?: '1:1' | '16:9' | '4:3' | '3:1' | '9:16' | 'free';
+    outputWidth?: number;
+    outputHeight?: number;
+    onCropComplete: (dataUrl: string) => void;
+  } | null>(null);
+
+  const openCropper = useCallback((options: {
+    initialImageUrl?: string;
+    title?: string;
+    aspectRatioPreset?: '1:1' | '16:9' | '4:3' | '3:1' | '9:16' | 'free';
+    outputWidth?: number;
+    outputHeight?: number;
+    onCropComplete: (dataUrl: string) => void;
+  }) => {
+    setCropperOptions(options);
+    setIsCropperOpen(true);
+  }, []);
+
+  const closeCropper = useCallback(() => {
+    setIsCropperOpen(false);
+    setCropperOptions(null);
+  }, []);
+
+  // Theme & Appearance Dynamic Styling
   const [theme, setThemeState] = useState<'dark' | 'light' | 'system'>(() => {
     return appearance.themeMode || 'dark';
   });
 
-  const setTheme = useCallback((newTheme: 'dark' | 'light' | 'system') => {
-    setThemeState(newTheme);
-    setAppearance(prev => ({ ...prev, themeMode: newTheme }));
-    localStorage.setItem(`${STORAGE_KEY_PREFIX}theme`, newTheme);
-    const isDark = newTheme === 'dark' || (newTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  const applyAppearanceStyles = useCallback((appConfig: AppearanceConfig) => {
+    const isDark = appConfig.themeMode === 'dark' || 
+      (appConfig.themeMode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    
     if (isDark) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
+
+    document.documentElement.setAttribute('data-accent', appConfig.accentColor || 'amber');
+    document.documentElement.setAttribute('data-radius', appConfig.borderRadius || 'md');
+    document.documentElement.setAttribute('data-card-style', appConfig.cardStyle || 'glass');
+
+    // Set CSS accent variables for dynamic palette response
+    const accentMap: Record<string, { primary: string; glow: string }> = {
+      amber: { primary: '#f59e0b', glow: 'rgba(245, 158, 11, 0.3)' },
+      emerald: { primary: '#10b981', glow: 'rgba(16, 185, 129, 0.3)' },
+      sky: { primary: '#0ea5e9', glow: 'rgba(14, 165, 233, 0.3)' },
+      rose: { primary: '#f43f5e', glow: 'rgba(244, 63, 94, 0.3)' },
+      violet: { primary: '#8b5cf6', glow: 'rgba(139, 92, 246, 0.3)' },
+      orange: { primary: '#f97316', glow: 'rgba(249, 115, 22, 0.3)' },
+    };
+
+    const chosen = accentMap[appConfig.accentColor] || accentMap.amber;
+    document.documentElement.style.setProperty('--color-accent-primary', chosen.primary);
+    document.documentElement.style.setProperty('--color-accent-glow', chosen.glow);
   }, []);
+
+  const setTheme = useCallback((newTheme: 'dark' | 'light' | 'system') => {
+    setThemeState(newTheme);
+    setAppearance(prev => {
+      const updated = { ...prev, themeMode: newTheme };
+      applyAppearanceStyles(updated);
+      return updated;
+    });
+    localStorage.setItem(`${STORAGE_KEY_PREFIX}theme`, newTheme);
+  }, [applyAppearanceStyles]);
 
   const updateAppearance = (config: Partial<AppearanceConfig>) => {
     setAppearance(prev => {
       const updated = { ...prev, ...config };
-      if (config.themeMode) setTheme(config.themeMode);
+      applyAppearanceStyles(updated);
       return updated;
     });
-    showToast('Appearance settings saved');
+    showToast('Appearance settings saved and applied');
   };
 
   useEffect(() => {
-    setTheme(appearance.themeMode);
-  }, [appearance.themeMode, setTheme]);
+    applyAppearanceStyles(appearance);
+  }, [appearance, applyAppearanceStyles]);
+
+  // Analytics Helpers
+  const recordSongPlay = useCallback((songId: string) => {
+    setAnalytics(prev => {
+      const today = new Date().toISOString().split('T')[0];
+      const dailyMap = [...(prev.dailyActivity || [])];
+      const todayEntryIndex = dailyMap.findIndex(d => d.date === today);
+      if (todayEntryIndex >= 0) {
+        dailyMap[todayEntryIndex] = {
+          ...dailyMap[todayEntryIndex],
+          plays: (dailyMap[todayEntryIndex].plays || 0) + 1
+        };
+      } else {
+        dailyMap.push({ date: today, views: 1, plays: 1 });
+      }
+
+      return {
+        ...prev,
+        songPlays: {
+          ...(prev.songPlays || {}),
+          [songId]: ((prev.songPlays || {})[songId] || 0) + 1
+        },
+        dailyActivity: dailyMap.slice(-30),
+        lastActiveTimestamp: new Date().toISOString()
+      };
+    });
+  }, []);
+
+  const recordProjectClick = useCallback((projectId: string) => {
+    setAnalytics(prev => ({
+      ...prev,
+      projectClicks: {
+        ...(prev.projectClicks || {}),
+        [projectId]: ((prev.projectClicks || {})[projectId] || 0) + 1
+      },
+      lastActiveTimestamp: new Date().toISOString()
+    }));
+  }, []);
+
+  const recordSearchQuery = useCallback((query: string) => {
+    if (!query || !query.trim()) return;
+    setAnalytics(prev => ({
+      ...prev,
+      searches: [
+        { query: query.trim(), timestamp: new Date().toISOString() },
+        ...(prev.searches || []).slice(0, 49)
+      ]
+    }));
+  }, []);
+
+  const recordInteraction = useCallback((type: string, label: string) => {
+    setAnalytics(prev => ({
+      ...prev,
+      interactionEvents: [
+        { type, label, timestamp: new Date().toISOString() },
+        ...(prev.interactionEvents || []).slice(0, 49)
+      ]
+    }));
+  }, []);
+
+  const resetAnalytics = useCallback(() => {
+    const freshAnalytics: SiteAnalytics = {
+      pageViews: 1,
+      uniqueVisitors: 1,
+      tabViews: { [currentTab]: 1 },
+      songPlays: {},
+      projectClicks: {},
+      searches: [],
+      dailyActivity: [{ date: new Date().toISOString().split('T')[0], views: 1, plays: 0 }],
+      devices: { mobile: 0, desktop: 1, tablet: 0 },
+      browsers: { Chrome: 1 },
+      interactionEvents: [],
+      lastActiveTimestamp: new Date().toISOString()
+    };
+    setAnalytics(freshAnalytics);
+    localStorage.setItem(`${STORAGE_KEY_PREFIX}analytics`, JSON.stringify(freshAnalytics));
+    showToast('Analytics logs reset successfully');
+  }, [currentTab, showToast]);
 
   // Audio Handlers
   const nextSong = useCallback(() => {
@@ -1156,12 +1433,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setTimeline(initialTimeline);
     setSocialLinks(initialSocialLinks);
     setMessages([]);
-    setAnalytics({
-      pageViews: 1,
-      songPlays: {},
-      projectClicks: {},
-      searches: []
-    });
+    setAnalytics(initialAnalytics);
     localStorage.clear();
     showToast('Reset all data to default templates', 'info');
   };
@@ -1300,6 +1572,17 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         submitContactMessage,
         markMessageRead,
         deleteMessage,
+
+        recordSongPlay,
+        recordProjectClick,
+        recordSearchQuery,
+        recordInteraction,
+        resetAnalytics,
+
+        isCropperOpen,
+        cropperOptions,
+        openCropper,
+        closeCropper,
 
         bulkDeleteItems,
         bulkTogglePublish,

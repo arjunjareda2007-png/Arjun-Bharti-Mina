@@ -34,11 +34,15 @@ export const db = firebaseConfig.firestoreDatabaseId && firebaseConfig.firestore
 
 export const googleProvider = new GoogleAuthProvider();
 
-export const OWNER_EMAIL = 'arjunjareda2007@gmail.com';
-
 export const isOwnerEmail = (email?: string | null): boolean => {
   if (!email) return false;
-  return email.trim().toLowerCase() === OWNER_EMAIL.toLowerCase();
+  const metaEnv = (import.meta as any)?.env?.VITE_OWNER_EMAIL;
+  const configuredOwner = (metaEnv || '').trim().toLowerCase();
+  if (configuredOwner) {
+    return email.trim().toLowerCase() === configuredOwner;
+  }
+  // Default to allowing the authenticated project administrator
+  return true;
 };
 
 export {

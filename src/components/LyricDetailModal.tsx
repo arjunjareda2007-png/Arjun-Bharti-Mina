@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useStore } from '../context/StoreContext';
-import { X, Copy, Check, Share2, Play, Music2, BookOpen } from 'lucide-react';
+import { X, Copy, Check, Share2, Play, Music2, BookOpen, FileText, FileCode, Download, Sparkles } from 'lucide-react';
+import { generateLyricsPDF, generateLyricsWordDoc, downloadTextFile } from '../utils/shareUtils';
 
 export const LyricDetailModal: React.FC = () => {
-  const { selectedLyricId, setSelectedLyricId, lyrics, songs, playSong, openShare, setCurrentTab, setSelectedSongId } = useStore();
+  const { selectedLyricId, setSelectedLyricId, lyrics, songs, playSong, openShare, setCurrentTab, setSelectedSongId, showToast } = useStore();
   const [copied, setCopied] = useState(false);
 
   if (!selectedLyricId) return null;
@@ -13,17 +14,36 @@ export const LyricDetailModal: React.FC = () => {
   const matchedSong = songs.find(s => s.id === lyricItem.songId || s.title.toLowerCase() === lyricItem.title.split('—')[0].trim().toLowerCase());
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(lyricItem.lyrics);
+    const full = `${lyricItem.title}\nWritten by ${lyricItem.artist} (${lyricItem.year})\nGenre: ${lyricItem.genre}\n\n${lyricItem.lyrics}\n\nOfficial Archive: ${window.location.origin}/#lyrics?id=${lyricItem.id}`;
+    navigator.clipboard.writeText(full);
     setCopied(true);
+    showToast('Lyrics & details copied to clipboard!', 'success');
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleShare = () => {
     openShare({
-      title: `${lyricItem.title} — Lyrics by Arjun Bharti Mina`,
-      text: lyricItem.meaning || `Official lyrics by Arjun Bharti Mina.`,
-      url: window.location.href
+      type: 'lyrics',
+      title: `${lyricItem.title} — Lyrics by ${lyricItem.artist}`,
+      text: lyricItem.meaning || `Official lyrics written by ${lyricItem.artist} (${lyricItem.year}).`,
+      url: `${window.location.origin}/#lyrics?id=${lyricItem.id}`,
+      lyricsText: lyricItem.lyrics,
+      meaning: lyricItem.meaning,
+      artist: lyricItem.artist,
+      genre: lyricItem.genre,
+      year: lyricItem.year,
+      downloadFilename: `${lyricItem.title.toLowerCase().replace(/[^a-z0-9]/g, '_')}_lyrics.pdf`
     });
+  };
+
+  const handleExportPDF = () => {
+    generateLyricsPDF(lyricItem);
+    showToast('Lyrics PDF generated and downloaded!', 'success');
+  };
+
+  const handleExportWord = () => {
+    generateLyricsWordDoc(lyricItem);
+    showToast('Lyrics Word document (.doc) downloaded!', 'success');
   };
 
   return (
@@ -34,13 +54,13 @@ export const LyricDetailModal: React.FC = () => {
     >
       <div 
         id="lyric-detail-card"
-        className="w-full max-w-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl shadow-2xl overflow-hidden my-6 max-h-[90vh] flex flex-col"
+        className="w-full max-w-3xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl shadow-2xl overflow-hidden my-6 max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Bar */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50/80 dark:bg-neutral-950/80">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-mono uppercase bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded font-semibold">
+            <span className="text-[10px] font-mono uppercase bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded font-semibold">
               {lyricItem.genre}
             </span>
             <span className="text-xs text-neutral-500 font-mono">• {lyricItem.language}</span>
@@ -48,13 +68,14 @@ export const LyricDetailModal: React.FC = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={handleShare}
-              className="p-2 rounded-full text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-200 dark:hover:bg-neutral-800"
+              className="p-2 rounded-full text-neutral-500 hover:text-amber-500 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors"
+              title="Share Lyrics (PDF / Word / Text)"
             >
               <Share2 className="w-4 h-4" />
             </button>
             <button
               onClick={() => setSelectedLyricId(null)}
-              className="p-2 rounded-full text-neutral-500 hover:text-red-500 hover:bg-neutral-200 dark:hover:bg-neutral-800"
+              className="p-2 rounded-full text-neutral-500 hover:text-red-500 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -74,13 +95,31 @@ export const LyricDetailModal: React.FC = () => {
               </p>
             </div>
 
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={handleExportPDF}
+                className="px-3 py-1.5 rounded-full bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 text-xs font-semibold flex items-center gap-1.5 shadow-sm hover:opacity-90 transition-opacity"
+                title="Download formatted PDF document"
+              >
+                <FileText className="w-3.5 h-3.5 text-red-500" />
+                <span>PDF</span>
+              </button>
+
+              <button
+                onClick={handleExportWord}
+                className="px-3 py-1.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-colors"
+                title="Download formatted Word document (.doc)"
+              >
+                <FileCode className="w-3.5 h-3.5" />
+                <span>Word</span>
+              </button>
+
               <button
                 onClick={handleCopy}
-                className="px-3.5 py-1.5 rounded-full bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 text-xs font-semibold flex items-center gap-1.5 shadow-sm hover:opacity-90 transition-opacity"
+                className="px-3 py-1.5 rounded-full border border-neutral-300 dark:border-neutral-700 text-xs font-semibold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center gap-1.5 transition-colors"
               >
                 {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copied ? 'Copied' : 'Copy Lyrics'}</span>
+                <span>{copied ? 'Copied' : 'Copy'}</span>
               </button>
 
               {matchedSong && (
@@ -91,7 +130,7 @@ export const LyricDetailModal: React.FC = () => {
                     setSelectedSongId(matchedSong.id);
                     setSelectedLyricId(null);
                   }}
-                  className="px-3.5 py-1.5 rounded-full border border-amber-500/50 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 text-xs font-medium flex items-center gap-1.5 transition-colors"
+                  className="px-3.5 py-1.5 rounded-full bg-amber-500 hover:bg-amber-400 text-neutral-950 text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm"
                 >
                   <Play className="w-3.5 h-3.5 fill-current" />
                   <span>Play Song</span>
@@ -112,7 +151,7 @@ export const LyricDetailModal: React.FC = () => {
 
           {/* Verses */}
           <div className="space-y-4 font-sans text-sm sm:text-base leading-relaxed text-neutral-800 dark:text-neutral-200 select-text p-4 rounded-2xl bg-neutral-50/50 dark:bg-neutral-950/40 border border-neutral-100 dark:border-neutral-900">
-            {lyricItem.lyrics.split('\n\n').map((block, idx) => (
+            {(lyricItem.lyrics || '').split('\n\n').map((block, idx) => (
               <div key={idx} className="pb-3 border-b border-neutral-100 dark:border-neutral-900/60 last:border-0 last:pb-0">
                 <p className="whitespace-pre-line leading-loose">{block}</p>
               </div>

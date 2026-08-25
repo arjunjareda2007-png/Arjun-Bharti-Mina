@@ -17,9 +17,12 @@ export const VideoPlayerModal: React.FC = () => {
 
   const handleShare = () => {
     openShare({
+      type: 'video',
       title: `${activeVideo.title} — Arjun Bharti Mina`,
-      text: activeVideo.description,
-      url: activeVideo.youtubeUrl
+      text: `${activeVideo.description} Category: ${activeVideo.category}.`,
+      url: activeVideo.youtubeUrl || `${window.location.origin}/#videos?id=${activeVideo.id}`,
+      imageUrl: activeVideo.thumbnail,
+      downloadFilename: `${activeVideo.title.toLowerCase().replace(/[^a-z0-9]/g, '_')}_thumb.jpg`
     });
   };
 

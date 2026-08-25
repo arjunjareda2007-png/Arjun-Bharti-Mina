@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="abm-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b" />
+      <stop offset="50%" stop-color="#ea580c" />
+      <stop offset="100%" stop-color="#b45309" />
+    </linearGradient>
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#171717" />
+      <stop offset="100%" stop-color="#0a0a0a" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="128" fill="url(#bg-grad)" />
+  <rect x="16" y="16" width="480" height="480" rx="112" fill="none" stroke="#f59e0b" stroke-opacity="0.2" stroke-width="8" />
+  
+  <!-- Stylized ABM Emblem -->
+  <g transform="translate(256, 256)">
+    <!-- Vinyl record / waveform rings -->
+    <circle r="180" fill="none" stroke="#f59e0b" stroke-opacity="0.15" stroke-width="4" stroke-dasharray="8 8" />
+    <circle r="150" fill="none" stroke="#f59e0b" stroke-opacity="0.25" stroke-width="3" />
+    
+    <!-- Bold Typography for ABM -->
+    <text x="0" y="45" font-family="'Syne', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif" font-size="160" font-weight="900" text-anchor="middle" fill="url(#abm-grad)" letter-spacing="4">
+      ABM
+    </text>
+    
+    <!-- Subtle sound waves below -->
+    <g transform="translate(0, 100)" fill="#f59e0b" opacity="0.8">
+      <rect x="-60" y="-8" width="6" height="16" rx="3" />
+      <rect x="-40" y="-16" width="6" height="32" rx="3" />
+      <rect x="-20" y="-24" width="6" height="48" rx="3" />
+      <rect x="0" y="-32" width="6" height="64" rx="3" />
+      <rect x="20" y="-24" width="6" height="48" rx="3" />
+      <rect x="40" y="-16" width="6" height="32" rx="3" />
+      <rect x="60" y="-8" width="6" height="16" rx="3" />
+    </g>
+  </g>
+</svg>

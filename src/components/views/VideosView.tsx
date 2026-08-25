@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useStore } from '../../context/StoreContext';
 import { VideoItem } from '../../types';
-import { Video, Play, ExternalLink, Calendar, Clock, Eye } from 'lucide-react';
+import { Video, Play, ExternalLink, Calendar, Clock, Eye, Share2 } from 'lucide-react';
 
 export const VideosView: React.FC = () => {
-  const { videos, openVideoPlayer, profile } = useStore();
+  const { videos, openVideoPlayer, profile, openShare } = useStore();
   const [selectedCat, setSelectedCat] = useState<string>('All');
 
   const categories = ['All', 'Music Video', 'Shorts', 'BTS', 'Live Performance', 'Creative'];
@@ -108,9 +108,28 @@ export const VideosView: React.FC = () => {
 
               <div className="pt-3 border-t border-neutral-100 dark:border-neutral-800/80 flex items-center justify-between text-xs font-mono text-neutral-400">
                 <span>{video.date}</span>
-                {video.viewsCount && (
-                  <span className="text-amber-500 font-semibold">{video.viewsCount} views</span>
-                )}
+                <div className="flex items-center gap-2">
+                  {video.viewsCount && (
+                    <span className="text-amber-500 font-semibold">{video.viewsCount} views</span>
+                  )}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openShare({
+                        type: 'video',
+                        title: `${video.title} — Arjun Bharti Mina`,
+                        text: `${video.description} Category: ${video.category}.`,
+                        url: video.youtubeUrl || `${window.location.origin}/#videos?id=${video.id}`,
+                        imageUrl: video.thumbnail,
+                        downloadFilename: `${video.title.toLowerCase().replace(/[^a-z0-9]/g, '_')}_thumb.jpg`
+                      });
+                    }}
+                    className="p-1 rounded text-neutral-500 hover:text-amber-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                    title="Share Video"
+                  >
+                    <Share2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
