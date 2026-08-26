@@ -174,12 +174,13 @@ export const ShareModal: React.FC = () => {
   return (
     <div 
       id="share-modal-backdrop"
-      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200"
+      className="fixed inset-0 z-[999999] bg-black/90 backdrop-blur-lg flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200"
+      style={{ isolation: 'isolate' }}
       onClick={closeShare}
     >
       <div 
         id="share-modal-card"
-        className="w-full max-w-lg bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl shadow-2xl overflow-hidden my-4 hover-lift"
+        className="w-full max-w-lg bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)] overflow-hidden my-4 relative z-10"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

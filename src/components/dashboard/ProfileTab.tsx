@@ -446,7 +446,7 @@ export const ProfileTab: React.FC = () => {
                     onChange={(e) => handleExtendedBioChange(idx, e.target.value)}
                     className="flex-1 px-3.5 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs sm:text-sm focus:outline-none focus:border-amber-500"
                   />
-                  {formData.extendedBio.length > 1 && (
+                  {(formData.extendedBio?.length ?? 0) > 1 && (
                     <button
                       type="button"
                       onClick={() => removeExtendedBioParagraph(idx)}

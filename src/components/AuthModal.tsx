@@ -76,7 +76,7 @@ export const AuthModal: React.FC = () => {
   return (
     <div 
       id="auth-modal-overlay"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-950/80 backdrop-blur-md animate-fadeIn"
+      className="fixed inset-0 z-[6000] flex items-center justify-center p-4 bg-neutral-950/80 backdrop-blur-md animate-fadeIn"
       onClick={(e) => {
         if (e.target === e.currentTarget) closeAuthModal();
       }}

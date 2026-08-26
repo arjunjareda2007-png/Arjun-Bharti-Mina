@@ -102,7 +102,7 @@ export const SearchModal: React.FC = () => {
   return (
     <div 
       id="search-modal-backdrop"
-      className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-start justify-center p-4 sm:p-6 md:p-12 overflow-y-auto animate-in fade-in duration-150"
+      className="fixed inset-0 z-[6000] bg-black/70 backdrop-blur-sm flex items-start justify-center p-4 sm:p-6 md:p-12 overflow-y-auto animate-in fade-in duration-150"
       onClick={closeSearch}
     >
       <div 

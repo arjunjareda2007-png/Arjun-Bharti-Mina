@@ -71,7 +71,10 @@ export const MusicTab: React.FC = () => {
     playSong,
     bulkDeleteItems,
     bulkTogglePublish,
-    bulkToggleFeatured
+    bulkToggleFeatured,
+    videos,
+    addVideo,
+    showToast
   } = useStore();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -82,6 +85,7 @@ export const MusicTab: React.FC = () => {
   const [deleteTarget, setDeleteTarget] = useState<Song | null>(null);
   const [fetchingMeta, setFetchingMeta] = useState(false);
   const [fetchedSuccess, setFetchedSuccess] = useState(false);
+  const [syncToVideos, setSyncToVideos] = useState(true);
 
   // Filtered list
   const filteredSongs = songs.filter(song => {
@@ -97,13 +101,17 @@ export const MusicTab: React.FC = () => {
   const handleFetchSongYouTube = async (urlOrId?: string) => {
     if (!editingSong) return;
     const target = urlOrId || editingSong.streamingLinks?.youtube || '';
-    if (!target || !target.trim()) return;
+    if (!target || !target.trim()) {
+      showToast('Please enter a YouTube video or song link first', 'info');
+      return;
+    }
 
     setFetchingMeta(true);
     try {
       const extractedId = extractYouTubeId(target);
       if (!extractedId) {
         setFetchingMeta(false);
+        showToast('Could not find a valid YouTube ID from that link', 'error');
         return;
       }
 
@@ -136,7 +144,8 @@ export const MusicTab: React.FC = () => {
       });
 
       setFetchedSuccess(true);
-      setTimeout(() => setFetchedSuccess(false), 3000);
+      showToast('Track artwork & YouTube video synchronized!', 'success');
+      setTimeout(() => setFetchedSuccess(false), 3500);
     } catch (e) {
       console.warn('YouTube song fetch error:', e);
       const extractedId = extractYouTubeId(target);
@@ -146,6 +155,7 @@ export const MusicTab: React.FC = () => {
           cover: getYouTubeThumbnail(extractedId, 'maxres'),
           youtubeEmbedId: extractedId
         } : null);
+        showToast('Extracted YouTube ID and HD thumbnail', 'info');
       }
     } finally {
       setFetchingMeta(false);
@@ -158,11 +168,13 @@ export const MusicTab: React.FC = () => {
       id: `song-${Date.now()}`,
       releaseDate: new Date().toISOString().split('T')[0]
     });
+    setSyncToVideos(true);
     setIsModalOpen(true);
   };
 
   const handleOpenEdit = (song: Song) => {
     setEditingSong({ ...song });
+    setSyncToVideos(false);
     setIsModalOpen(true);
   };
 
@@ -173,8 +185,32 @@ export const MusicTab: React.FC = () => {
     const exists = songs.some(s => s.id === editingSong.id);
     if (exists) {
       await updateSong(editingSong);
+      showToast(`Updated "${editingSong.title}"`, 'success');
     } else {
       await addSong(editingSong);
+      showToast(`Added new track "${editingSong.title}"`, 'success');
+      
+      // Auto-sync into Videos section if desired and YouTube link exists
+      if (syncToVideos && (editingSong.youtubeEmbedId || editingSong.streamingLinks?.youtube)) {
+        const vidId = editingSong.youtubeEmbedId || extractYouTubeId(editingSong.streamingLinks?.youtube);
+        if (vidId && !videos.some(v => v.youtubeUrl?.includes(vidId))) {
+          await addVideo({
+            id: `video-${Date.now()}`,
+            title: `${editingSong.title} (Official Music Video)`,
+            description: editingSong.description || `Official music video for ${editingSong.title} by Arjun Bharti Mina.`,
+            category: 'Music Video',
+            date: editingSong.releaseDate || new Date().toISOString().split('T')[0],
+            duration: editingSong.duration || '3:30',
+            thumbnail: editingSong.cover,
+            youtubeUrl: `https://www.youtube.com/watch?v=${vidId}`,
+            youtubeEmbedId: vidId,
+            viewsCount: '1.2K views',
+            featured: editingSong.featured || false,
+            published: editingSong.published !== false
+          });
+          showToast(`Also created Video Showcase entry for "${editingSong.title}"!`, 'info');
+        }
+      }
     }
     setIsModalOpen(false);
     setEditingSong(null);
@@ -649,26 +685,41 @@ export const MusicTab: React.FC = () => {
               </div>
 
               {/* Toggles */}
-              <div className="pt-2 flex items-center justify-between">
-                <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={editingSong.published !== false}
-                    onChange={(e) => setEditingSong({ ...editingSong, published: e.target.checked })}
-                    className="rounded text-amber-500 focus:ring-0"
-                  />
-                  <span>Published (Visible to visitors)</span>
-                </label>
+              <div className="pt-2 space-y-2 border-t border-neutral-200 dark:border-neutral-800">
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={editingSong.published !== false}
+                      onChange={(e) => setEditingSong({ ...editingSong, published: e.target.checked })}
+                      className="rounded text-amber-500 focus:ring-0"
+                    />
+                    <span>Published (Visible to visitors)</span>
+                  </label>
 
-                <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+                  <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={editingSong.featured || false}
+                      onChange={(e) => setEditingSong({ ...editingSong, featured: e.target.checked })}
+                      className="rounded text-amber-500 focus:ring-0"
+                    />
+                    <span>Featured Anthem</span>
+                  </label>
+                </div>
+
+                <div className="p-2.5 rounded-xl bg-neutral-100 dark:bg-neutral-800/80 border border-neutral-200 dark:border-neutral-700 flex items-center justify-between">
+                  <label className="flex items-center gap-2 text-xs font-medium cursor-pointer text-neutral-800 dark:text-neutral-200">
+                    <Video className="w-4 h-4 text-red-500 shrink-0" />
+                    <span>Auto-create/sync entry in <strong>Video Showcase</strong> when YouTube link is present</span>
+                  </label>
                   <input
                     type="checkbox"
-                    checked={editingSong.featured || false}
-                    onChange={(e) => setEditingSong({ ...editingSong, featured: e.target.checked })}
+                    checked={syncToVideos}
+                    onChange={(e) => setSyncToVideos(e.target.checked)}
                     className="rounded text-amber-500 focus:ring-0"
                   />
-                  <span>Featured Anthem</span>
-                </label>
+                </div>
               </div>
 
               <div className="pt-4 flex items-center justify-end gap-2">

@@ -1,25 +1,23 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useStore } from '../context/StoreContext';
 import { ActiveTab } from '../types';
+import { MenuDrawer } from './MenuDrawer';
+import { hapticLight, hapticSelection, hapticMedium } from '../utils/haptics';
 import { 
   Search, 
-  Sun, 
-  Moon, 
-  Sparkles, 
-  ShieldCheck, 
   Menu, 
   X, 
   Music2, 
   FileText, 
-  Image, 
+  Image as ImageIcon, 
   Video, 
   Globe, 
   BookOpen, 
   User, 
   Mail, 
   Share2,
-  Lock,
-  Download
+  Sparkles,
+  CheckCircle2
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -27,41 +25,18 @@ export const Navbar: React.FC = () => {
     currentTab, 
     setCurrentTab, 
     openSearch, 
-    theme, 
-    setTheme, 
     profile, 
-    discoverRandomWork,
-    isOwner,
-    authUser,
-    showToast
+    isMenuOpen,
+    toggleMenu,
+    closeMenu
   } = useStore();
-
-  const isAdminLoggedIn = isOwner || !!authUser;
-
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [discoveryToast, setDiscoveryToast] = useState<string | null>(null);
-
-  const handlePwaInstall = () => {
-    // If beforeinstallprompt deferred prompt exists on window
-    const promptEvent = (window as any).deferredPwaPrompt;
-    if (promptEvent) {
-      promptEvent.prompt();
-      promptEvent.userChoice.then((choice: any) => {
-        if (choice.outcome === 'accepted') {
-          showToast('App installed successfully!', 'success');
-        }
-      });
-    } else {
-      showToast('Install via Chrome: Click Chrome menu (⋮) -> "Install Arjun Bharti Mina Hub" / "Add to Home screen"', 'info');
-    }
-  };
 
   const navItems: { id: ActiveTab; label: string; icon: React.ReactNode }[] = [
     { id: 'home', label: 'Home', icon: <Sparkles className="w-4 h-4" /> },
     { id: 'about', label: 'About', icon: <User className="w-4 h-4" /> },
     { id: 'music', label: 'Music', icon: <Music2 className="w-4 h-4" /> },
     { id: 'lyrics', label: 'Lyrics', icon: <FileText className="w-4 h-4" /> },
-    { id: 'gallery', label: 'Gallery', icon: <Image className="w-4 h-4" /> },
+    { id: 'gallery', label: 'Gallery', icon: <ImageIcon className="w-4 h-4" /> },
     { id: 'videos', label: 'Videos', icon: <Video className="w-4 h-4" /> },
     { id: 'projects', label: 'Projects', icon: <Globe className="w-4 h-4" /> },
     { id: 'books', label: 'Books', icon: <BookOpen className="w-4 h-4" /> },
@@ -69,48 +44,52 @@ export const Navbar: React.FC = () => {
     { id: 'contact', label: 'Contact', icon: <Mail className="w-4 h-4" /> },
   ];
 
-  const handleDiscover = () => {
-    const item = discoverRandomWork();
-    if (item) {
-      setDiscoveryToast(`Discovered ${item.type}: "${item.title}"`);
-      item.action();
-      setTimeout(() => setDiscoveryToast(null), 3500);
-    }
-  };
-
-  const toggleTheme = () => {
-    const next = theme === 'dark' ? 'light' : 'dark';
-    setTheme(next);
-    showToast(`Switched to ${next === 'dark' ? 'Dark' : 'Light'} theme`, 'info');
-  };
-
   return (
     <>
-      <header id="main-header" className="sticky top-0 z-40 w-full border-b border-neutral-200/80 dark:border-neutral-800/80 bg-white/80 dark:bg-neutral-950/80 backdrop-blur-md transition-colors duration-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      <header id="main-header" className="sticky top-0 z-40 w-full border-b border-neutral-200/80 dark:border-neutral-800/80 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-xl transition-colors duration-200 shadow-xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3 sm:gap-6">
           
-          {/* Logo & Brand */}
-          <div className="flex items-center gap-3">
+          {/* High-Definition Crisp ABM Monogram Logo & Brand */}
+          <div className="flex items-center gap-3 min-w-0 shrink-0">
             <button 
               id="brand-logo-btn"
-              onClick={() => { setCurrentTab('home'); }}
-              className="flex items-center gap-2.5 text-left group focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded-lg p-1"
+              type="button"
+              onClick={() => { 
+                hapticLight();
+                setCurrentTab('home'); 
+                closeMenu();
+              }}
+              className="flex items-center gap-2.5 sm:gap-3 text-left group focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded-2xl p-1 -ml-1 hover:scale-102 active:scale-97 transition-transform cursor-pointer"
             >
-              <div className="w-9 h-9 rounded-lg bg-neutral-900 dark:bg-white text-white dark:text-neutral-950 font-display font-extrabold flex items-center justify-center text-sm tracking-wider shadow-sm group-hover:scale-105 transition-transform">
-                ABM
-              </div>
-              <div className="hidden sm:block">
-                <span className="text-sm font-semibold tracking-tight block text-neutral-900 dark:text-neutral-100 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
-                  {profile.name}
+              {/* Crisp Stylized ABM Vector Monogram with Extended White Background */}
+              <div className="relative px-3.5 sm:px-4 py-1.5 h-10 sm:h-11 rounded-xl bg-white dark:bg-white text-neutral-950 border-2 border-neutral-200/90 dark:border-neutral-300/90 shadow-md flex items-center justify-center gap-2 group-hover:border-amber-400 group-hover:shadow-amber-500/20 group-hover:shadow-lg transition-all duration-300 shrink-0">
+                <div className="w-6 h-6 rounded-md bg-neutral-950 flex items-center justify-center shrink-0">
+                  <svg viewBox="0 0 100 100" className="w-4 h-4">
+                    <polygon points="50,8 92,50 50,92 8,50" fill="none" stroke="#F59E0B" strokeWidth="6" />
+                    <circle cx="50" cy="50" r="16" fill="#EF4444" />
+                  </svg>
+                </div>
+                <span className="font-display font-black tracking-widest text-sm sm:text-base text-neutral-950 font-mono select-none">
+                  ABM
                 </span>
-                <span className="text-[11px] text-neutral-500 dark:text-neutral-400 font-mono tracking-wide uppercase block">
-                  Artist & Creator Hub
+              </div>
+
+              {/* Title & Artist Identity */}
+              <div className="flex flex-col min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm sm:text-base md:text-lg font-display font-bold tracking-tight text-neutral-950 dark:text-neutral-50 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors whitespace-nowrap">
+                    {profile.name}
+                  </span>
+                  <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500 fill-amber-500/20 shrink-0" />
+                </div>
+                <span className="text-[11px] text-neutral-500 dark:text-neutral-400 font-medium tracking-normal block truncate">
+                  Artist & Creative Technologist
                 </span>
               </div>
             </button>
           </div>
 
-          {/* Desktop Navigation */}
+          {/* Desktop Navigation Links */}
           <nav id="desktop-navigation" className="hidden lg:flex items-center gap-1 xl:gap-1.5 overflow-x-auto py-1">
             {navItems.map((item) => {
               const isActive = currentTab === item.id;
@@ -118,11 +97,16 @@ export const Navbar: React.FC = () => {
                 <button
                   key={item.id}
                   id={`nav-link-${item.id}`}
-                  onClick={() => setCurrentTab(item.id)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-150 whitespace-nowrap flex items-center gap-1.5 ${
+                  type="button"
+                  onClick={() => {
+                    hapticSelection();
+                    setCurrentTab(item.id);
+                    closeMenu();
+                  }}
+                  className={`relative px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-150 whitespace-nowrap flex items-center gap-1.5 cursor-pointer hover:scale-105 active:scale-95 ${
                     isActive
-                      ? 'bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-950 shadow-sm font-semibold'
-                      : 'text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-900/80'
+                      ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 shadow-sm font-semibold'
+                      : 'text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-900'
                   }`}
                 >
                   {item.label}
@@ -131,125 +115,52 @@ export const Navbar: React.FC = () => {
             })}
           </nav>
 
-          {/* Right Action Icons */}
-          <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* Right Header Actions: Search & Menu Toggle Button */}
+          <div className="flex items-center gap-2 shrink-0">
             
             {/* Global Search Button */}
             <button
               id="search-trigger-btn"
-              onClick={openSearch}
+              type="button"
+              onClick={() => {
+                hapticLight();
+                openSearch();
+              }}
               title="Search Archive (⌘K)"
-              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-full border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:border-neutral-300 dark:hover:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 transition-colors"
+              className="h-9 flex items-center gap-1.5 px-3 text-xs rounded-full border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:border-neutral-300 dark:hover:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 transition-all duration-150 hover:scale-104 active:scale-95 shadow-xs cursor-pointer"
             >
               <Search className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">Search</span>
+              <span className="hidden md:inline font-medium">Search</span>
               <kbd className="hidden sm:inline-block text-[10px] px-1.5 py-0.2 font-mono bg-neutral-200 dark:bg-neutral-800 rounded text-neutral-500">⌘K</kbd>
             </button>
 
-            {/* Install App Button */}
+            {/* Menu Button (Clear, prominent and high contrast) */}
             <button
-              id="install-pwa-nav-btn"
-              onClick={handlePwaInstall}
-              title="Install App directly from Chrome"
-              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 transition-colors font-medium"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>Install</span>
-            </button>
-
-            {/* Discover Random Work */}
-            <button
-              id="discover-random-btn"
-              onClick={handleDiscover}
-              title="Discover Something Random"
-              className="p-2 rounded-full text-neutral-600 dark:text-neutral-400 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-amber-500/10 transition-colors"
-            >
-              <Sparkles className="w-4 h-4" />
-            </button>
-
-            {/* Theme Toggle */}
-            <button
-              id="theme-toggle-btn"
-              onClick={toggleTheme}
-              title={`Theme: ${theme}`}
-              className="p-2 rounded-full text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-colors"
-            >
-              {theme === 'dark' ? (
-                <Moon className="w-4 h-4" />
-              ) : (
-                <Sun className="w-4 h-4" />
-              )}
-            </button>
-
-            {/* Admin CMS Access */}
-            <button
-              id="admin-nav-btn"
-              onClick={() => setCurrentTab('admin')}
-              title={isAdminLoggedIn ? "Admin Dashboard (Logged In)" : "Owner Portal"}
-              className={`p-2 rounded-full transition-colors ${
-                currentTab === 'admin'
-                  ? 'bg-amber-500/20 text-amber-500 ring-1 ring-amber-500/40'
-                  : isAdminLoggedIn
-                  ? 'text-emerald-500 hover:bg-emerald-500/10'
-                  : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-200'
+              id="three-link-menu-btn"
+              type="button"
+              onClick={() => {
+                hapticMedium();
+                toggleMenu();
+              }}
+              className={`h-9 flex items-center gap-1.5 px-3.5 rounded-full border transition-all duration-200 hover:scale-105 active:scale-92 shadow-xs cursor-pointer select-none ${
+                isMenuOpen 
+                  ? 'bg-amber-500 text-neutral-950 border-amber-500 font-bold shadow-amber-500/20' 
+                  : 'bg-neutral-100 dark:bg-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-800 border-neutral-200 dark:border-neutral-800 text-neutral-800 dark:text-neutral-200'
               }`}
+              title="Open Navigation Menu & All Sections"
+              aria-label="Toggle Navigation Menu"
+              aria-expanded={isMenuOpen}
             >
-              {isAdminLoggedIn ? (
-                <ShieldCheck className="w-4 h-4" />
-              ) : (
-                <Lock className="w-4 h-4" />
-              )}
+              {isMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+              <span className="text-xs font-semibold">Menu</span>
             </button>
 
-            {/* Mobile Hamburger Menu */}
-            <button
-              id="mobile-menu-toggle-btn"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2 rounded-lg text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-colors"
-              aria-label="Toggle navigation menu"
-            >
-              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
           </div>
         </div>
-
-        {/* Mobile Dropdown Menu */}
-        {isMobileMenuOpen && (
-          <div id="mobile-menu-drawer" className="lg:hidden border-b border-neutral-200 dark:border-neutral-800 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-lg px-4 pt-3 pb-5 space-y-1 animate-in slide-in-from-top-2 duration-150">
-            <div className="grid grid-cols-2 gap-1.5">
-              {navItems.map((item) => {
-                const isActive = currentTab === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    id={`mobile-nav-${item.id}`}
-                    onClick={() => {
-                      setCurrentTab(item.id);
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs font-medium transition-colors ${
-                      isActive
-                        ? 'bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-950 font-semibold'
-                        : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-900'
-                    }`}
-                  >
-                    {item.icon}
-                    <span>{item.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
       </header>
 
-      {/* Discovery Toast notification */}
-      {discoveryToast && (
-        <div className="fixed top-20 right-4 z-50 bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-950 px-4 py-2.5 rounded-full text-xs font-medium shadow-xl flex items-center gap-2 border border-neutral-700 dark:border-neutral-300 animate-in fade-in slide-in-from-top-2">
-          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-          <span>{discoveryToast}</span>
-        </div>
-      )}
+      {/* Global Slide-In Menu Drawer */}
+      <MenuDrawer />
     </>
   );
 };

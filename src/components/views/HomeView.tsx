@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'motion/react';
 import { useStore } from '../../context/StoreContext';
 import { 
   Play, 
@@ -16,9 +17,11 @@ import {
   Disc,
   Flame,
   Radio,
-  Share2
+  Share2,
+  Headphones
 } from 'lucide-react';
 import { calculateAge } from '../../utils/helpers';
+import { hapticLight, hapticBeat, hapticSelection, hapticMedium } from '../../utils/haptics';
 
 export const HomeView: React.FC = () => {
   const { 
@@ -58,87 +61,217 @@ export const HomeView: React.FC = () => {
   return (
     <div id="home-view" className="space-y-16 sm:space-y-24">
       
-      {/* 1. EDITORIAL HERO SECTION */}
-      <section id="hero-section" className="relative pt-6 sm:pt-12 pb-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+      {/* 1. EDITORIAL HERO SECTION WITH MOTION */}
+      <section id="hero-section" className="relative pt-2 sm:pt-4 pb-8 overflow-hidden space-y-8">
+        {/* Subtle Ambient Background Motion Glow */}
+        <motion.div 
+          animate={{ scale: [1, 1.15, 1], opacity: [0.12, 0.22, 0.12] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-24 left-1/4 w-96 h-96 bg-amber-500/20 rounded-full blur-3xl pointer-events-none -z-10" 
+        />
+        <motion.div 
+          animate={{ scale: [1, 1.2, 1], opacity: [0.08, 0.16, 0.08] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute top-1/2 right-10 w-80 h-80 bg-red-500/10 rounded-full blur-3xl pointer-events-none -z-10" 
+        />
+
+        {/* Panoramic Hero Banner Card with Hover Physics */}
+        <motion.div 
+          id="hero-banner-container"
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="relative w-full rounded-3xl overflow-hidden shadow-2xl border-2 border-neutral-200/80 dark:border-neutral-800 bg-neutral-950 group"
+        >
+          {/* Banner Image with Fallback */}
+          <div className="w-full h-48 sm:h-64 md:h-80 lg:h-96 relative overflow-hidden">
+            <img 
+              src={profile.heroImage || profile.profileImage || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1600&auto=format&fit=crop'} 
+              alt="Arjun Bharti Mina Hero Banner"
+              referrerPolicy="no-referrer"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1600&auto=format&fit=crop';
+              }}
+              className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-1000"
+            />
+            {/* Dynamic Contrast Gradients */}
+            <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/50 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-neutral-950/80 via-transparent to-neutral-950/60" />
+          </div>
+
+          {/* Banner Overlaid Content */}
+          <div className="absolute bottom-4 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4 text-white">
+            <div className="space-y-1.5 max-w-xl">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-mono text-neutral-300 flex items-center gap-1.5">
+                  <span>📍</span>
+                  <span>Jaipur, Rajasthan</span>
+                </span>
+                {isPlaying && (
+                  <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-mono flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+                    Now Playing
+                  </span>
+                )}
+              </div>
+              <p className="text-xs sm:text-sm font-medium text-neutral-200 italic line-clamp-1">
+                "{profile.featuredQuote || 'Art is the blueprint of the soul, and rhythm is its foundation.'}"
+              </p>
+            </div>
+
+            {/* Quick Live Stats & Audio Wave */}
+            <div className="flex items-center gap-3">
+              {/* Dynamic Animated Soundwave Pill */}
+              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-neutral-900/80 backdrop-blur-md border border-neutral-700/60 text-xs font-mono">
+                <div className="flex items-center gap-0.5 h-3">
+                  {[40, 90, 60, 100, 50, 80].map((height, i) => (
+                    <motion.span 
+                      key={i}
+                      animate={isPlaying ? { height: ['20%', `${height}%`, '20%'] } : { height: '30%' }}
+                      transition={{ duration: 0.6 + i * 0.1, repeat: Infinity, ease: 'easeInOut' }}
+                      className="w-0.5 bg-amber-400 rounded-full inline-block"
+                    />
+                  ))}
+                </div>
+                <span className="text-neutral-200">{profile.stats?.totalStreams || '380K+ Streams'}</span>
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.94 }}
+                onClick={() => {
+                  hapticLight();
+                  setCurrentTab('music');
+                }}
+                className="px-4 py-2 rounded-full bg-white/90 hover:bg-white text-neutral-950 font-bold text-xs shadow-lg backdrop-blur-md flex items-center gap-1.5 transition-all cursor-pointer"
+              >
+                <span>Explore Vault</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </motion.button>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Hero Body Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center pt-2">
           
           {/* Left Text & Bio */}
           <div className="lg:col-span-7 space-y-6">
             
-            {/* Tagline Badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-xs font-mono">
-              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-              <span className="text-neutral-700 dark:text-neutral-300 font-medium">
-                {profile.subTagline}
-              </span>
-            </div>
+            {/* Charismatic Main Headline & Clean Subtitle */}
+            <motion.div 
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.4 }}
+              className="space-y-3"
+            >
+              <div>
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-display font-extrabold tracking-tight text-neutral-950 dark:text-white leading-[1.06]">
+                  Arjun Bharti Mina
+                </h1>
+                <p className="text-amber-600 dark:text-amber-400 font-display font-semibold text-lg sm:text-xl lg:text-2xl mt-1.5 tracking-tight flex items-center gap-2">
+                  <span>Independent Artist & Creative Technologist</span>
+                </p>
+              </div>
 
-            {/* Main Headline */}
-            <div className="space-y-2">
-              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-display font-extrabold tracking-tight text-neutral-950 dark:text-white leading-[1.08]">
-                {profile.name}
-              </h1>
-              <p className="text-sm sm:text-base font-mono text-amber-600 dark:text-amber-400 font-medium tracking-tight">
-                {profile.tagline}
+              <p className="text-sm sm:text-base font-medium text-neutral-700 dark:text-neutral-300 flex items-center gap-2 pt-1">
+                <span className="w-5 h-[2px] bg-amber-500 inline-block shrink-0" />
+                <span>{profile.tagline || 'Rapper, Writer, Civil Engineer & Tech Architect'}</span>
               </p>
-            </div>
+            </motion.div>
 
             {/* Short Introduction */}
             <p className="text-sm sm:text-base text-neutral-600 dark:text-neutral-400 max-w-xl leading-relaxed">
               {profile.bio} Graduating in Civil Engineering from SKIT Jaipur (2022–2026), balancing engineering calculations by day with underground Desi Hip-Hop beats and creative web ecosystems by night.
             </p>
 
-            {/* Primary Action Buttons */}
+            {/* Primary Action Buttons with Motion */}
             <div className="flex flex-wrap items-center gap-3 pt-2">
-              <button
+              <motion.button
                 id="hero-explore-work-btn"
-                onClick={() => setCurrentTab('music')}
-                className="px-6 py-3 rounded-full bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 font-semibold text-xs sm:text-sm flex items-center gap-2 shadow-lg hover:scale-105 active:scale-95 transition-all"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.96 }}
+                onClick={() => {
+                  hapticLight();
+                  setCurrentTab('music');
+                }}
+                className="px-6 sm:px-7 py-3 sm:py-3.5 rounded-full bg-neutral-950 text-white dark:bg-amber-500 dark:text-neutral-950 font-bold text-xs sm:text-sm flex items-center gap-2 shadow-xl hover:shadow-amber-500/20 transition-all cursor-pointer"
               >
-                <span>Explore Music & Work</span>
+                <Headphones className="w-4 h-4" />
+                <span>Listen To Music Vault</span>
                 <ArrowRight className="w-4 h-4" />
-              </button>
+              </motion.button>
 
-              <button
+              <motion.button
                 id="hero-about-me-btn"
-                onClick={() => setCurrentTab('about')}
-                className="px-5 py-3 rounded-full border border-neutral-300 dark:border-neutral-800 hover:border-neutral-400 dark:hover:border-neutral-700 text-neutral-800 dark:text-neutral-200 font-medium text-xs sm:text-sm bg-white/50 dark:bg-neutral-900/50 backdrop-blur-sm transition-all"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.96 }}
+                onClick={() => {
+                  hapticLight();
+                  setCurrentTab('about');
+                }}
+                className="px-5 sm:px-6 py-3 sm:py-3.5 rounded-full border border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 text-neutral-800 dark:text-neutral-200 font-semibold text-xs sm:text-sm bg-white/70 dark:bg-neutral-900/70 backdrop-blur-md hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all shadow-xs cursor-pointer"
               >
                 About Arjun
-              </button>
+              </motion.button>
             </div>
 
             {/* Quick Profile Meta */}
-            <div className="pt-4 flex flex-wrap items-center gap-4 text-xs font-mono text-neutral-500 border-t border-neutral-200 dark:border-neutral-800/80">
-              <span>📍 {profile.location}</span>
-              <span>🎓 SKIT Jaipur ({profile.education.period})</span>
-              <span>🎂 Age {calculateAge(profile.dob)}</span>
+            <div className="pt-4 flex flex-wrap items-center gap-4 text-xs font-mono text-neutral-500 dark:text-neutral-400 border-t border-neutral-200 dark:border-neutral-800">
+              <span className="flex items-center gap-1.5">📍 <strong className="text-neutral-800 dark:text-neutral-200">{profile.location}</strong></span>
+              <span className="flex items-center gap-1.5">🎓 <strong className="text-neutral-800 dark:text-neutral-200">SKIT Jaipur ({profile.education.period})</strong></span>
+              <span className="flex items-center gap-1.5">🎂 <strong className="text-neutral-800 dark:text-neutral-200">Age {calculateAge(profile.dob)}</strong></span>
             </div>
 
           </div>
 
-          {/* Right Portrait & Latest Release Spotlight */}
+          {/* Right Portrait & Latest Release Spotlight with Motion Disc */}
           <div className="lg:col-span-5 relative">
-            <div className="relative mx-auto max-w-sm sm:max-w-md rounded-3xl overflow-hidden shadow-2xl border border-neutral-200/80 dark:border-neutral-800 bg-neutral-900 group">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+              className="relative mx-auto max-w-sm sm:max-w-md rounded-3xl overflow-hidden shadow-2xl border-2 border-amber-500/30 dark:border-amber-500/40 bg-neutral-900 group"
+            >
               <img 
                 src={profile.profileImage} 
                 alt={profile.name} 
-                className="w-full aspect-[4/5] object-cover group-hover:scale-105 transition-transform duration-500"
+                referrerPolicy="no-referrer"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1000&auto=format&fit=crop';
+                }}
+                className="w-full aspect-[4/5] object-cover group-hover:scale-105 transition-transform duration-700"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/30 to-transparent"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/40 to-transparent"></div>
 
-              {/* Floating Badge on Portrait */}
-              <div className="absolute bottom-4 left-4 right-4 p-4 rounded-2xl bg-neutral-950/80 backdrop-blur-md border border-neutral-800 text-white flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] font-mono uppercase text-amber-400 font-semibold block">
-                    Latest Anthem
-                  </span>
-                  <h4 className="text-sm font-bold truncate">RUTBA (2026)</h4>
-                  <p className="text-[11px] text-neutral-400">Street Rap Anthem • ABM Studio’s</p>
+              {/* Floating Release Card on Portrait */}
+              <div className="absolute bottom-4 left-4 right-4 p-4 rounded-2xl bg-neutral-950/90 backdrop-blur-lg border border-neutral-800 text-white flex items-center justify-between shadow-2xl">
+                <div className="flex items-center gap-3 min-w-0">
+                  {/* Rotating Vinyl Disc */}
+                  <motion.div 
+                    animate={isPlaying && currentSong?.slug === 'rutba' ? { rotate: 360 } : { rotate: 0 }}
+                    transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                    className="w-10 h-10 rounded-full bg-neutral-900 border-2 border-neutral-700 flex items-center justify-center shrink-0 shadow-md relative overflow-hidden"
+                  >
+                    <Disc className="w-8 h-8 text-amber-500/80" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-amber-400 absolute" />
+                  </motion.div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+                      <span className="text-[10px] font-mono uppercase text-amber-400 font-bold tracking-wider">
+                        Featured Anthem
+                      </span>
+                    </div>
+                    <h4 className="text-sm font-black truncate mt-0.5">RUTBA (2026)</h4>
+                    <p className="text-[11px] text-neutral-400 truncate">Street Rap Anthem • ABM Studio’s</p>
+                  </div>
                 </div>
                 
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.15 }}
+                  whileTap={{ scale: 0.88 }}
                   onClick={() => {
+                    hapticBeat();
                     const rutba = songs.find(s => s.slug === 'rutba') || songs[0];
                     if (rutba) {
                       if (currentSong?.id === rutba.id && isPlaying) {
@@ -148,30 +281,35 @@ export const HomeView: React.FC = () => {
                       }
                     }
                   }}
-                  className="w-10 h-10 rounded-full bg-amber-500 text-neutral-950 flex items-center justify-center flex-shrink-0 shadow-lg hover:scale-110 active:scale-95 transition-all"
+                  className="w-11 h-11 rounded-full bg-amber-500 text-neutral-950 flex items-center justify-center flex-shrink-0 shadow-lg font-bold cursor-pointer"
                   title="Play Anthem"
                 >
                   {currentSong?.slug === 'rutba' && isPlaying ? (
-                    <Pause className="w-4 h-4 fill-current" />
+                    <Pause className="w-5 h-5 fill-current" />
                   ) : (
-                    <Play className="w-4 h-4 fill-current ml-0.5" />
+                    <Play className="w-5 h-5 fill-current ml-0.5" />
                   )}
-                </button>
+                </motion.button>
               </div>
-            </div>
+            </motion.div>
           </div>
 
         </div>
       </section>
 
-      {/* 2. DYNAMIC CREATIVE STATISTICS */}
+      {/* 2. DYNAMIC CREATIVE STATISTICS WITH MOTION */}
       <section id="creative-statistics" className="border-y border-neutral-200 dark:border-neutral-800/80 py-6 sm:py-8 bg-neutral-50/50 dark:bg-neutral-950/40">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
           {stats.map((stat, idx) => (
-            <button
+            <motion.button
               key={idx}
-              onClick={() => setCurrentTab(stat.tab as any)}
-              className="p-4 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800/80 hover:border-amber-500/50 hover:shadow-md transition-all text-left group"
+              whileHover={{ y: -4, scale: 1.02 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                hapticSelection();
+                setCurrentTab(stat.tab as any);
+              }}
+              className="p-4 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800/80 hover:border-amber-500/50 hover:shadow-md transition-all text-left group cursor-pointer"
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="p-1.5 rounded-lg bg-neutral-100 dark:bg-neutral-800 group-hover:scale-110 transition-transform">
@@ -184,12 +322,12 @@ export const HomeView: React.FC = () => {
               <span className="text-xs font-medium text-neutral-600 dark:text-neutral-400 group-hover:text-amber-500 transition-colors">
                 {stat.label}
               </span>
-            </button>
+            </motion.button>
           ))}
         </div>
       </section>
 
-      {/* 3. FEATURED WORK (CURATED HIGHLIGHTS) */}
+      {/* 3. FEATURED WORK (CURATED HIGHLIGHTS) WITH MOTION */}
       <section id="featured-work-section" className="space-y-6">
         <div className="flex items-end justify-between">
           <div>
@@ -200,13 +338,18 @@ export const HomeView: React.FC = () => {
               Featured Work
             </h2>
           </div>
-          <button
-            onClick={() => setCurrentTab('music')}
-            className="text-xs font-mono text-neutral-600 dark:text-neutral-400 hover:text-amber-500 flex items-center gap-1 transition-colors"
+          <motion.button
+            whileHover={{ x: 3 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => {
+              hapticLight();
+              setCurrentTab('music');
+            }}
+            className="text-xs font-mono text-neutral-600 dark:text-neutral-400 hover:text-amber-500 flex items-center gap-1 transition-colors cursor-pointer"
           >
             <span>View All Releases</span>
             <ChevronRight className="w-3.5 h-3.5" />
-          </button>
+          </motion.button>
         </div>
 
         {/* Bento Grid */}
@@ -214,9 +357,11 @@ export const HomeView: React.FC = () => {
           
           {/* Card 1: RUTBA Featured Song */}
           {featuredSongs[0] && (
-            <div 
+            <motion.div 
+              whileHover={{ y: -4 }}
               className="md:col-span-2 group relative rounded-3xl overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-neutral-900 min-h-[320px] flex flex-col justify-end p-6 sm:p-8 cursor-pointer shadow-lg"
               onClick={() => {
+                hapticSelection();
                 setSelectedSongId(featuredSongs[0].id);
                 setCurrentTab('music');
               }}
@@ -243,29 +388,34 @@ export const HomeView: React.FC = () => {
                 </p>
 
                 <div className="pt-2 flex items-center gap-3">
-                  <button
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.92 }}
                     onClick={(e) => {
                       e.stopPropagation();
+                      hapticBeat();
                       playSong(featuredSongs[0]);
                     }}
-                    className="px-4 py-2 rounded-full bg-white text-neutral-950 hover:bg-amber-400 font-semibold text-xs flex items-center gap-1.5 shadow-md transition-colors"
+                    className="px-4 py-2 rounded-full bg-white text-neutral-950 hover:bg-amber-400 font-semibold text-xs flex items-center gap-1.5 shadow-md transition-colors cursor-pointer"
                   >
                     <Play className="w-3.5 h-3.5 fill-current" />
                     <span>Play Audio Preview</span>
-                  </button>
+                  </motion.button>
                   <span className="text-xs text-neutral-400 font-mono">
                     {featuredSongs[0].genre}
                   </span>
                 </div>
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* Card 2: Aether Gallery Digital Project */}
           {featuredProjects[0] && (
-            <div 
+            <motion.div 
+              whileHover={{ y: -4 }}
               className="group relative rounded-3xl overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-neutral-900 min-h-[320px] flex flex-col justify-end p-6 cursor-pointer shadow-lg"
               onClick={() => {
+                hapticSelection();
                 setSelectedProjectId(featuredProjects[0].id);
                 setCurrentTab('projects');
               }}
@@ -292,13 +442,13 @@ export const HomeView: React.FC = () => {
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
-            </div>
+            </motion.div>
           )}
 
         </div>
       </section>
 
-      {/* 4. MUSIC LIBRARY SPOTLIGHT */}
+      {/* 4. MUSIC LIBRARY SPOTLIGHT WITH ANIMATED PLAY BUTTONS */}
       <section id="music-spotlight" className="space-y-6">
         <div className="flex items-end justify-between">
           <div>
@@ -309,22 +459,29 @@ export const HomeView: React.FC = () => {
               Recent Releases
             </h2>
           </div>
-          <button
-            onClick={() => setCurrentTab('music')}
-            className="text-xs font-mono text-neutral-600 dark:text-neutral-400 hover:text-amber-500 flex items-center gap-1 transition-colors"
+          <motion.button
+            whileHover={{ x: 3 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => {
+              hapticLight();
+              setCurrentTab('music');
+            }}
+            className="text-xs font-mono text-neutral-600 dark:text-neutral-400 hover:text-amber-500 flex items-center gap-1 transition-colors cursor-pointer"
           >
             <span>All Songs ({songs.length})</span>
             <ChevronRight className="w-3.5 h-3.5" />
-          </button>
+          </motion.button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {songs.slice(0, 3).map((song) => {
             const isThisPlaying = currentSong?.id === song.id && isPlaying;
             return (
-              <div
+              <motion.div
                 key={song.id}
+                whileHover={{ y: -4 }}
                 onClick={() => {
+                  hapticSelection();
                   setSelectedSongId(song.id);
                   setCurrentTab('music');
                 }}
@@ -337,20 +494,23 @@ export const HomeView: React.FC = () => {
                       alt={song.title} 
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
-                    <button
+                    <motion.button
+                      whileHover={{ scale: 1.15 }}
+                      whileTap={{ scale: 0.88 }}
                       onClick={(e) => {
                         e.stopPropagation();
+                        hapticBeat();
                         if (isThisPlaying) togglePlay();
                         else playSong(song);
                       }}
-                      className="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-amber-500 text-neutral-950 flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all"
+                      className="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-amber-500 text-neutral-950 flex items-center justify-center shadow-lg transition-all cursor-pointer"
                     >
                       {isThisPlaying ? (
                         <Pause className="w-4 h-4 fill-current" />
                       ) : (
                         <Play className="w-4 h-4 fill-current ml-0.5" />
                       )}
-                    </button>
+                    </motion.button>
                   </div>
 
                   <div>
@@ -373,7 +533,7 @@ export const HomeView: React.FC = () => {
                     Details & Lyrics <ArrowRight className="w-3 h-3" />
                   </span>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>
@@ -381,7 +541,14 @@ export const HomeView: React.FC = () => {
 
       {/* 5. YOUTUBE & VISUAL STORIES */}
       {featuredVideos[0] && (
-        <section id="youtube-spotlight" className="p-6 sm:p-8 rounded-3xl bg-neutral-950 text-white border border-neutral-800 space-y-6">
+        <motion.section 
+          id="youtube-spotlight" 
+          initial={{ opacity: 0, y: 15 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="p-6 sm:p-8 rounded-3xl bg-neutral-950 text-white border border-neutral-800 space-y-6"
+        >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <span className="text-xs font-mono uppercase tracking-wider text-red-500 font-semibold block">
@@ -391,21 +558,29 @@ export const HomeView: React.FC = () => {
                 Visual Stories & Studio BTS
               </h2>
             </div>
-            <a
+            <motion.a
               href="https://youtube.com/@arjunbhartimina"
               target="_blank"
               rel="noreferrer"
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => hapticLight()}
               className="px-4 py-2 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-semibold flex items-center gap-2 self-start transition-colors"
             >
               <span>Visit YouTube Channel</span>
               <ExternalLink className="w-3.5 h-3.5" />
-            </a>
+            </motion.a>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-            <div 
+            <motion.div 
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
               className="lg:col-span-7 relative aspect-video rounded-2xl overflow-hidden cursor-pointer group shadow-xl bg-neutral-900 border border-neutral-800"
-              onClick={() => openVideoPlayer(featuredVideos[0])}
+              onClick={() => {
+                hapticBeat();
+                openVideoPlayer(featuredVideos[0]);
+              }}
             >
               <img 
                 src={featuredVideos[0].thumbnail} 
@@ -420,7 +595,7 @@ export const HomeView: React.FC = () => {
               <span className="absolute bottom-3 right-3 px-2 py-0.5 rounded bg-black/80 text-[11px] font-mono text-white">
                 {featuredVideos[0].duration}
               </span>
-            </div>
+            </motion.div>
 
             <div className="lg:col-span-5 space-y-3">
               <span className="text-xs font-mono uppercase text-neutral-400">
@@ -431,16 +606,21 @@ export const HomeView: React.FC = () => {
                 {featuredVideos[0].description}
               </p>
               <div className="pt-2">
-                <button
-                  onClick={() => openVideoPlayer(featuredVideos[0])}
-                  className="px-4 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-xs font-medium text-neutral-200 transition-colors"
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    hapticMedium();
+                    openVideoPlayer(featuredVideos[0]);
+                  }}
+                  className="px-4 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-xs font-medium text-neutral-200 transition-colors cursor-pointer"
                 >
                   Watch in Player
-                </button>
+                </motion.button>
               </div>
             </div>
           </div>
-        </section>
+        </motion.section>
       )}
 
       {/* 6. BOOKS & PUBLICATIONS PREVIEW */}
@@ -455,20 +635,30 @@ export const HomeView: React.FC = () => {
                 Books by Arjun Bharti Mina
               </h2>
             </div>
-            <button
-              onClick={() => setCurrentTab('books')}
-              className="text-xs font-mono text-neutral-600 dark:text-neutral-400 hover:text-amber-500 flex items-center gap-1 transition-colors"
+            <motion.button
+              whileHover={{ x: 3 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                hapticLight();
+                setCurrentTab('books');
+              }}
+              className="text-xs font-mono text-neutral-600 dark:text-neutral-400 hover:text-amber-500 flex items-center gap-1 transition-colors cursor-pointer"
             >
               <span>Explore Books</span>
               <ChevronRight className="w-3.5 h-3.5" />
-            </button>
+            </motion.button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {books.slice(0, 2).map((book) => (
-              <div
+              <motion.div
                 key={book.id}
-                onClick={() => setCurrentTab('books')}
+                whileHover={{ y: -3 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => {
+                  hapticSelection();
+                  setCurrentTab('books');
+                }}
                 className="p-5 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 hover:border-amber-500/40 cursor-pointer shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row gap-4 items-start"
               >
                 <img 
@@ -491,14 +681,20 @@ export const HomeView: React.FC = () => {
                     <ArrowRight className="w-3 h-3" />
                   </span>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </section>
       )}
 
       {/* 7. CONNECT BANNER */}
-      <section id="connect-banner" className="p-8 sm:p-12 rounded-3xl bg-neutral-900 dark:bg-neutral-900/90 text-white border border-neutral-800 text-center space-y-4">
+      <motion.section 
+        id="connect-banner" 
+        initial={{ opacity: 0, scale: 0.97 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true }}
+        className="p-8 sm:p-12 rounded-3xl bg-neutral-900 dark:bg-neutral-900/90 text-white border border-neutral-800 text-center space-y-4 shadow-xl"
+      >
         <h2 className="text-2xl sm:text-4xl font-display font-extrabold">
           Let’s Collaborate & Create
         </h2>
@@ -506,20 +702,30 @@ export const HomeView: React.FC = () => {
           Whether you’re looking to collaborate on an Indian hip-hop record, discuss civil engineering calculations, or explore creative digital media — reach out directly.
         </p>
         <div className="pt-2 flex flex-wrap justify-center gap-3">
-          <button
-            onClick={() => setCurrentTab('contact')}
-            className="px-6 py-3 rounded-full bg-amber-500 hover:bg-amber-400 text-neutral-950 font-semibold text-xs sm:text-sm transition-colors shadow-lg"
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => {
+              hapticMedium();
+              setCurrentTab('contact');
+            }}
+            className="px-6 py-3 rounded-full bg-amber-500 hover:bg-amber-400 text-neutral-950 font-semibold text-xs sm:text-sm transition-colors shadow-lg cursor-pointer"
           >
             Send a Message
-          </button>
-          <button
-            onClick={() => setCurrentTab('social')}
-            className="px-6 py-3 rounded-full bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-medium text-xs sm:text-sm transition-colors"
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => {
+              hapticLight();
+              setCurrentTab('social');
+            }}
+            className="px-6 py-3 rounded-full bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-medium text-xs sm:text-sm transition-colors cursor-pointer"
           >
             Find Me Online
-          </button>
+          </motion.button>
         </div>
-      </section>
+      </motion.section>
 
     </div>
   );

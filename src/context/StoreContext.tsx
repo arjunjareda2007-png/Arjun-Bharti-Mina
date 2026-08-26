@@ -70,6 +70,8 @@ interface StoreContextType {
   setSelectedProjectId: (id: string | null) => void;
   selectedLyricId: string | null;
   setSelectedLyricId: (id: string | null) => void;
+  selectedBookId: string | null;
+  setSelectedBookId: (id: string | null) => void;
 
   // Data Entities
   profile: UserProfile;
@@ -106,7 +108,9 @@ interface StoreContextType {
   spotifyPlayerSize: 'compact' | 'standard' | 'large';
   setSpotifyPlayerSize: (size: 'compact' | 'standard' | 'large') => void;
   isFullScreenPlayerOpen: boolean;
-  openFullScreenPlayer: () => void;
+  activePlayerView: 'art' | 'video' | 'lyrics' | 'queue';
+  setActivePlayerView: (view: 'art' | 'video' | 'lyrics' | 'queue') => void;
+  openFullScreenPlayer: (initialView?: 'art' | 'video' | 'lyrics' | 'queue') => void;
   closeFullScreenPlayer: () => void;
   isShuffle: boolean;
   setIsShuffle: (val: boolean) => void;
@@ -128,6 +132,12 @@ interface StoreContextType {
   toggleMute: () => void;
 
   // Modals & Overlays
+  isMenuOpen: boolean;
+  setIsMenuOpen: (open: boolean) => void;
+  openMenu: () => void;
+  closeMenu: () => void;
+  toggleMenu: () => void;
+
   isSearchOpen: boolean;
   openSearch: () => void;
   closeSearch: () => void;
@@ -250,8 +260,7 @@ interface StoreContextType {
   bulkTogglePublish: (type: 'songs' | 'gallery' | 'videos' | 'projects' | 'lyrics', ids: string[], publish: boolean) => Promise<void>;
   bulkToggleFeatured: (type: 'songs' | 'gallery' | 'videos' | 'projects' | 'lyrics', ids: string[], featured: boolean) => Promise<void>;
 
-  // Discovery & Utilities
-  discoverRandomWork: () => { type: string; title: string; category: string; action: () => void };
+  // Data Import/Export & Reset
   exportWebsiteData: () => string;
   importWebsiteData: (jsonData: string) => boolean;
   resetAllData: () => void;
@@ -267,6 +276,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [selectedSongId, setSelectedSongId] = useState<string | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [selectedLyricId, setSelectedLyricId] = useState<string | null>(null);
+  const [selectedBookId, setSelectedBookId] = useState<string | null>(null);
 
   // Toast
   const [toast, setToast] = useState<NotificationToast | null>(null);
@@ -763,12 +773,16 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [playerMode, setPlayerMode] = useState<'spotify' | 'custom'>('spotify');
   const [spotifyPlayerSize, setSpotifyPlayerSize] = useState<'compact' | 'standard' | 'large'>('standard');
   const [isFullScreenPlayerOpen, setIsFullScreenPlayerOpen] = useState<boolean>(false);
+  const [activePlayerView, setActivePlayerView] = useState<'art' | 'video' | 'lyrics' | 'queue'>('art');
   const [isShuffle, setIsShuffle] = useState<boolean>(false);
   const [isLoop, setIsLoop] = useState<boolean>(false);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
   const [sleepTimerMinutes, setSleepTimerMinutes] = useState<number | null>(null);
 
-  const openFullScreenPlayer = useCallback(() => {
+  const openFullScreenPlayer = useCallback((initialView?: 'art' | 'video' | 'lyrics' | 'queue') => {
+    if (initialView) {
+      setActivePlayerView(initialView);
+    }
     setIsFullScreenPlayerOpen(true);
   }, []);
 
@@ -777,6 +791,11 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   }, []);
 
   // Modals & Cropper
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const openMenu = useCallback(() => setIsMenuOpen(true), []);
+  const closeMenu = useCallback(() => setIsMenuOpen(false), []);
+  const toggleMenu = useCallback(() => setIsMenuOpen(prev => !prev), []);
+
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [shareData, setShareData] = useState<ShareData | null>(null);
@@ -971,7 +990,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const playSong = (song: Song) => {
     setCurrentSong(song);
     setIsPlaying(true);
-    const dur = parseDurationToSeconds(song.duration);
+    const dur = parseDurationToSeconds(song.duration) || 198;
     setDuration(dur);
     setPlaybackTime(0);
 
@@ -1000,6 +1019,46 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       );
     }
   };
+
+  // Continuous playback timer for audio and visualizer sync
+  useEffect(() => {
+    let timer: any = null;
+    if (isPlaying && currentSong) {
+      timer = setInterval(() => {
+        setPlaybackTime(prev => {
+          const next = prev + 1 * (playbackSpeed || 1);
+          if (duration > 0 && next >= duration) {
+            if (isLoop) {
+              return 0;
+            } else {
+              nextSong();
+              return 0;
+            }
+          }
+          return next;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [isPlaying, currentSong?.id, duration, playbackSpeed, isLoop, nextSong]);
+
+  // Sleep Timer Auto-pause
+  useEffect(() => {
+    let timeout: any = null;
+    if (sleepTimerMinutes && isPlaying) {
+      timeout = setTimeout(() => {
+        setIsPlaying(false);
+        setSleepTimerMinutes(null);
+        audioSynth.pause();
+        showToast('Sleep timer reached: Playback paused', 'info');
+      }, sleepTimerMinutes * 60 * 1000);
+    }
+    return () => {
+      if (timeout) clearTimeout(timeout);
+    };
+  }, [sleepTimerMinutes, isPlaying, showToast]);
 
   const pauseSong = () => {
     setIsPlaying(false);
@@ -1033,8 +1092,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   const seekSong = (time: number) => {
-    setPlaybackTime(time);
-    audioSynth.seek(time);
+    const clamped = Math.max(0, Math.min(time, duration || 300));
+    setPlaybackTime(clamped);
+    audioSynth.seek(clamped);
   };
 
   const prevSong = () => {
@@ -1076,8 +1136,13 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setLightboxItem(prev);
   };
 
-  // Video modal handlers
-  const openVideoPlayer = (video: VideoItem) => setActiveVideo(video);
+  // Video modal handlers - pauses audio song to prevent double playback
+  const openVideoPlayer = (video: VideoItem) => {
+    if (isPlaying) {
+      pauseSong();
+    }
+    setActiveVideo(video);
+  };
   const closeVideoPlayer = () => setActiveVideo(null);
 
   // Search & Share
@@ -1362,61 +1427,6 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     showToast(`Updated ${ids.length} items to ${featured ? 'Featured' : 'Standard'}`);
   };
 
-  // Discover Random Work
-  const discoverRandomWork = () => {
-    const options = [
-      ...songs.map(s => ({
-        type: 'Song',
-        title: s.title,
-        category: s.genre,
-        action: () => {
-          setCurrentTab('music');
-          setSelectedSongId(s.id);
-          playSong(s);
-        }
-      })),
-      ...projects.map(p => ({
-        type: 'Digital Project',
-        title: p.title,
-        category: p.category,
-        action: () => {
-          setCurrentTab('projects');
-          setSelectedProjectId(p.id);
-        }
-      })),
-      ...videos.map(v => ({
-        type: 'Video',
-        title: v.title,
-        category: v.category,
-        action: () => {
-          setCurrentTab('videos');
-          openVideoPlayer(v);
-        }
-      })),
-      ...gallery.map(g => ({
-        type: 'Photography',
-        title: g.title,
-        category: g.category,
-        action: () => {
-          setCurrentTab('gallery');
-          openLightbox(g);
-        }
-      })),
-      ...lyrics.map(l => ({
-        type: 'Lyrics',
-        title: l.title,
-        category: l.genre,
-        action: () => {
-          setCurrentTab('lyrics');
-          setSelectedLyricId(l.id);
-        }
-      }))
-    ];
-
-    const chosen = options[Math.floor(Math.random() * options.length)];
-    return chosen;
-  };
-
   // Export JSON backup
   const exportWebsiteData = (): string => {
     const backup = {
@@ -1502,6 +1512,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         setSelectedProjectId,
         selectedLyricId,
         setSelectedLyricId,
+        selectedBookId,
+        setSelectedBookId,
 
         profile,
         songs,
@@ -1535,6 +1547,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         spotifyPlayerSize,
         setSpotifyPlayerSize,
         isFullScreenPlayerOpen,
+        activePlayerView,
+        setActivePlayerView,
         openFullScreenPlayer,
         closeFullScreenPlayer,
         isShuffle,
@@ -1555,6 +1569,12 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         prevSong,
         changeVolume,
         toggleMute,
+
+        isMenuOpen,
+        setIsMenuOpen,
+        openMenu,
+        closeMenu,
+        toggleMenu,
 
         isSearchOpen,
         openSearch,
@@ -1657,7 +1677,6 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         bulkTogglePublish,
         bulkToggleFeatured,
 
-        discoverRandomWork,
         exportWebsiteData,
         importWebsiteData,
         resetAllData

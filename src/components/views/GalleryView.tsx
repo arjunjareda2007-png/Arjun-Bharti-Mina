@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useStore } from '../../context/StoreContext';
 import { GalleryItem } from '../../types';
-import { Image, MapPin, Calendar, Tag, Maximize2 } from 'lucide-react';
+import { Image, MapPin, Calendar, Tag, Maximize2, Share2 } from 'lucide-react';
 
 export const GalleryView: React.FC = () => {
-  const { gallery, openLightbox } = useStore();
+  const { gallery, openLightbox, openShare } = useStore();
   const [activeCategory, setActiveCategory] = useState<string>('All');
 
   const categories = [
@@ -20,6 +20,18 @@ export const GalleryView: React.FC = () => {
   const filteredGallery = gallery.filter(item => 
     activeCategory === 'All' || item.category === activeCategory
   );
+
+  const handleQuickShare = (e: React.MouseEvent, item: GalleryItem) => {
+    e.stopPropagation();
+    openShare({
+      type: 'image',
+      title: `${item.title} — Photography by Arjun Bharti Mina`,
+      text: `${item.description} Location: ${item.location || 'India'} (${item.date}).`,
+      url: `${window.location.origin}/#gallery?id=${item.id}`,
+      imageUrl: item.imageUrl,
+      downloadFilename: `${item.title.toLowerCase().replace(/[^a-z0-9]/g, '_')}.jpg`
+    });
+  };
 
   return (
     <div id="gallery-view" className="space-y-8 max-w-7xl mx-auto">
@@ -71,18 +83,32 @@ export const GalleryView: React.FC = () => {
             <img 
               src={item.imageUrl} 
               alt={item.title}
+              referrerPolicy="no-referrer"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1200&auto=format&fit=crop';
+              }}
               className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-500"
             />
             
             {/* Hover Info Overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-4 sm:p-5 text-white">
               <div className="flex items-center justify-between">
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono uppercase bg-amber-500 text-neutral-950 font-semibold">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase bg-amber-500 text-neutral-950 font-bold">
                   {item.category}
                 </span>
-                <span className="p-1.5 rounded-full bg-black/60 backdrop-blur-sm text-white">
-                  <Maximize2 className="w-3.5 h-3.5" />
-                </span>
+                
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={(e) => handleQuickShare(e, item)}
+                    className="p-1.5 rounded-full bg-black/60 hover:bg-amber-500 hover:text-black backdrop-blur-sm text-white transition-colors"
+                    title="Share Photo"
+                  >
+                    <Share2 className="w-3.5 h-3.5" />
+                  </button>
+                  <span className="p-1.5 rounded-full bg-black/60 backdrop-blur-sm text-white">
+                    <Maximize2 className="w-3.5 h-3.5" />
+                  </span>
+                </div>
               </div>
 
               <div className="space-y-1">

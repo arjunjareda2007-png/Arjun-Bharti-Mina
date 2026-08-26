@@ -30,21 +30,21 @@ export const Footer: React.FC = () => {
           
           {/* Column 1: Brand & Tagline */}
           <div className="md:col-span-2 space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-md bg-neutral-900 dark:bg-white text-white dark:text-neutral-950 font-display font-extrabold flex items-center justify-center text-xs">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-neutral-900 dark:bg-white text-white dark:text-neutral-950 font-display font-black flex items-center justify-center text-xs tracking-wider shadow-xs">
                 ABM
               </div>
-              <span className="font-display font-bold text-neutral-900 dark:text-neutral-100 tracking-tight text-base">
+              <span className="font-display font-bold text-neutral-900 dark:text-neutral-100 tracking-tight text-base sm:text-lg">
                 {profile.name}
               </span>
             </div>
             
-            <p className="text-xs text-neutral-600 dark:text-neutral-400 max-w-md leading-relaxed">
+            <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 max-w-md leading-relaxed">
               Independent Indian music artist, rapper, songwriter, civil engineer, and creative technologist. Exploring the synergy between rhythm, rhyme, structural design, and digital experiences.
             </p>
 
-            <div className="flex items-center gap-2 pt-2 text-xs text-neutral-500 font-mono">
-              <Mail className="w-3.5 h-3.5" />
+            <div className="flex items-center gap-2 pt-1 text-xs text-neutral-500 font-mono">
+              <Mail className="w-3.5 h-3.5 text-amber-500" />
               <a href={`mailto:${profile.email}`} className="hover:text-amber-500 transition-colors underline-offset-4 hover:underline">
                 {profile.email}
               </a>

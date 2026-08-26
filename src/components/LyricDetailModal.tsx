@@ -49,7 +49,7 @@ export const LyricDetailModal: React.FC = () => {
   return (
     <div 
       id="lyric-detail-backdrop"
-      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-in fade-in"
+      className="fixed inset-0 z-[6000] bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-in fade-in"
       onClick={() => setSelectedLyricId(null)}
     >
       <div 

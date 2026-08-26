@@ -29,7 +29,7 @@ export const VideoPlayerModal: React.FC = () => {
   return (
     <div 
       id="video-modal-backdrop"
-      className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-in fade-in"
+      className="fixed inset-0 z-[8000] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-in fade-in"
       onClick={closeVideoPlayer}
     >
       <div 
