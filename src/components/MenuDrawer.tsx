@@ -1,7 +1,8 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useStore } from '../context/StoreContext';
 import { ActiveTab } from '../types';
 import { hapticSelection, hapticLight, hapticMedium } from '../utils/haptics';
+import { ClerkDrawerAuthCard } from './ClerkAuthControls';
 import { 
   Sparkles, 
   User, 
@@ -32,18 +33,19 @@ export const MenuDrawer: React.FC = () => {
     setCurrentTab, 
     theme, 
     setTheme, 
-    isOwner,
-    authUser,
-    showToast,
-    openSearch
+    isOwner, 
+    authUser, 
+    showToast, 
+    openSearch 
   } = useStore();
 
   const isAdminLoggedIn = isOwner || !!authUser;
 
   // Close drawer on Escape key
-  useEffect(() => {
+  React.useEffect(() => {
+    if (!isMenuOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isMenuOpen) {
+      if (e.key === 'Escape') {
         closeMenu();
       }
     };
@@ -52,18 +54,18 @@ export const MenuDrawer: React.FC = () => {
   }, [isMenuOpen, closeMenu]);
 
   // Lock body scroll when drawer menu is open
-  useEffect(() => {
-    if (isMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
+  React.useEffect(() => {
+    if (!isMenuOpen) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
     return () => {
-      document.body.style.overflow = '';
+      document.body.style.overflow = originalOverflow;
     };
   }, [isMenuOpen]);
 
-  if (!isMenuOpen) return null;
+  if (!isMenuOpen) {
+    return null;
+  }
 
   const handlePwaInstall = () => {
     hapticLight();
@@ -225,6 +227,9 @@ export const MenuDrawer: React.FC = () => {
               })}
             </div>
           </div>
+
+          {/* Clerk Member & Creator Authentication Card */}
+          <ClerkDrawerAuthCard />
 
           {/* Quick Hub Utilities & Tools */}
           <div className="space-y-2 pt-2 border-t border-neutral-200/80 dark:border-neutral-800/80">

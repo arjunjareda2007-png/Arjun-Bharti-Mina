@@ -1,7 +1,9 @@
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { StoreProvider, useStore } from './context/StoreContext';
+import { ClerkProviderWrapper } from './components/ClerkProviderWrapper';
 import { Navbar } from './components/Navbar';
+import { MenuDrawer } from './components/MenuDrawer';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { Footer } from './components/Footer';
 import { GlobalAudioPlayer } from './components/GlobalAudioPlayer';
@@ -71,7 +73,7 @@ const MainLayout: React.FC = () => {
 
   return (
     <ErrorBoundary fallbackTitle="Website View Refreshed">
-      <div className="min-h-screen flex flex-col bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 transition-colors duration-300 font-sans selection:bg-amber-500 selection:text-neutral-950 overflow-x-hidden">
+      <div className="min-h-screen flex flex-col bg-white dark:bg-neutral-950 text-neutral-950 dark:text-neutral-50 transition-colors duration-300 font-sans selection:bg-neutral-900 selection:text-white dark:selection:bg-white dark:selection:text-neutral-950 overflow-x-hidden">
         {/* Top Navigation */}
         <Navbar />
 
@@ -105,6 +107,7 @@ const MainLayout: React.FC = () => {
         </main>
 
         {/* Global Interactive Elements & Modals */}
+        <MenuDrawer />
         <GlobalAudioPlayer />
         <FullscreenPlayerModal />
         <SearchModal />
@@ -146,7 +149,9 @@ const MainLayout: React.FC = () => {
 export default function App() {
   return (
     <StoreProvider>
-      <MainLayout />
+      <ClerkProviderWrapper>
+        <MainLayout />
+      </ClerkProviderWrapper>
     </StoreProvider>
   );
 }

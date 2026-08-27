@@ -948,10 +948,10 @@ export const initialNavigation: NavigationItem[] = [
 ];
 
 export const initialAppearance: AppearanceConfig = {
-  themeMode: 'dark',
-  accentColor: 'amber',
+  themeMode: 'light',
+  accentColor: 'neutral',
   borderRadius: 'md',
-  cardStyle: 'glass',
+  cardStyle: 'minimal',
   animationIntensity: 'normal'
 };
 

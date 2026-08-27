@@ -44,8 +44,8 @@ export const Footer: React.FC = () => {
             </p>
 
             <div className="flex items-center gap-2 pt-1 text-xs text-neutral-500 font-mono">
-              <Mail className="w-3.5 h-3.5 text-amber-500" />
-              <a href={`mailto:${profile.email}`} className="hover:text-amber-500 transition-colors underline-offset-4 hover:underline">
+              <Mail className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+              <a href={`mailto:${profile.email}`} className="hover:text-amber-500 transition-colors underline-offset-4 hover:underline selectable-email select-text">
                 {profile.email}
               </a>
             </div>
@@ -101,16 +101,17 @@ export const Footer: React.FC = () => {
           </p>
 
           <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1 text-[11px] text-neutral-400">
-              Built with precision <Sparkles className="w-3 h-3 text-amber-500" />
+            <span className="flex items-center gap-1.5 text-xs text-neutral-600 dark:text-neutral-400 font-medium">
+              Make by Arjun with <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500 inline shrink-0" />
             </span>
             <button
               onClick={scrollToTop}
               id="footer-back-to-top-btn"
-              className="flex items-center gap-1 px-3 py-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:border-neutral-300 dark:hover:border-neutral-700 transition-all text-xs"
+              title="Back to Top"
+              aria-label="Back to Top"
+              className="w-8 h-8 rounded-full border border-neutral-200 dark:border-neutral-800 text-neutral-700 dark:text-neutral-300 hover:text-neutral-950 dark:hover:text-white hover:border-neutral-400 dark:hover:border-neutral-600 bg-white dark:bg-neutral-900 flex items-center justify-center transition-all shadow-xs hover:scale-105 active:scale-95 cursor-pointer"
             >
-              <span>Back to Top</span>
-              <ArrowUp className="w-3 h-3" />
+              <ArrowUp className="w-4 h-4" />
             </button>
           </div>
         </div>

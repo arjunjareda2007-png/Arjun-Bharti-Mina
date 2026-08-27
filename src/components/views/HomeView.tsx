@@ -50,12 +50,12 @@ export const HomeView: React.FC = () => {
 
   // Creative statistics
   const stats = [
-    { label: 'Original Songs', count: songs.length, icon: <Music2 className="w-4 h-4 text-amber-500" />, tab: 'music' },
-    { label: 'Digital Projects', count: projects.length, icon: <Globe className="w-4 h-4 text-emerald-500" />, tab: 'projects' },
-    { label: 'Videos & BTS', count: videos.length, icon: <Video className="w-4 h-4 text-red-500" />, tab: 'videos' },
-    { label: 'Authored Books', count: books.length, icon: <BookOpen className="w-4 h-4 text-amber-600" />, tab: 'books' },
-    { label: 'Photo Archive', count: gallery.length, icon: <Image className="w-4 h-4 text-purple-500" />, tab: 'gallery' },
-    { label: 'Lyrics Vault', count: lyrics.length, icon: <FileText className="w-4 h-4 text-blue-500" />, tab: 'lyrics' },
+    { label: 'Original Songs', count: songs.length, icon: <Music2 className="w-4 h-4 text-neutral-800 dark:text-neutral-200" />, tab: 'music' },
+    { label: 'Digital Projects', count: projects.length, icon: <Globe className="w-4 h-4 text-neutral-800 dark:text-neutral-200" />, tab: 'projects' },
+    { label: 'Videos & BTS', count: videos.length, icon: <Video className="w-4 h-4 text-neutral-800 dark:text-neutral-200" />, tab: 'videos' },
+    { label: 'Authored Books', count: books.length, icon: <BookOpen className="w-4 h-4 text-neutral-800 dark:text-neutral-200" />, tab: 'books' },
+    { label: 'Photo Archive', count: gallery.length, icon: <Image className="w-4 h-4 text-neutral-800 dark:text-neutral-200" />, tab: 'gallery' },
+    { label: 'Lyrics Vault', count: lyrics.length, icon: <FileText className="w-4 h-4 text-neutral-800 dark:text-neutral-200" />, tab: 'lyrics' },
   ];
 
   return (
@@ -65,14 +65,14 @@ export const HomeView: React.FC = () => {
       <section id="hero-section" className="relative pt-2 sm:pt-4 pb-8 overflow-hidden space-y-8">
         {/* Subtle Ambient Background Motion Glow */}
         <motion.div 
-          animate={{ scale: [1, 1.15, 1], opacity: [0.12, 0.22, 0.12] }}
+          animate={{ scale: [1, 1.1, 1], opacity: [0.03, 0.08, 0.03] }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-24 left-1/4 w-96 h-96 bg-amber-500/20 rounded-full blur-3xl pointer-events-none -z-10" 
+          className="absolute -top-24 left-1/4 w-96 h-96 bg-neutral-900 rounded-full blur-3xl pointer-events-none -z-10" 
         />
         <motion.div 
-          animate={{ scale: [1, 1.2, 1], opacity: [0.08, 0.16, 0.08] }}
+          animate={{ scale: [1, 1.15, 1], opacity: [0.03, 0.06, 0.03] }}
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute top-1/2 right-10 w-80 h-80 bg-red-500/10 rounded-full blur-3xl pointer-events-none -z-10" 
+          className="absolute top-1/2 right-10 w-80 h-80 bg-neutral-700 rounded-full blur-3xl pointer-events-none -z-10" 
         />
 
         {/* Panoramic Hero Banner Card with Hover Physics */}
@@ -108,8 +108,8 @@ export const HomeView: React.FC = () => {
                   <span>Jaipur, Rajasthan</span>
                 </span>
                 {isPlaying && (
-                  <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-mono flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+                  <span className="px-2.5 py-0.5 rounded-full bg-white/20 text-white border border-white/30 text-[10px] font-mono flex items-center gap-1.5 backdrop-blur-md">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
                     Now Playing
                   </span>
                 )}
@@ -122,14 +122,14 @@ export const HomeView: React.FC = () => {
             {/* Quick Live Stats & Audio Wave */}
             <div className="flex items-center gap-3">
               {/* Dynamic Animated Soundwave Pill */}
-              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-neutral-900/80 backdrop-blur-md border border-neutral-700/60 text-xs font-mono">
+              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-neutral-900/90 backdrop-blur-md border border-neutral-700/60 text-xs font-mono">
                 <div className="flex items-center gap-0.5 h-3">
                   {[40, 90, 60, 100, 50, 80].map((height, i) => (
                     <motion.span 
                       key={i}
                       animate={isPlaying ? { height: ['20%', `${height}%`, '20%'] } : { height: '30%' }}
                       transition={{ duration: 0.6 + i * 0.1, repeat: Infinity, ease: 'easeInOut' }}
-                      className="w-0.5 bg-amber-400 rounded-full inline-block"
+                      className="w-0.5 bg-white rounded-full inline-block"
                     />
                   ))}
                 </div>
@@ -142,7 +142,7 @@ export const HomeView: React.FC = () => {
                   hapticLight();
                   setCurrentTab('music');
                 }}
-                className="px-4 py-2 rounded-full bg-white/90 hover:bg-white text-neutral-950 font-bold text-xs shadow-lg backdrop-blur-md flex items-center gap-1.5 transition-all cursor-pointer"
+                className="px-4 py-2 rounded-full bg-white hover:bg-neutral-100 text-neutral-950 font-bold text-xs shadow-lg backdrop-blur-md flex items-center gap-1.5 transition-all cursor-pointer"
               >
                 <span>Explore Vault</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -168,13 +168,13 @@ export const HomeView: React.FC = () => {
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-display font-extrabold tracking-tight text-neutral-950 dark:text-white leading-[1.06]">
                   Arjun Bharti Mina
                 </h1>
-                <p className="text-amber-600 dark:text-amber-400 font-display font-semibold text-lg sm:text-xl lg:text-2xl mt-1.5 tracking-tight flex items-center gap-2">
+                <p className="text-neutral-600 dark:text-neutral-400 font-display font-semibold text-lg sm:text-xl lg:text-2xl mt-1.5 tracking-tight flex items-center gap-2">
                   <span>Independent Artist & Creative Technologist</span>
                 </p>
               </div>
 
-              <p className="text-sm sm:text-base font-medium text-neutral-700 dark:text-neutral-300 flex items-center gap-2 pt-1">
-                <span className="w-5 h-[2px] bg-amber-500 inline-block shrink-0" />
+              <p className="text-sm sm:text-base font-medium text-neutral-800 dark:text-neutral-200 flex items-center gap-2 pt-1">
+                <span className="w-5 h-[2px] bg-neutral-900 dark:bg-neutral-100 inline-block shrink-0" />
                 <span>{profile.tagline || 'Rapper, Writer, Civil Engineer & Tech Architect'}</span>
               </p>
             </motion.div>
@@ -194,7 +194,7 @@ export const HomeView: React.FC = () => {
                   hapticLight();
                   setCurrentTab('music');
                 }}
-                className="px-6 sm:px-7 py-3 sm:py-3.5 rounded-full bg-neutral-950 text-white dark:bg-amber-500 dark:text-neutral-950 font-bold text-xs sm:text-sm flex items-center gap-2 shadow-xl hover:shadow-amber-500/20 transition-all cursor-pointer"
+                className="px-6 sm:px-7 py-3 sm:py-3.5 rounded-full bg-neutral-950 text-white hover:bg-neutral-800 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200 font-bold text-xs sm:text-sm flex items-center gap-2 shadow-md transition-all cursor-pointer"
               >
                 <Headphones className="w-4 h-4" />
                 <span>Listen To Music Vault</span>
@@ -209,17 +209,17 @@ export const HomeView: React.FC = () => {
                   hapticLight();
                   setCurrentTab('about');
                 }}
-                className="px-5 sm:px-6 py-3 sm:py-3.5 rounded-full border border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 text-neutral-800 dark:text-neutral-200 font-semibold text-xs sm:text-sm bg-white/70 dark:bg-neutral-900/70 backdrop-blur-md hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all shadow-xs cursor-pointer"
+                className="px-5 sm:px-6 py-3 sm:py-3.5 rounded-full border border-neutral-300 dark:border-neutral-700 hover:border-neutral-900 dark:hover:border-white text-neutral-900 dark:text-neutral-100 font-semibold text-xs sm:text-sm bg-white dark:bg-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all shadow-xs cursor-pointer"
               >
                 About Arjun
               </motion.button>
             </div>
 
             {/* Quick Profile Meta */}
-            <div className="pt-4 flex flex-wrap items-center gap-4 text-xs font-mono text-neutral-500 dark:text-neutral-400 border-t border-neutral-200 dark:border-neutral-800">
-              <span className="flex items-center gap-1.5">📍 <strong className="text-neutral-800 dark:text-neutral-200">{profile.location}</strong></span>
-              <span className="flex items-center gap-1.5">🎓 <strong className="text-neutral-800 dark:text-neutral-200">SKIT Jaipur ({profile.education.period})</strong></span>
-              <span className="flex items-center gap-1.5">🎂 <strong className="text-neutral-800 dark:text-neutral-200">Age {calculateAge(profile.dob)}</strong></span>
+            <div className="pt-4 flex flex-wrap items-center gap-4 text-xs font-mono text-neutral-600 dark:text-neutral-400 border-t border-neutral-200 dark:border-neutral-800">
+              <span className="flex items-center gap-1.5">📍 <strong className="text-neutral-900 dark:text-neutral-100">{profile.location}</strong></span>
+              <span className="flex items-center gap-1.5">🎓 <strong className="text-neutral-900 dark:text-neutral-100">SKIT Jaipur ({profile.education.period})</strong></span>
+              <span className="flex items-center gap-1.5">🎂 <strong className="text-neutral-900 dark:text-neutral-100">Age {calculateAge(profile.dob)}</strong></span>
             </div>
 
           </div>
@@ -230,7 +230,7 @@ export const HomeView: React.FC = () => {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5 }}
-              className="relative mx-auto max-w-sm sm:max-w-md rounded-3xl overflow-hidden shadow-2xl border-2 border-amber-500/30 dark:border-amber-500/40 bg-neutral-900 group"
+              className="relative mx-auto max-w-sm sm:max-w-md rounded-3xl overflow-hidden shadow-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-950 group"
             >
               <img 
                 src={profile.profileImage} 
@@ -252,13 +252,13 @@ export const HomeView: React.FC = () => {
                     transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
                     className="w-10 h-10 rounded-full bg-neutral-900 border-2 border-neutral-700 flex items-center justify-center shrink-0 shadow-md relative overflow-hidden"
                   >
-                    <Disc className="w-8 h-8 text-amber-500/80" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-amber-400 absolute" />
+                    <Disc className="w-8 h-8 text-neutral-400" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-white absolute" />
                   </motion.div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-                      <span className="text-[10px] font-mono uppercase text-amber-400 font-bold tracking-wider">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                      <span className="text-[10px] font-mono uppercase text-neutral-300 font-bold tracking-wider">
                         Featured Anthem
                       </span>
                     </div>
@@ -281,7 +281,7 @@ export const HomeView: React.FC = () => {
                       }
                     }
                   }}
-                  className="w-11 h-11 rounded-full bg-amber-500 text-neutral-950 flex items-center justify-center flex-shrink-0 shadow-lg font-bold cursor-pointer"
+                  className="w-11 h-11 rounded-full bg-white text-neutral-950 hover:bg-neutral-200 flex items-center justify-center flex-shrink-0 shadow-lg font-bold cursor-pointer transition-colors"
                   title="Play Anthem"
                 >
                   {currentSong?.slug === 'rutba' && isPlaying ? (
@@ -298,7 +298,7 @@ export const HomeView: React.FC = () => {
       </section>
 
       {/* 2. DYNAMIC CREATIVE STATISTICS WITH MOTION */}
-      <section id="creative-statistics" className="border-y border-neutral-200 dark:border-neutral-800/80 py-6 sm:py-8 bg-neutral-50/50 dark:bg-neutral-950/40">
+      <section id="creative-statistics" className="border-y border-neutral-200 dark:border-neutral-800 py-6 sm:py-8 bg-neutral-50/70 dark:bg-neutral-900/30">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
           {stats.map((stat, idx) => (
             <motion.button
@@ -309,13 +309,13 @@ export const HomeView: React.FC = () => {
                 hapticSelection();
                 setCurrentTab(stat.tab as any);
               }}
-              className="p-4 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800/80 hover:border-amber-500/50 hover:shadow-md transition-all text-left group cursor-pointer"
+              className="p-4 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 hover:border-neutral-900 dark:hover:border-white hover:shadow-md transition-all text-left group cursor-pointer"
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="p-1.5 rounded-lg bg-neutral-100 dark:bg-neutral-800 group-hover:scale-110 transition-transform">
                   {stat.icon}
                 </span>
-                <span className="text-xl sm:text-2xl font-display font-extrabold text-neutral-900 dark:text-neutral-100">
+                <span className="text-xl sm:text-2xl font-display font-extrabold text-neutral-950 dark:text-neutral-50">
                   {stat.count < 10 ? `0${stat.count}` : stat.count}
                 </span>
               </div>
@@ -331,10 +331,10 @@ export const HomeView: React.FC = () => {
       <section id="featured-work-section" className="space-y-6">
         <div className="flex items-end justify-between">
           <div>
-            <span className="text-xs font-mono uppercase tracking-wider text-amber-500 font-semibold block">
+            <span className="text-xs font-mono uppercase tracking-wider text-neutral-500 dark:text-neutral-400 font-semibold block">
               Curated Highlights
             </span>
-            <h2 className="text-2xl sm:text-3xl font-display font-bold text-neutral-900 dark:text-neutral-100">
+            <h2 className="text-2xl sm:text-3xl font-display font-bold text-neutral-950 dark:text-white">
               Featured Work
             </h2>
           </div>
@@ -345,7 +345,7 @@ export const HomeView: React.FC = () => {
               hapticLight();
               setCurrentTab('music');
             }}
-            className="text-xs font-mono text-neutral-600 dark:text-neutral-400 hover:text-amber-500 flex items-center gap-1 transition-colors cursor-pointer"
+            className="text-xs font-mono text-neutral-600 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white flex items-center gap-1 transition-colors cursor-pointer"
           >
             <span>View All Releases</span>
             <ChevronRight className="w-3.5 h-3.5" />
@@ -359,7 +359,7 @@ export const HomeView: React.FC = () => {
           {featuredSongs[0] && (
             <motion.div 
               whileHover={{ y: -4 }}
-              className="md:col-span-2 group relative rounded-3xl overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-neutral-900 min-h-[320px] flex flex-col justify-end p-6 sm:p-8 cursor-pointer shadow-lg"
+              className="md:col-span-2 group relative rounded-3xl overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-neutral-950 min-h-[320px] flex flex-col justify-end p-6 sm:p-8 cursor-pointer shadow-md"
               onClick={() => {
                 hapticSelection();
                 setSelectedSongId(featuredSongs[0].id);
@@ -375,7 +375,7 @@ export const HomeView: React.FC = () => {
 
               <div className="relative z-10 space-y-3 text-white">
                 <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold uppercase bg-amber-500 text-neutral-950">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold uppercase bg-white text-neutral-950">
                     Featured Anthem
                   </span>
                   <span className="text-xs font-mono text-neutral-300">{featuredSongs[0].year}</span>
@@ -396,7 +396,7 @@ export const HomeView: React.FC = () => {
                       hapticBeat();
                       playSong(featuredSongs[0]);
                     }}
-                    className="px-4 py-2 rounded-full bg-white text-neutral-950 hover:bg-amber-400 font-semibold text-xs flex items-center gap-1.5 shadow-md transition-colors cursor-pointer"
+                    className="px-4 py-2 rounded-full bg-white text-neutral-950 hover:bg-neutral-200 font-semibold text-xs flex items-center gap-1.5 shadow-md transition-colors cursor-pointer"
                   >
                     <Play className="w-3.5 h-3.5 fill-current" />
                     <span>Play Audio Preview</span>
@@ -413,7 +413,7 @@ export const HomeView: React.FC = () => {
           {featuredProjects[0] && (
             <motion.div 
               whileHover={{ y: -4 }}
-              className="group relative rounded-3xl overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-neutral-900 min-h-[320px] flex flex-col justify-end p-6 cursor-pointer shadow-lg"
+              className="group relative rounded-3xl overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-neutral-950 min-h-[320px] flex flex-col justify-end p-6 cursor-pointer shadow-md"
               onClick={() => {
                 hapticSelection();
                 setSelectedProjectId(featuredProjects[0].id);
@@ -428,7 +428,7 @@ export const HomeView: React.FC = () => {
               <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/70 to-transparent"></div>
 
               <div className="relative z-10 space-y-2 text-white">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold uppercase bg-white/20 text-white border border-white/30 backdrop-blur-md">
                   Digital Project
                 </span>
                 <h3 className="text-lg font-bold">
@@ -437,7 +437,7 @@ export const HomeView: React.FC = () => {
                 <p className="text-xs text-neutral-300 line-clamp-2">
                   {featuredProjects[0].shortDescription}
                 </p>
-                <div className="pt-2 flex items-center gap-2 text-xs text-amber-400 font-mono">
+                <div className="pt-2 flex items-center gap-2 text-xs text-neutral-200 font-mono">
                   <span>Explore Project</span>
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
@@ -452,10 +452,10 @@ export const HomeView: React.FC = () => {
       <section id="music-spotlight" className="space-y-6">
         <div className="flex items-end justify-between">
           <div>
-            <span className="text-xs font-mono uppercase tracking-wider text-amber-500 font-semibold block">
+            <span className="text-xs font-mono uppercase tracking-wider text-neutral-500 dark:text-neutral-400 font-semibold block">
               Discography & Tracks
             </span>
-            <h2 className="text-2xl sm:text-3xl font-display font-bold text-neutral-900 dark:text-neutral-100">
+            <h2 className="text-2xl sm:text-3xl font-display font-bold text-neutral-950 dark:text-white">
               Recent Releases
             </h2>
           </div>
@@ -466,7 +466,7 @@ export const HomeView: React.FC = () => {
               hapticLight();
               setCurrentTab('music');
             }}
-            className="text-xs font-mono text-neutral-600 dark:text-neutral-400 hover:text-amber-500 flex items-center gap-1 transition-colors cursor-pointer"
+            className="text-xs font-mono text-neutral-600 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white flex items-center gap-1 transition-colors cursor-pointer"
           >
             <span>All Songs ({songs.length})</span>
             <ChevronRight className="w-3.5 h-3.5" />
@@ -485,7 +485,7 @@ export const HomeView: React.FC = () => {
                   setSelectedSongId(song.id);
                   setCurrentTab('music');
                 }}
-                className="group p-4 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800/80 hover:border-amber-500/50 shadow-sm hover:shadow-lg transition-all cursor-pointer flex flex-col justify-between"
+                className="group p-4 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 hover:border-neutral-900 dark:hover:border-white shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
               >
                 <div className="space-y-3">
                   <div className="relative rounded-xl overflow-hidden aspect-video bg-neutral-950">
@@ -503,7 +503,7 @@ export const HomeView: React.FC = () => {
                         if (isThisPlaying) togglePlay();
                         else playSong(song);
                       }}
-                      className="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-amber-500 text-neutral-950 flex items-center justify-center shadow-lg transition-all cursor-pointer"
+                      className="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-white text-neutral-950 hover:bg-neutral-200 flex items-center justify-center shadow-lg transition-all cursor-pointer"
                     >
                       {isThisPlaying ? (
                         <Pause className="w-4 h-4 fill-current" />
@@ -518,18 +518,18 @@ export const HomeView: React.FC = () => {
                       <span>{song.genre}</span>
                       <span>{song.year}</span>
                     </div>
-                    <h3 className="text-base font-bold text-neutral-900 dark:text-neutral-100 group-hover:text-amber-500 transition-colors">
+                    <h3 className="text-base font-bold text-neutral-950 dark:text-neutral-50 group-hover:text-neutral-600 dark:group-hover:text-neutral-300 transition-colors">
                       {song.title}
                     </h3>
-                    <p className="text-xs text-neutral-500 dark:text-neutral-400 line-clamp-2 mt-1">
+                    <p className="text-xs text-neutral-600 dark:text-neutral-400 line-clamp-2 mt-1">
                       {song.description}
                     </p>
                   </div>
                 </div>
 
-                <div className="pt-4 mt-3 border-t border-neutral-100 dark:border-neutral-800/80 flex items-center justify-between text-xs text-neutral-500">
+                <div className="pt-4 mt-3 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between text-xs text-neutral-500">
                   <span className="font-mono">{song.duration}</span>
-                  <span className="text-amber-500 font-medium group-hover:underline flex items-center gap-1">
+                  <span className="text-neutral-900 dark:text-neutral-100 font-medium group-hover:underline flex items-center gap-1">
                     Details & Lyrics <ArrowRight className="w-3 h-3" />
                   </span>
                 </div>
@@ -628,10 +628,10 @@ export const HomeView: React.FC = () => {
         <section id="books-preview-section" className="p-6 sm:p-8 rounded-3xl bg-neutral-50 dark:bg-neutral-900/60 border border-neutral-200 dark:border-neutral-800 space-y-6">
           <div className="flex items-end justify-between">
             <div>
-              <span className="text-xs font-mono uppercase tracking-wider text-amber-500 font-semibold block">
+              <span className="text-xs font-mono uppercase tracking-wider text-neutral-500 dark:text-neutral-400 font-semibold block">
                 Publications & Literature
               </span>
-              <h2 className="text-2xl sm:text-3xl font-display font-bold text-neutral-900 dark:text-neutral-100">
+              <h2 className="text-2xl sm:text-3xl font-display font-bold text-neutral-950 dark:text-white">
                 Books by Arjun Bharti Mina
               </h2>
             </div>
@@ -642,7 +642,7 @@ export const HomeView: React.FC = () => {
                 hapticLight();
                 setCurrentTab('books');
               }}
-              className="text-xs font-mono text-neutral-600 dark:text-neutral-400 hover:text-amber-500 flex items-center gap-1 transition-colors cursor-pointer"
+              className="text-xs font-mono text-neutral-600 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white flex items-center gap-1 transition-colors cursor-pointer"
             >
               <span>Explore Books</span>
               <ChevronRight className="w-3.5 h-3.5" />
@@ -659,7 +659,7 @@ export const HomeView: React.FC = () => {
                   hapticSelection();
                   setCurrentTab('books');
                 }}
-                className="p-5 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 hover:border-amber-500/40 cursor-pointer shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row gap-4 items-start"
+                className="p-5 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 hover:border-neutral-900 dark:hover:border-white cursor-pointer shadow-xs hover:shadow-md transition-all flex flex-col sm:flex-row gap-4 items-start"
               >
                 <img 
                   src={book.cover} 
@@ -667,16 +667,16 @@ export const HomeView: React.FC = () => {
                   className="w-24 sm:w-28 rounded-lg object-cover shadow-md flex-shrink-0"
                 />
                 <div className="space-y-2 min-w-0">
-                  <span className="text-[10px] font-mono uppercase text-amber-500 font-semibold">
+                  <span className="text-[10px] font-mono uppercase text-neutral-500 font-semibold">
                     {book.publicationYear} • {book.pages} Pages
                   </span>
-                  <h3 className="text-sm sm:text-base font-bold text-neutral-900 dark:text-neutral-100 line-clamp-2">
+                  <h3 className="text-sm sm:text-base font-bold text-neutral-950 dark:text-white line-clamp-2">
                     {book.title}
                   </h3>
-                  <p className="text-xs text-neutral-500 dark:text-neutral-400 line-clamp-2">
+                  <p className="text-xs text-neutral-600 dark:text-neutral-400 line-clamp-2">
                     {book.description}
                   </p>
-                  <span className="text-xs font-medium text-amber-600 dark:text-amber-400 flex items-center gap-1 pt-1">
+                  <span className="text-xs font-medium text-neutral-900 dark:text-neutral-100 flex items-center gap-1 pt-1">
                     <span>Read Synopsis & Play Store</span>
                     <ArrowRight className="w-3 h-3" />
                   </span>
@@ -693,7 +693,7 @@ export const HomeView: React.FC = () => {
         initial={{ opacity: 0, scale: 0.97 }}
         whileInView={{ opacity: 1, scale: 1 }}
         viewport={{ once: true }}
-        className="p-8 sm:p-12 rounded-3xl bg-neutral-900 dark:bg-neutral-900/90 text-white border border-neutral-800 text-center space-y-4 shadow-xl"
+        className="p-8 sm:p-12 rounded-3xl bg-neutral-950 text-white border border-neutral-800 text-center space-y-4 shadow-xl"
       >
         <h2 className="text-2xl sm:text-4xl font-display font-extrabold">
           Let’s Collaborate & Create
@@ -709,7 +709,7 @@ export const HomeView: React.FC = () => {
               hapticMedium();
               setCurrentTab('contact');
             }}
-            className="px-6 py-3 rounded-full bg-amber-500 hover:bg-amber-400 text-neutral-950 font-semibold text-xs sm:text-sm transition-colors shadow-lg cursor-pointer"
+            className="px-6 py-3 rounded-full bg-white text-neutral-950 hover:bg-neutral-100 font-semibold text-xs sm:text-sm transition-colors shadow-md cursor-pointer"
           >
             Send a Message
           </motion.button>

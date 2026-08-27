@@ -73,7 +73,7 @@ export const ContactView: React.FC = () => {
                 </div>
                 <div>
                   <span className="text-neutral-400 block text-[11px]">Direct Email</span>
-                  <a href={`mailto:${profile.email}`} className="font-semibold hover:text-amber-400 transition-colors">
+                  <a href={`mailto:${profile.email}`} className="font-semibold hover:text-amber-400 transition-colors selectable-email select-text">
                     {profile.email}
                   </a>
                 </div>
@@ -85,7 +85,7 @@ export const ContactView: React.FC = () => {
                 </div>
                 <div>
                   <span className="text-neutral-400 block text-[11px]">Phone / WhatsApp</span>
-                  <a href={`tel:${profile.whatsappNumber}`} className="font-semibold hover:text-emerald-400 transition-colors">
+                  <a href={`tel:${profile.whatsappNumber}`} className="font-semibold hover:text-emerald-400 transition-colors selectable-phone select-text">
                     {profile.whatsappNumber}
                   </a>
                 </div>

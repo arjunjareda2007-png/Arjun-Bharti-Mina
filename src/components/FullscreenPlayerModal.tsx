@@ -221,10 +221,10 @@ export const FullscreenPlayerModal: React.FC = () => {
       <div className="absolute inset-0 bg-gradient-to-b from-neutral-950/90 via-neutral-950/70 to-neutral-950/95 pointer-events-none" />
 
       {/* Top Header Controls Bar */}
-      <header className="relative z-10 w-full px-4 sm:px-8 py-3.5 sm:py-5 flex items-center justify-between border-b border-white/10 bg-neutral-950/50 backdrop-blur-md">
+      <header className="relative z-10 w-full px-3 sm:px-8 py-2.5 sm:py-4 flex items-center justify-between border-b border-white/10 bg-neutral-950/50 backdrop-blur-md gap-2">
         
         {/* Left: Branding & Minimize */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <button
             id="fullscreen-player-minimize-btn"
             type="button"
@@ -232,23 +232,23 @@ export const FullscreenPlayerModal: React.FC = () => {
               hapticLight();
               closeFullScreenPlayer();
             }}
-            className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-sm"
+            className="p-2 sm:p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-sm shrink-0"
             title="Minimize to floating bottom bar"
           >
-            <Minimize2 className="w-4 h-4" />
+            <Minimize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </button>
 
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="flex items-center gap-1.5 text-[11px] font-mono font-bold tracking-wider text-red-500 uppercase">
-                <span className="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <span className="flex items-center gap-1.5 text-[10px] sm:text-[11px] font-mono font-bold tracking-wider text-red-500 uppercase">
+                <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-red-500 animate-ping"></span>
                 ABM Player
               </span>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-neutral-300 font-mono hidden xs:inline">
                 Synced Audio & Video
               </span>
             </div>
-            <h2 className="text-xs sm:text-sm text-neutral-400 font-medium truncate max-w-[170px] sm:max-w-xs">
+            <h2 className="text-xs sm:text-sm text-neutral-400 font-medium truncate max-w-[130px] xs:max-w-[180px] sm:max-w-xs">
               Playing: <span className="text-white font-bold">{currentSong.title}</span>
             </h2>
           </div>
@@ -314,14 +314,14 @@ export const FullscreenPlayerModal: React.FC = () => {
         </div>
 
         {/* Right: Actions (Share, External YouTube, Exit Player) */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <button
             type="button"
             onClick={handleShareSong}
-            className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            className="p-2 sm:p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white hover:scale-105 active:scale-95 transition-all cursor-pointer"
             title="Share Song"
           >
-            <Share2 className="w-4 h-4" />
+            <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </button>
 
           <a
@@ -329,10 +329,10 @@ export const FullscreenPlayerModal: React.FC = () => {
             target="_blank"
             rel="noreferrer"
             onClick={() => hapticLight()}
-            className="p-2.5 rounded-full bg-red-600/20 hover:bg-red-600/40 text-red-400 hover:text-red-200 border border-red-500/30 hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            className="p-2 sm:p-2.5 rounded-full bg-red-600/20 hover:bg-red-600/40 text-red-400 hover:text-red-200 border border-red-500/30 hover:scale-105 active:scale-95 transition-all cursor-pointer"
             title="Open on YouTube"
           >
-            <ExternalLink className="w-4 h-4" />
+            <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </a>
 
           <button
@@ -343,10 +343,10 @@ export const FullscreenPlayerModal: React.FC = () => {
               closeFullScreenPlayer();
               closePlayer();
             }}
-            className="p-2.5 rounded-full bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white hover:scale-105 active:scale-95 transition-all shadow-md cursor-pointer"
+            className="p-2 sm:p-2.5 rounded-full bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white hover:scale-105 active:scale-95 transition-all shadow-md cursor-pointer"
             title="Stop & Close Player"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </button>
         </div>
       </header>
@@ -673,10 +673,10 @@ export const FullscreenPlayerModal: React.FC = () => {
       </main>
 
       {/* Bottom Master Playback Control Deck */}
-      <footer className="relative z-10 w-full max-w-4xl mx-auto px-4 sm:px-8 py-3.5 sm:py-5 space-y-3.5 bg-neutral-950/40 backdrop-blur-md rounded-t-3xl border-t border-white/10">
+      <footer className="relative z-10 w-full max-w-4xl mx-auto px-3 sm:px-8 py-2.5 sm:py-4 space-y-2.5 sm:space-y-3.5 bg-neutral-950/60 backdrop-blur-md rounded-t-3xl border-t border-white/10">
         
         {/* Scrubber Progress Bar & Timestamps */}
-        <div className="space-y-1.5">
+        <div className="space-y-1">
           <div className="relative group flex items-center">
             <input
               type="range"
@@ -694,10 +694,10 @@ export const FullscreenPlayerModal: React.FC = () => {
         </div>
 
         {/* Core Media Buttons & Sub-Controls */}
-        <div className="flex items-center justify-between gap-2 sm:gap-6">
+        <div className="flex items-center justify-between gap-1 sm:gap-6">
           
           {/* Left Sub-Controls: Shuffle, Loop, Speed, Quick View */}
-          <div className="flex items-center gap-1 sm:gap-2">
+          <div className="flex items-center gap-0.5 sm:gap-2 shrink-0">
             <button
               type="button"
               onClick={() => {
@@ -705,12 +705,12 @@ export const FullscreenPlayerModal: React.FC = () => {
                 setIsShuffle(!isShuffle);
                 showToast(isShuffle ? 'Shuffle disabled' : 'Shuffle enabled', 'info');
               }}
-              className={`p-2.5 rounded-xl transition-all hover:scale-105 active:scale-95 cursor-pointer ${
+              className={`p-2 sm:p-2.5 rounded-xl transition-all hover:scale-105 active:scale-95 cursor-pointer ${
                 isShuffle ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-white hover:bg-white/10'
               }`}
               title="Shuffle Discography"
             >
-              <Shuffle className="w-4 h-4" />
+              <Shuffle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
 
             <button
@@ -720,12 +720,12 @@ export const FullscreenPlayerModal: React.FC = () => {
                 setIsLoop(!isLoop);
                 showToast(isLoop ? 'Loop disabled' : 'Looping track', 'info');
               }}
-              className={`p-2.5 rounded-xl transition-all hover:scale-105 active:scale-95 cursor-pointer ${
+              className={`p-2 sm:p-2.5 rounded-xl transition-all hover:scale-105 active:scale-95 cursor-pointer ${
                 isLoop ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-white hover:bg-white/10'
               }`}
               title="Repeat Track"
             >
-              <Repeat className="w-4 h-4" />
+              <Repeat className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
 
             {/* Speed Selector */}
@@ -736,7 +736,7 @@ export const FullscreenPlayerModal: React.FC = () => {
                   hapticLight();
                   setShowSpeedMenu(!showSpeedMenu);
                 }}
-                className={`px-2.5 py-1.5 rounded-xl text-xs font-mono transition-all hover:scale-105 active:scale-95 cursor-pointer ${
+                className={`px-2 sm:px-2.5 py-1.5 rounded-xl text-[11px] sm:text-xs font-mono transition-all hover:scale-105 active:scale-95 cursor-pointer ${
                   playbackSpeed !== 1 ? 'bg-white text-neutral-950 font-bold' : 'text-neutral-400 hover:text-white hover:bg-white/10'
                 }`}
                 title="Playback Speed"
@@ -768,17 +768,17 @@ export const FullscreenPlayerModal: React.FC = () => {
           </div>
 
           {/* Primary Transport Controls (Prev, Big Play/Pause, Next) */}
-          <div className="flex items-center gap-3 sm:gap-5">
+          <div className="flex items-center gap-2 sm:gap-5 shrink-0">
             <button
               type="button"
               onClick={() => {
                 hapticSelection();
                 prevSong();
               }}
-              className="p-3 rounded-full bg-white/10 hover:bg-white/20 text-white hover:scale-110 active:scale-90 transition-all shadow-md cursor-pointer"
+              className="p-2 sm:p-3 rounded-full bg-white/10 hover:bg-white/20 text-white hover:scale-110 active:scale-90 transition-all shadow-md cursor-pointer"
               title="Previous Song"
             >
-              <SkipBack className="w-5 h-5 fill-current" />
+              <SkipBack className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
             </button>
 
             <button
@@ -788,13 +788,13 @@ export const FullscreenPlayerModal: React.FC = () => {
                 hapticBeat();
                 togglePlay();
               }}
-              className="w-13 h-13 sm:w-15 sm:h-15 rounded-full bg-amber-500 text-neutral-950 flex items-center justify-center shadow-2xl hover:scale-108 active:scale-92 transition-all cursor-pointer font-bold"
+              className="w-11 h-11 sm:w-15 sm:h-15 rounded-full bg-amber-500 text-neutral-950 flex items-center justify-center shadow-2xl hover:scale-108 active:scale-92 transition-all cursor-pointer font-bold"
               title={isPlaying ? "Pause Track" : "Play Track"}
             >
               {isPlaying ? (
-                <Pause className="w-7 h-7 fill-current" />
+                <Pause className="w-5 h-5 sm:w-7 sm:h-7 fill-current" />
               ) : (
-                <Play className="w-7 h-7 fill-current ml-0.5" />
+                <Play className="w-5 h-5 sm:w-7 sm:h-7 fill-current ml-0.5" />
               )}
             </button>
 
@@ -804,15 +804,15 @@ export const FullscreenPlayerModal: React.FC = () => {
                 hapticSelection();
                 nextSong();
               }}
-              className="p-3 rounded-full bg-white/10 hover:bg-white/20 text-white hover:scale-110 active:scale-90 transition-all shadow-md cursor-pointer"
+              className="p-2 sm:p-3 rounded-full bg-white/10 hover:bg-white/20 text-white hover:scale-110 active:scale-90 transition-all shadow-md cursor-pointer"
               title="Next Song"
             >
-              <SkipForward className="w-5 h-5 fill-current" />
+              <SkipForward className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
             </button>
           </div>
 
           {/* Right Sub-Controls: Sleep Timer & Volume Slider */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1 sm:gap-3 shrink-0">
             {/* Sleep Timer */}
             <div className="relative">
               <button
@@ -821,12 +821,12 @@ export const FullscreenPlayerModal: React.FC = () => {
                   hapticLight();
                   setShowSleepTimerMenu(!showSleepTimerMenu);
                 }}
-                className={`p-2.5 rounded-xl transition-all hover:scale-105 active:scale-95 cursor-pointer ${
+                className={`p-2 sm:p-2.5 rounded-xl transition-all hover:scale-105 active:scale-95 cursor-pointer ${
                   sleepTimerMinutes ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-white hover:bg-white/10'
                 }`}
                 title={sleepTimerMinutes ? `Sleep timer: ${sleepTimerMinutes}m` : "Set Sleep Timer"}
               >
-                <Clock className="w-4 h-4" />
+                <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
 
               {showSleepTimerMenu && (

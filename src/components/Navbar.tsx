@@ -1,8 +1,8 @@
 import React from 'react';
 import { useStore } from '../context/StoreContext';
 import { ActiveTab } from '../types';
-import { MenuDrawer } from './MenuDrawer';
 import { hapticLight, hapticSelection, hapticMedium } from '../utils/haptics';
+import { ClerkNavAuthControls } from './ClerkAuthControls';
 import { 
   Search, 
   Menu, 
@@ -59,31 +59,19 @@ export const Navbar: React.FC = () => {
                 setCurrentTab('home'); 
                 closeMenu();
               }}
-              className="flex items-center gap-2.5 sm:gap-3 text-left group focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded-2xl p-1 -ml-1 hover:scale-102 active:scale-97 transition-transform cursor-pointer"
+              title="Arjun Bharti Mina (ABM)"
+              className="flex items-center text-left group focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 rounded-2xl p-1 -ml-1 hover:scale-102 active:scale-97 transition-transform cursor-pointer"
             >
-              {/* Crisp Stylized ABM Vector Monogram with Extended White Background */}
-              <div className="relative px-3.5 sm:px-4 py-1.5 h-10 sm:h-11 rounded-xl bg-white dark:bg-white text-neutral-950 border-2 border-neutral-200/90 dark:border-neutral-300/90 shadow-md flex items-center justify-center gap-2 group-hover:border-amber-400 group-hover:shadow-amber-500/20 group-hover:shadow-lg transition-all duration-300 shrink-0">
-                <div className="w-6 h-6 rounded-md bg-neutral-950 flex items-center justify-center shrink-0">
+              {/* Crisp Stylized ABM Vector Monogram */}
+              <div className="relative px-3.5 sm:px-4 py-1.5 h-10 sm:h-11 rounded-xl bg-white dark:bg-neutral-900 text-neutral-950 dark:text-white border-2 border-neutral-200 dark:border-neutral-800 shadow-sm flex items-center justify-center gap-2 group-hover:border-neutral-900 dark:group-hover:border-white group-hover:shadow-md transition-all duration-300 shrink-0">
+                <div className="w-6 h-6 rounded-md bg-neutral-950 dark:bg-white flex items-center justify-center shrink-0">
                   <svg viewBox="0 0 100 100" className="w-4 h-4">
-                    <polygon points="50,8 92,50 50,92 8,50" fill="none" stroke="#F59E0B" strokeWidth="6" />
-                    <circle cx="50" cy="50" r="16" fill="#EF4444" />
+                    <polygon points="50,8 92,50 50,92 8,50" fill="none" stroke="currentColor" className="text-white dark:text-neutral-950" strokeWidth="7" />
+                    <circle cx="50" cy="50" r="15" fill="currentColor" className="text-rose-500" />
                   </svg>
                 </div>
-                <span className="font-display font-black tracking-widest text-sm sm:text-base text-neutral-950 font-mono select-none">
+                <span className="font-display font-black tracking-widest text-sm sm:text-base text-neutral-950 dark:text-white font-mono select-none">
                   ABM
-                </span>
-              </div>
-
-              {/* Title & Artist Identity */}
-              <div className="flex flex-col min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-sm sm:text-base md:text-lg font-display font-bold tracking-tight text-neutral-950 dark:text-neutral-50 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors whitespace-nowrap">
-                    {profile.name}
-                  </span>
-                  <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500 fill-amber-500/20 shrink-0" />
-                </div>
-                <span className="text-[11px] text-neutral-500 dark:text-neutral-400 font-medium tracking-normal block truncate">
-                  Artist & Creative Technologist
                 </span>
               </div>
             </button>
@@ -115,7 +103,7 @@ export const Navbar: React.FC = () => {
             })}
           </nav>
 
-          {/* Right Header Actions: Search & Menu Toggle Button */}
+          {/* Right Header Actions: Search, Clerk Auth & Menu Toggle Button */}
           <div className="flex items-center gap-2 shrink-0">
             
             {/* Global Search Button */}
@@ -133,6 +121,9 @@ export const Navbar: React.FC = () => {
               <span className="hidden md:inline font-medium">Search</span>
               <kbd className="hidden sm:inline-block text-[10px] px-1.5 py-0.2 font-mono bg-neutral-200 dark:bg-neutral-800 rounded text-neutral-500">⌘K</kbd>
             </button>
+
+            {/* Clerk Authentication Controls (Sign In / Sign Up / User Profile) */}
+            <ClerkNavAuthControls />
 
             {/* Menu Button (Clear, prominent and high contrast) */}
             <button
@@ -158,9 +149,6 @@ export const Navbar: React.FC = () => {
           </div>
         </div>
       </header>
-
-      {/* Global Slide-In Menu Drawer */}
-      <MenuDrawer />
     </>
   );
 };

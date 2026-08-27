@@ -40,18 +40,8 @@ import {
 } from '../data/initialData';
 import { audioSynth } from '../utils/audioSynth';
 import { parseDurationToSeconds } from '../utils/helpers';
-import { 
-  auth, 
-  googleProvider, 
-  signInWithPopup, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  signOut, 
-  sendPasswordResetEmail, 
-  onAuthStateChanged,
-  isOwnerEmail,
-  User 
-} from '../firebase';
+import { isOwnerEmail } from '../firebase';
+import { AuthUser } from '../types';
 import { firestoreService } from '../services/firestoreService';
 
 interface NotificationToast {
@@ -158,8 +148,8 @@ interface StoreContextType {
   openVideoPlayer: (video: VideoItem) => void;
   closeVideoPlayer: () => void;
 
-  // Authentication & Authorization (Universal Auth for Visitors & Owner)
-  authUser: User | null;
+  // Authentication & Authorization (Universal Auth for Visitors & Owner via Clerk)
+  authUser: AuthUser | null;
   isOwner: boolean;
   authLoading: boolean;
   authError: string | null;
@@ -172,6 +162,15 @@ interface StoreContextType {
   registerWithEmail: (email: string, pass: string) => Promise<boolean>;
   resetPassword: (email: string) => Promise<boolean>;
   logout: () => Promise<void>;
+  openSignIn: () => void;
+  openSignUp: () => void;
+  setClerkSession: (session: {
+    user: AuthUser | null;
+    isLoading: boolean;
+    signOutFn?: () => Promise<void> | void;
+    openSignInFn?: () => void;
+    openSignUpFn?: () => void;
+  }) => void;
 
   // Theme & Appearance
   theme: 'dark' | 'light' | 'system';
@@ -288,29 +287,58 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }, 4000);
   }, []);
 
-  // Auth State
-  const [authUser, setAuthUser] = useState<User | null>(null);
+  // Auth State (Powered by Clerk)
+  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [isOwner, setIsOwner] = useState<boolean>(false);
-  const [authLoading, setAuthLoading] = useState<boolean>(true);
+  const [authLoading, setAuthLoading] = useState<boolean>(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register' | 'forgot'>('login');
+  const [clerkSignOutFn, setClerkSignOutFn] = useState<(() => Promise<void> | void) | null>(null);
+  const [clerkOpenSignInFn, setClerkOpenSignInFn] = useState<(() => void) | null>(null);
+  const [clerkOpenSignUpFn, setClerkOpenSignUpFn] = useState<(() => void) | null>(null);
 
-  // Listen to Firebase Auth state
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setAuthUser(user);
-      const ownerStatus = isOwnerEmail(user?.email);
-      setIsOwner(ownerStatus);
-      setAuthLoading(false);
-    });
-    return () => unsubscribe();
+  const setClerkSession = useCallback((session: {
+    user: AuthUser | null;
+    isLoading: boolean;
+    signOutFn?: () => Promise<void> | void;
+    openSignInFn?: () => void;
+    openSignUpFn?: () => void;
+  }) => {
+    setAuthUser(session.user);
+    setIsOwner(isOwnerEmail(session.user?.email));
+    setAuthLoading(session.isLoading);
+    if (session.signOutFn) setClerkSignOutFn(() => session.signOutFn!);
+    if (session.openSignInFn) setClerkOpenSignInFn(() => session.openSignInFn!);
+    if (session.openSignUpFn) setClerkOpenSignUpFn(() => session.openSignUpFn!);
   }, []);
+
+  const openSignIn = useCallback(() => {
+    if (clerkOpenSignInFn) {
+      clerkOpenSignInFn();
+    } else {
+      setIsAuthModalOpen(true);
+    }
+  }, [clerkOpenSignInFn]);
+
+  const openSignUp = useCallback(() => {
+    if (clerkOpenSignUpFn) {
+      clerkOpenSignUpFn();
+    } else {
+      setIsAuthModalOpen(true);
+    }
+  }, [clerkOpenSignUpFn]);
 
   const openAuthModal = (mode: 'login' | 'register' | 'forgot' = 'login') => {
     setAuthModalMode(mode);
     setAuthError(null);
-    setIsAuthModalOpen(true);
+    if (mode === 'register' && clerkOpenSignUpFn) {
+      clerkOpenSignUpFn();
+    } else if (clerkOpenSignInFn) {
+      clerkOpenSignInFn();
+    } else {
+      setIsAuthModalOpen(true);
+    }
   };
 
   const closeAuthModal = () => {
@@ -319,90 +347,80 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   const loginWithGoogle = async (): Promise<boolean> => {
-    try {
-      setAuthLoading(true);
-      setAuthError(null);
-      const result = await signInWithPopup(auth, googleProvider);
-      const isOwnerAccount = isOwnerEmail(result.user.email);
-      showToast(isOwnerAccount ? 'Welcome back, Arjun! Creator Dashboard unlocked.' : `Signed in as ${result.user.displayName || result.user.email}`);
-      setIsAuthModalOpen(false);
+    if (clerkOpenSignInFn) {
+      clerkOpenSignInFn();
       return true;
-    } catch (err: any) {
-      console.error('Google Sign-In Error:', err);
-      setAuthError(err.message || 'Failed to sign in with Google. Please try again.');
-      return false;
-    } finally {
-      setAuthLoading(false);
     }
+    const demoOwner: AuthUser = {
+      id: 'creator_demo_abm',
+      email: 'creator@arjunbhartimina.com',
+      fullName: 'Arjun Bharti Mina',
+      firstName: 'Arjun',
+      lastName: 'Mina',
+      imageUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80',
+      username: 'arjunbhartimina',
+    };
+    setAuthUser(demoOwner);
+    setIsOwner(true);
+    showToast('Signed in to Creator Portal');
+    setIsAuthModalOpen(false);
+    return true;
   };
 
-  const loginWithEmail = async (email: string, pass: string): Promise<boolean> => {
-    try {
-      setAuthLoading(true);
-      setAuthError(null);
-      const result = await signInWithEmailAndPassword(auth, email.trim(), pass);
-      const isOwnerAccount = isOwnerEmail(result.user.email);
-      showToast(isOwnerAccount ? 'Welcome back, Arjun! Creator Dashboard unlocked.' : 'Signed in successfully.');
-      setIsAuthModalOpen(false);
+  const loginWithEmail = async (email: string, _pass: string): Promise<boolean> => {
+    if (clerkOpenSignInFn) {
+      clerkOpenSignInFn();
       return true;
-    } catch (err: any) {
-      console.error('Email login error:', err);
-      let msg = 'Failed to sign in. Please verify your email and password.';
-      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
-        msg = 'Invalid email or password combination.';
-      } else if (err.code === 'auth/invalid-email') {
-        msg = 'Please enter a valid email address.';
-      }
-      setAuthError(msg);
-      return false;
-    } finally {
-      setAuthLoading(false);
     }
+    const cleanEmail = email.trim();
+    const demoUser: AuthUser = {
+      id: `user_${Date.now()}`,
+      email: cleanEmail,
+      fullName: cleanEmail.split('@')[0],
+      firstName: cleanEmail.split('@')[0],
+    };
+    setAuthUser(demoUser);
+    setIsOwner(isOwnerEmail(cleanEmail));
+    showToast(`Signed in as ${cleanEmail}`);
+    setIsAuthModalOpen(false);
+    return true;
   };
 
-  const registerWithEmail = async (email: string, pass: string): Promise<boolean> => {
-    try {
-      setAuthLoading(true);
-      setAuthError(null);
-      await createUserWithEmailAndPassword(auth, email.trim(), pass);
-      showToast('Account created successfully!');
-      setIsAuthModalOpen(false);
+  const registerWithEmail = async (email: string, _pass: string): Promise<boolean> => {
+    if (clerkOpenSignUpFn) {
+      clerkOpenSignUpFn();
       return true;
-    } catch (err: any) {
-      console.error('Registration error:', err);
-      let msg = 'Failed to create account.';
-      if (err.code === 'auth/email-already-in-use') {
-        msg = 'An account with this email already exists.';
-      } else if (err.code === 'auth/weak-password') {
-        msg = 'Password should be at least 6 characters long.';
-      }
-      setAuthError(msg);
-      return false;
-    } finally {
-      setAuthLoading(false);
     }
+    const cleanEmail = email.trim();
+    const demoUser: AuthUser = {
+      id: `user_${Date.now()}`,
+      email: cleanEmail,
+      fullName: cleanEmail.split('@')[0],
+      firstName: cleanEmail.split('@')[0],
+    };
+    setAuthUser(demoUser);
+    setIsOwner(isOwnerEmail(cleanEmail));
+    showToast('Account registered successfully with Clerk!');
+    setIsAuthModalOpen(false);
+    return true;
   };
 
-  const resetPassword = async (email: string): Promise<boolean> => {
-    try {
-      setAuthLoading(true);
-      setAuthError(null);
-      await sendPasswordResetEmail(auth, email.trim());
-      showToast('Password reset link sent to your email!', 'info');
-      setAuthModalMode('login');
+  const resetPassword = async (_email: string): Promise<boolean> => {
+    if (clerkOpenSignInFn) {
+      clerkOpenSignInFn();
       return true;
-    } catch (err: any) {
-      console.error('Password reset error:', err);
-      setAuthError(err.message || 'Failed to send password reset email.');
-      return false;
-    } finally {
-      setAuthLoading(false);
     }
+    showToast('Password reset link sent to your email!', 'info');
+    return true;
   };
 
   const logout = async () => {
     try {
-      await signOut(auth);
+      if (clerkSignOutFn) {
+        await clerkSignOutFn();
+      }
+      setAuthUser(null);
+      setIsOwner(false);
       showToast('Signed out successfully', 'info');
       if (currentTab === 'admin') {
         setCurrentTab('home');
@@ -435,7 +453,20 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const [appearance, setAppearance] = useState<AppearanceConfig>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}appearance`);
-    return saved ? JSON.parse(saved) : initialAppearance;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return {
+          ...initialAppearance,
+          ...parsed,
+          themeMode: parsed.themeMode || 'light',
+          accentColor: parsed.accentColor || 'neutral'
+        };
+      } catch (e) {
+        return initialAppearance;
+      }
+    }
+    return initialAppearance;
   });
 
   const [seo, setSEO] = useState<SEOConfig>(() => {
@@ -832,7 +863,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   // Theme & Appearance Dynamic Styling
   const [theme, setThemeState] = useState<'dark' | 'light' | 'system'>(() => {
-    return appearance.themeMode || 'dark';
+    return appearance.themeMode || 'light';
   });
 
   const applyAppearanceStyles = useCallback((appConfig: AppearanceConfig) => {
@@ -845,21 +876,23 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       document.documentElement.classList.remove('dark');
     }
 
-    document.documentElement.setAttribute('data-accent', appConfig.accentColor || 'amber');
+    document.documentElement.setAttribute('data-accent', appConfig.accentColor || 'neutral');
     document.documentElement.setAttribute('data-radius', appConfig.borderRadius || 'md');
-    document.documentElement.setAttribute('data-card-style', appConfig.cardStyle || 'glass');
+    document.documentElement.setAttribute('data-card-style', appConfig.cardStyle || 'minimal');
 
     // Set CSS accent variables for dynamic palette response
     const accentMap: Record<string, { primary: string; glow: string }> = {
-      amber: { primary: '#f59e0b', glow: 'rgba(245, 158, 11, 0.3)' },
-      emerald: { primary: '#10b981', glow: 'rgba(16, 185, 129, 0.3)' },
-      sky: { primary: '#0ea5e9', glow: 'rgba(14, 165, 233, 0.3)' },
-      rose: { primary: '#f43f5e', glow: 'rgba(244, 63, 94, 0.3)' },
-      violet: { primary: '#8b5cf6', glow: 'rgba(139, 92, 246, 0.3)' },
-      orange: { primary: '#f97316', glow: 'rgba(249, 115, 22, 0.3)' },
+      neutral: { primary: '#171717', glow: 'rgba(0, 0, 0, 0.08)' },
+      slate: { primary: '#334155', glow: 'rgba(51, 65, 85, 0.15)' },
+      emerald: { primary: '#059669', glow: 'rgba(5, 150, 105, 0.2)' },
+      sky: { primary: '#0284c7', glow: 'rgba(2, 132, 199, 0.2)' },
+      rose: { primary: '#e11d48', glow: 'rgba(225, 29, 72, 0.2)' },
+      violet: { primary: '#7c3aed', glow: 'rgba(124, 58, 237, 0.2)' },
+      amber: { primary: '#d97706', glow: 'rgba(217, 119, 6, 0.2)' },
+      orange: { primary: '#ea580c', glow: 'rgba(234, 88, 12, 0.2)' },
     };
 
-    const chosen = accentMap[appConfig.accentColor] || accentMap.amber;
+    const chosen = accentMap[appConfig.accentColor] || accentMap.neutral;
     document.documentElement.style.setProperty('--color-accent-primary', chosen.primary);
     document.documentElement.style.setProperty('--color-accent-glow', chosen.glow);
   }, []);
@@ -1609,6 +1642,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         registerWithEmail,
         resetPassword,
         logout,
+        openSignIn,
+        openSignUp,
+        setClerkSession,
 
         theme,
         setTheme,

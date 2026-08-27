@@ -1,16 +1,5 @@
 import { initializeApp } from 'firebase/app';
 import { 
-  getAuth, 
-  GoogleAuthProvider, 
-  signInWithPopup, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  signOut, 
-  sendPasswordResetEmail,
-  onAuthStateChanged,
-  User 
-} from 'firebase/auth';
-import { 
   getFirestore, 
   collection, 
   doc, 
@@ -23,16 +12,13 @@ import {
 } from 'firebase/firestore';
 import firebaseConfig from '../firebase-applet-config.json';
 
-// Initialize Firebase
+// Initialize Firebase (Firestore database only)
 const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
 
 // Use specified database ID if configured
 export const db = firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId !== '(default)'
   ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
   : getFirestore(app);
-
-export const googleProvider = new GoogleAuthProvider();
 
 export const isOwnerEmail = (email?: string | null): boolean => {
   if (!email) return false;
@@ -46,12 +32,6 @@ export const isOwnerEmail = (email?: string | null): boolean => {
 };
 
 export {
-  signInWithPopup,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut,
-  sendPasswordResetEmail,
-  onAuthStateChanged,
   collection,
   doc,
   getDoc,
@@ -61,4 +41,3 @@ export {
   deleteDoc,
   onSnapshot
 };
-export type { User };

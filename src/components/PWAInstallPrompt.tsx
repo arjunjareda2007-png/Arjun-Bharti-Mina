@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useStore } from '../context/StoreContext';
 import { Download, X, CheckCircle2, Sparkles, Smartphone, Laptop } from 'lucide-react';
 
 interface BeforeInstallPromptEvent extends Event {
@@ -7,6 +8,7 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export const PWAInstallPrompt: React.FC = () => {
+  const { showToast } = useStore();
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState<boolean>(false);
   const [dismissed, setDismissed] = useState<boolean>(() => {
@@ -46,11 +48,12 @@ export const PWAInstallPrompt: React.FC = () => {
       const choiceResult = await deferredPrompt.userChoice;
       if (choiceResult.outcome === 'accepted') {
         setIsInstalled(true);
+        showToast('App installed successfully!', 'success');
       }
       setDeferredPrompt(null);
     } else {
       // Fallback message for Chrome desktop/mobile if prompt already fired or in standalone
-      alert('To install in Chrome:\n1. Click the 3 dots (⋮) in the top-right corner of Chrome.\n2. Select "Install Arjun Bharti Mina Hub" or "Add to Home screen".');
+      showToast('To install: Click Chrome menu (⋮) -> "Install App" or "Add to Home screen"', 'info');
     }
   };
 

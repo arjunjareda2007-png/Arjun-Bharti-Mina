@@ -306,7 +306,7 @@ export interface YouTubeSettings {
 
 export interface AppearanceConfig {
   themeMode: 'dark' | 'light' | 'system';
-  accentColor: 'amber' | 'emerald' | 'sky' | 'rose' | 'violet' | 'orange';
+  accentColor: 'neutral' | 'slate' | 'amber' | 'emerald' | 'sky' | 'rose' | 'violet' | 'orange';
   borderRadius: 'none' | 'sm' | 'md' | 'lg' | 'full';
   cardStyle: 'glass' | 'solid' | 'minimal';
   animationIntensity: 'subtle' | 'normal' | 'expressive';
@@ -357,5 +357,15 @@ export interface ShareData {
   streamingLinks?: StreamingLinks;
   downloadFilename?: string;
   itemData?: any;
+}
+
+export interface AuthUser {
+  id: string;
+  email: string | null;
+  fullName?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  imageUrl?: string | null;
+  username?: string | null;
 }
 
