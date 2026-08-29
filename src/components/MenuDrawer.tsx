@@ -259,7 +259,7 @@ export const MenuDrawer: React.FC = () => {
                     <div>
                       <h4 className="text-xs font-bold text-neutral-900 dark:text-white flex items-center gap-1.5">
                         <span>Aesthetic Themes</span>
-                        <span className="text-[10px] font-mono font-normal text-amber-600 dark:text-amber-400">9 Modes</span>
+                        <span className="text-[10px] font-mono font-normal text-amber-600 dark:text-amber-400">{THEME_PRESETS.length} Modes</span>
                       </h4>
                       <p className="text-[10px] text-neutral-500 dark:text-neutral-400 font-mono">
                         Active: <span className="font-bold text-neutral-800 dark:text-neutral-200 capitalize">{THEME_PRESETS.find(p => p.id === theme)?.name || theme}</span>

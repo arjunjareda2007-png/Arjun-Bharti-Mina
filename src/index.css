@@ -241,6 +241,66 @@
     --color-amber-600: #f43f5e;
   }
 
+  /* 9. Cherry Red (Crimson Noir & Vivid Ruby) */
+  html[data-theme="cherry"].dark {
+    --app-bg: #0d0407;
+    --app-surface: #18070d;
+    --app-surface-subtle: #240b14;
+    --app-border: #3b1021;
+    --app-text: #fff1f2;
+    --app-text-muted: #fda4af;
+    --color-accent-primary: #e11d48;
+    --color-accent-glow: rgba(225, 29, 72, 0.3);
+
+    /* Tailwind neutral palette overrides */
+    --color-neutral-950: #0d0407;
+    --color-neutral-900: #18070d;
+    --color-neutral-850: #1f0911;
+    --color-neutral-800: #300c19;
+    --color-neutral-700: #4c1126;
+    --color-neutral-600: #6f1636;
+    --color-neutral-400: #fb7185;
+    --color-neutral-300: #fda4af;
+    --color-neutral-200: #fecdd3;
+    --color-neutral-100: #ffe4e6;
+    --color-neutral-50: #fff1f2;
+
+    /* Accent color overrides */
+    --color-amber-500: #e11d48;
+    --color-amber-400: #fb7185;
+    --color-amber-600: #be123c;
+  }
+
+  /* 10. Cherry Blossom (Sakura Petal & Rose Gold) */
+  html[data-theme="blossom"].dark {
+    --app-bg: #120810;
+    --app-surface: #1c0e1a;
+    --app-surface-subtle: #271424;
+    --app-border: #381a33;
+    --app-text: #fdf2f8;
+    --app-text-muted: #f472b6;
+    --color-accent-primary: #ec4899;
+    --color-accent-glow: rgba(236, 72, 153, 0.3);
+
+    /* Tailwind neutral palette overrides */
+    --color-neutral-950: #120810;
+    --color-neutral-900: #1c0e1a;
+    --color-neutral-850: #231121;
+    --color-neutral-800: #33162e;
+    --color-neutral-700: #4a1d41;
+    --color-neutral-600: #6b265c;
+    --color-neutral-400: #f472b6;
+    --color-neutral-300: #f9a8d4;
+    --color-neutral-200: #fbcfe8;
+    --color-neutral-100: #fdf2f8;
+    --color-neutral-50: #fdf2f8;
+
+    /* Accent color overrides */
+    --color-amber-500: #ec4899;
+    --color-amber-400: #f472b6;
+    --color-amber-600: #db2777;
+  }
+
   *, *::before, *::after {
     box-sizing: border-box;
   }

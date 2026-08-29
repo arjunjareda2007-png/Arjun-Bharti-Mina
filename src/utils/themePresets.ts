@@ -130,6 +130,34 @@ export const THEME_PRESETS: ThemePreset[] = [
     desc: 'Twilight sky mood with velvet espresso backdrop and radiant coral rose accents.'
   },
   {
+    id: 'cherry',
+    name: 'Cherry Red',
+    subtitle: 'Crimson Noir & Vivid Ruby',
+    tag: 'Bold Crimson',
+    isDark: true,
+    accentHex: '#e11d48',
+    bgHex: '#0d0407',
+    surfaceHex: '#18070d',
+    borderHex: '#300c19',
+    badgeBg: 'bg-rose-950/60',
+    badgeText: 'text-rose-300',
+    desc: 'Intense crimson velvet dark canvas with fiery ruby and cherry red highlights.'
+  },
+  {
+    id: 'blossom',
+    name: 'Cherry Blossom',
+    subtitle: 'Sakura Petal & Rose Gold',
+    tag: 'Sakura',
+    isDark: true,
+    accentHex: '#f472b6',
+    bgHex: '#120810',
+    surfaceHex: '#1c0e1a',
+    borderHex: '#33162e',
+    badgeBg: 'bg-pink-950/60',
+    badgeText: 'text-pink-300',
+    desc: 'Delicate sakura petal atmosphere with deep floral twilight and soft pink glow.'
+  },
+  {
     id: 'system',
     name: 'System Sync',
     subtitle: 'Automatic Device Match',

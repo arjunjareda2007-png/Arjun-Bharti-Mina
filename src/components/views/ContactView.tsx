@@ -15,6 +15,14 @@ export const ContactView: React.FC = () => {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
 
+  // Clean phone / WhatsApp number dynamically from profile configuration
+  const rawWhatsapp = profile.whatsappNumber || '';
+  const digitsOnly = rawWhatsapp.replace(/[^0-9]/g, '');
+  const formattedWhatsappNumber = digitsOnly.length === 10 ? `91${digitsOnly}` : digitsOnly;
+  const whatsappUrl = formattedWhatsappNumber 
+    ? `https://wa.me/${formattedWhatsappNumber}?text=${encodeURIComponent("Hi Arjun, I visited your website and wanted to connect!")}`
+    : `https://wa.me/?text=${encodeURIComponent("Hi Arjun, I visited your website and wanted to connect!")}`;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.message) {
@@ -106,7 +114,7 @@ export const ContactView: React.FC = () => {
 
             {/* Quick WhatsApp Action */}
             <a
-              href="https://wa.me/918000954060?text=Hi%20Arjun,%20I%20visited%20your%20website%20and%20wanted%20to%20connect!"
+              href={whatsappUrl}
               target="_blank"
               rel="noreferrer"
               className="w-full py-3 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center justify-center gap-2 transition-colors shadow-lg"

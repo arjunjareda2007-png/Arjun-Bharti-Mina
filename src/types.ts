@@ -313,6 +313,8 @@ export type ThemeMode =
   | 'nordic'
   | 'cyber'
   | 'sunset'
+  | 'cherry'
+  | 'blossom'
   | 'system';
 
 export interface AppearanceConfig {

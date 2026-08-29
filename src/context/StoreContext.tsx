@@ -805,7 +805,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   });
 
   const applyAppearanceStyles = useCallback((appConfig: AppearanceConfig) => {
-    const darkThemes: ThemeMode[] = ['dark', 'midnight', 'emerald', 'amber', 'nordic', 'cyber', 'sunset'];
+    const darkThemes: ThemeMode[] = ['dark', 'midnight', 'emerald', 'amber', 'nordic', 'cyber', 'sunset', 'cherry', 'blossom'];
     const currentMode = appConfig.themeMode || 'dark';
     
     let isDark = false;
