@@ -94,6 +94,32 @@ export function parseSpotifyUrl(urlOrUri?: string): SpotifyDetails | null {
 }
 
 /**
+ * Returns raw Spotify track ID for a song
+ */
+export function getSpotifyTrackId(song: {
+  id?: string;
+  slug?: string;
+  title?: string;
+  streamingLinks?: { spotify?: string };
+}): string {
+  if (song.streamingLinks?.spotify) {
+    const parsed = parseSpotifyUrl(song.streamingLinks.spotify);
+    if (parsed && parsed.id) return parsed.id;
+  }
+  if (song.id && SPOTIFY_TRACK_MAPPINGS[song.id]) return SPOTIFY_TRACK_MAPPINGS[song.id];
+  if (song.slug && SPOTIFY_TRACK_MAPPINGS[song.slug]) return SPOTIFY_TRACK_MAPPINGS[song.slug];
+
+  const title = (song.title || '').toLowerCase();
+  if (title.includes('rutba')) return SPOTIFY_TRACK_MAPPINGS['rutba'];
+  if (title.includes('jaipur')) return SPOTIFY_TRACK_MAPPINGS['jaipur-to-delhi'];
+  if (title.includes('khwabeeda')) return SPOTIFY_TRACK_MAPPINGS['khwabeeda'];
+  if (title.includes('aasman') || title.includes('safarnama')) return SPOTIFY_TRACK_MAPPINGS['aasman-ki-ore'];
+  if (title.includes('desi') || title.includes('flow')) return SPOTIFY_TRACK_MAPPINGS['desi-flow-vol1-2024'];
+
+  return DEFAULT_FALLBACK_TRACK_ID;
+}
+
+/**
  * Returns a guaranteed valid Spotify Embed URL for any song in the catalog.
  */
 export function getSpotifyEmbedForSong(song: { 
@@ -102,38 +128,8 @@ export function getSpotifyEmbedForSong(song: {
   title?: string;
   streamingLinks?: { spotify?: string };
 }): string {
-  // 1. Direct parsed Spotify link if provided
-  if (song.streamingLinks?.spotify) {
-    const parsed = parseSpotifyUrl(song.streamingLinks.spotify);
-    if (parsed) return parsed.embedUrl;
-  }
-
-  // 2. Lookup by song ID or slug in mapped catalog
-  if (song.id && SPOTIFY_TRACK_MAPPINGS[song.id]) {
-    const trackId = SPOTIFY_TRACK_MAPPINGS[song.id];
-    return `https://open.spotify.com/embed/track/${trackId}?utm_source=generator&theme=0`;
-  }
-  if (song.slug && SPOTIFY_TRACK_MAPPINGS[song.slug]) {
-    const trackId = SPOTIFY_TRACK_MAPPINGS[song.slug];
-    return `https://open.spotify.com/embed/track/${trackId}?utm_source=generator&theme=0`;
-  }
-
-  // 3. Fallback by Title keyword
-  const title = (song.title || '').toLowerCase();
-  if (title.includes('rutba')) {
-    return `https://open.spotify.com/embed/track/${SPOTIFY_TRACK_MAPPINGS['rutba']}?utm_source=generator&theme=0`;
-  } else if (title.includes('jaipur')) {
-    return `https://open.spotify.com/embed/track/${SPOTIFY_TRACK_MAPPINGS['jaipur-to-delhi']}?utm_source=generator&theme=0`;
-  } else if (title.includes('khwabeeda')) {
-    return `https://open.spotify.com/embed/track/${SPOTIFY_TRACK_MAPPINGS['khwabeeda']}?utm_source=generator&theme=0`;
-  } else if (title.includes('aasman') || title.includes('safarnama')) {
-    return `https://open.spotify.com/embed/track/${SPOTIFY_TRACK_MAPPINGS['aasman-ki-ore']}?utm_source=generator&theme=0`;
-  } else if (title.includes('desi') || title.includes('flow')) {
-    return `https://open.spotify.com/embed/track/${SPOTIFY_TRACK_MAPPINGS['desi-flow-vol1-2024']}?utm_source=generator&theme=0`;
-  }
-
-  // 4. Default fallback track
-  return `https://open.spotify.com/embed/track/${DEFAULT_FALLBACK_TRACK_ID}?utm_source=generator&theme=0`;
+  const trackId = getSpotifyTrackId(song);
+  return `https://open.spotify.com/embed/track/${trackId}?utm_source=generator&theme=0`;
 }
 
 /**
@@ -151,9 +147,6 @@ export function getSpotifyWebUrlForSong(song: {
     if (song.streamingLinks.spotify.startsWith('http')) return song.streamingLinks.spotify;
   }
 
-  const embedUrl = getSpotifyEmbedForSong(song);
-  const parsed = parseSpotifyUrl(embedUrl);
-  if (parsed) return parsed.webUrl;
-
-  return `https://open.spotify.com/track/${DEFAULT_FALLBACK_TRACK_ID}`;
+  const trackId = getSpotifyTrackId(song);
+  return `https://open.spotify.com/track/${trackId}`;
 }

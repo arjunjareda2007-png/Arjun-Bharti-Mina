@@ -6,7 +6,6 @@ import { Navbar } from './components/Navbar';
 import { MenuDrawer } from './components/MenuDrawer';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { Footer } from './components/Footer';
-import { GlobalAudioPlayer } from './components/GlobalAudioPlayer';
 import { SearchModal } from './components/SearchModal';
 import { ShareModal } from './components/ShareModal';
 import { LightboxModal } from './components/LightboxModal';
@@ -50,7 +49,6 @@ const MainLayout: React.FC = () => {
       <ErrorBoundary fallbackTitle="Admin Dashboard Refreshed">
         <div className="min-h-screen bg-neutral-950 font-sans selection:bg-amber-500 selection:text-neutral-950">
           <AdminDashboard />
-          <GlobalAudioPlayer />
           <FullscreenPlayerModal />
           <LightboxModal />
           <VideoPlayerModal />
@@ -113,7 +111,6 @@ const MainLayout: React.FC = () => {
 
         {/* Global Interactive Elements & Modals */}
         <MenuDrawer />
-        <GlobalAudioPlayer />
         <FullscreenPlayerModal />
         <SearchModal />
         <VideoPlayerModal />

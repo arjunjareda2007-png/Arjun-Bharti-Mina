@@ -227,7 +227,7 @@ export const YouTubeTab: React.FC = () => {
             <span>Sync Songs to YouTube Streams</span>
           </div>
           <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
-            Auto-link all {songs.length} discography tracks to their official YouTube music video streams for miniplayer playback.
+            Auto-link all {songs.length} discography tracks to their official YouTube music video streams for synced video playback.
           </p>
           <button
             type="button"
