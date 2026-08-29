@@ -469,11 +469,16 @@ export const BookDetailModal: React.FC = () => {
           {activeTab === 'details' && (
             <div className="space-y-6">
               <div className="p-6 rounded-3xl bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 space-y-4">
-                <h4 className="text-sm font-bold text-neutral-900 dark:text-white uppercase tracking-wider font-mono">
-                  Official Publication Metadata
-                </h4>
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-bold text-neutral-900 dark:text-white uppercase tracking-wider font-mono">
+                    Official Publication Metadata
+                  </h4>
+                  <span className="text-[10px] font-mono text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded-full font-bold">
+                    Google Books API Verified
+                  </span>
+                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 text-xs">
                   <div className="p-3.5 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
                     <span className="text-neutral-500 font-mono text-[10px] block">TITLE & SUBTITLE</span>
                     <span className="font-bold text-neutral-900 dark:text-white">{book.title}</span>
@@ -489,11 +494,13 @@ export const BookDetailModal: React.FC = () => {
                   <div className="p-3.5 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
                     <span className="text-neutral-500 font-mono text-[10px] block">PUBLISHER</span>
                     <span className="font-bold text-neutral-900 dark:text-white">{book.publisher || 'ABM Media & Literary Press'}</span>
+                    <p className="text-neutral-500 text-[11px] mt-0.5">{book.publicationDate || book.publicationYear}</p>
                   </div>
 
                   <div className="p-3.5 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
-                    <span className="text-neutral-500 font-mono text-[10px] block">ISBN NUMBER</span>
-                    <span className="font-bold text-amber-500 font-mono">{book.isbn || '978-93-88302-19-8'}</span>
+                    <span className="text-neutral-500 font-mono text-[10px] block">ISBN-13 NUMBER</span>
+                    <span className="font-bold text-amber-500 font-mono">{book.isbn13 || book.isbn || '978-93-88302-19-8'}</span>
+                    {book.isbn10 && <p className="text-neutral-400 font-mono text-[10px] mt-0.5">ISBN-10: {book.isbn10}</p>}
                   </div>
 
                   <div className="p-3.5 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
@@ -505,6 +512,25 @@ export const BookDetailModal: React.FC = () => {
                     <span className="text-neutral-500 font-mono text-[10px] block">GOOGLE BOOKS VOLUME ID</span>
                     <span className="font-bold text-blue-500 font-mono">{volumeId}</span>
                   </div>
+
+                  <div className="p-3.5 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
+                    <span className="text-neutral-500 font-mono text-[10px] block">CATEGORY & GENRE</span>
+                    <span className="font-bold text-neutral-900 dark:text-white">{book.category || book.genre || 'Literature'}</span>
+                  </div>
+
+                  <div className="p-3.5 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
+                    <span className="text-neutral-500 font-mono text-[10px] block">FORMATS AVAILABLE</span>
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                      Digital E-Book {book.pdfAvailable ? '+ PDF' : ''} {book.epubAvailable ? '+ EPUB' : ''}
+                    </span>
+                  </div>
+
+                  {book.price && (
+                    <div className="p-3.5 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
+                      <span className="text-neutral-500 font-mono text-[10px] block">PRICE / ACCESS</span>
+                      <span className="font-bold text-amber-500">{book.price}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -515,18 +541,27 @@ export const BookDetailModal: React.FC = () => {
                     href={storeUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="px-4 py-2.5 rounded-full bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center gap-2"
+                    className="px-5 py-2.5 rounded-full bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center gap-2 shadow-md transition-colors"
                   >
                     <span>Google Play Store Page</span>
                     <ExternalLink className="w-3.5 h-3.5" />
                   </a>
                 )}
+                <a
+                  href={playReaderUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-5 py-2.5 rounded-full bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs flex items-center gap-2 shadow-md transition-colors"
+                >
+                  <BookOpen className="w-3.5 h-3.5" />
+                  <span>Google Play Web Reader</span>
+                </a>
                 {book.amazonUrl && (
                   <a
                     href={book.amazonUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="px-4 py-2.5 rounded-full bg-neutral-800 text-white font-bold text-xs flex items-center gap-2"
+                    className="px-4 py-2.5 rounded-full bg-neutral-800 hover:bg-neutral-700 text-white font-bold text-xs flex items-center gap-2 transition-colors"
                   >
                     <span>Amazon Store Page</span>
                     <ExternalLink className="w-3.5 h-3.5" />
