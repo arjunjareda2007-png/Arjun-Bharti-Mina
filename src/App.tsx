@@ -21,6 +21,8 @@ import { ToastContainer } from './components/ToastContainer';
 import { ImageCropperModal } from './components/ImageCropperModal';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { CustomCursor } from './components/motion/CustomCursor';
+import { CINEMATIC_EASE } from './utils/motion';
 
 // Views
 import { HomeView } from './components/views/HomeView';
@@ -74,6 +76,9 @@ const MainLayout: React.FC = () => {
   return (
     <ErrorBoundary fallbackTitle="Website View Refreshed">
       <div className="min-h-screen flex flex-col bg-white dark:bg-neutral-950 text-neutral-950 dark:text-neutral-50 transition-colors duration-300 font-sans selection:bg-neutral-900 selection:text-white dark:selection:bg-white dark:selection:text-neutral-950 overflow-x-hidden">
+        {/* Subtle Desktop Custom Cursor */}
+        <CustomCursor />
+
         {/* Top Navigation */}
         <Navbar />
 
@@ -82,10 +87,10 @@ const MainLayout: React.FC = () => {
           <AnimatePresence mode="wait">
             <motion.div
               key={currentTab}
-              initial={{ opacity: 0, y: 8 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.32, ease: CINEMATIC_EASE }}
             >
               {currentTab === 'home' && <HomeView />}
               {currentTab === 'about' && <AboutView />}

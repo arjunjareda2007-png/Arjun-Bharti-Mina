@@ -75,14 +75,16 @@
 
 /* Micro-interaction & hover elevation utilities */
 .hover-lift {
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+  will-change: transform;
 }
 .hover-lift:hover {
   transform: translateY(-3px);
 }
 
 .interactive-card {
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
+  will-change: transform;
 }
 .interactive-card:hover {
   transform: translateY(-4px);
@@ -92,17 +94,51 @@
   overflow: hidden;
 }
 .image-zoom-container img {
-  transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), filter 0.4s ease;
+  transition: transform 0.75s cubic-bezier(0.16, 1, 0.3, 1), filter 0.4s ease;
+  will-change: transform;
 }
 .image-zoom-container:hover img {
-  transform: scale(1.05);
+  transform: scale(1.035);
 }
 
 .button-press {
-  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.15s ease, background-color 0.2s ease;
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.15s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 }
 .button-press:active {
-  transform: scale(0.96);
+  transform: scale(0.965);
+}
+
+/* Subtle button sheen sweep */
+.button-sheen {
+  position: relative;
+  overflow: hidden;
+}
+.button-sheen::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.15),
+    transparent
+  );
+  transform: skewX(-20deg);
+  transition: left 0.75s ease-in-out;
+  pointer-events: none;
+}
+.button-sheen:hover::after {
+  left: 140%;
+}
+
+/* Masked reveal container */
+.masked-reveal-wrap {
+  overflow: hidden;
+  display: inline-block;
+  vertical-align: bottom;
 }
 
 /* Custom subtle scrollbar */

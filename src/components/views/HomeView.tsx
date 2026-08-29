@@ -22,6 +22,15 @@ import {
 } from 'lucide-react';
 import { calculateAge } from '../../utils/helpers';
 import { hapticLight, hapticBeat, hapticSelection, hapticMedium } from '../../utils/haptics';
+import { CountUp } from '../motion/CountUp';
+import { TiltCard } from '../motion/TiltCard';
+import { 
+  CINEMATIC_EASE, 
+  SMOOTH_EASE, 
+  sectionReveal, 
+  cardStaggerContainer, 
+  cardStaggerItem 
+} from '../../utils/motion';
 
 export const HomeView: React.FC = () => {
   const { 
@@ -61,48 +70,61 @@ export const HomeView: React.FC = () => {
   return (
     <div id="home-view" className="space-y-16 sm:space-y-24">
       
-      {/* 1. EDITORIAL HERO SECTION WITH MOTION */}
+      {/* 1. EDITORIAL HERO SECTION WITH CINEMATIC MOTION */}
       <section id="hero-section" className="relative pt-2 sm:pt-4 pb-8 overflow-hidden space-y-8">
         {/* Subtle Ambient Background Motion Glow */}
         <motion.div 
-          animate={{ scale: [1, 1.1, 1], opacity: [0.03, 0.08, 0.03] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          animate={{ scale: [1, 1.08, 1], opacity: [0.03, 0.07, 0.03] }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
           className="absolute -top-24 left-1/4 w-96 h-96 bg-neutral-900 rounded-full blur-3xl pointer-events-none -z-10" 
         />
         <motion.div 
-          animate={{ scale: [1, 1.15, 1], opacity: [0.03, 0.06, 0.03] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          animate={{ scale: [1, 1.12, 1], opacity: [0.02, 0.05, 0.02] }}
+          transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 2 }}
           className="absolute top-1/2 right-10 w-80 h-80 bg-neutral-700 rounded-full blur-3xl pointer-events-none -z-10" 
         />
 
-        {/* Panoramic Hero Banner Card with Hover Physics */}
+        {/* Panoramic Hero Banner Card with Staggered Entrance & Zoom */}
         <motion.div 
           id="hero-banner-container"
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
+          initial={{ opacity: 0, y: 18, scale: 0.99 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.8, ease: CINEMATIC_EASE }}
           className="relative w-full rounded-3xl overflow-hidden shadow-2xl border-2 border-neutral-200/80 dark:border-neutral-800 bg-neutral-950 group"
         >
-          {/* Banner Image with Fallback */}
+          {/* Banner Image with subtle initial zoom settlement */}
           <div className="w-full h-48 sm:h-64 md:h-80 lg:h-96 relative overflow-hidden">
-            <img 
+            <motion.img 
+              initial={{ scale: 1.06 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 1.3, ease: CINEMATIC_EASE }}
               src={profile.heroImage || profile.profileImage || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1600&auto=format&fit=crop'} 
               alt="Arjun Bharti Mina Hero Banner"
               referrerPolicy="no-referrer"
               onError={(e) => {
                 (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1600&auto=format&fit=crop';
               }}
-              className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-1000"
+              className="w-full h-full object-cover object-center group-hover:scale-103 transition-transform duration-1000"
             />
             {/* Dynamic Contrast Gradients */}
-            <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/50 to-transparent" />
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.15 }}
+              className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/50 to-transparent" 
+            />
             <div className="absolute inset-0 bg-gradient-to-r from-neutral-950/80 via-transparent to-neutral-950/60" />
           </div>
 
-          {/* Banner Overlaid Content */}
+          {/* Banner Overlaid Content with Staggered Entrance */}
           <div className="absolute bottom-4 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4 text-white">
             <div className="space-y-1.5 max-w-xl">
-              <div className="flex items-center gap-2">
+              <motion.div 
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, ease: CINEMATIC_EASE, delay: 0.3 }}
+                className="flex items-center gap-2"
+              >
                 <span className="text-xs font-mono text-neutral-300 flex items-center gap-1.5">
                   <span>📍</span>
                   <span>Jaipur, Rajasthan</span>
@@ -113,16 +135,26 @@ export const HomeView: React.FC = () => {
                     Now Playing
                   </span>
                 )}
-              </div>
-              <p className="text-xs sm:text-sm font-medium text-neutral-200 italic line-clamp-1">
+              </motion.div>
+              <motion.p 
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.65, ease: CINEMATIC_EASE, delay: 0.45 }}
+                className="text-xs sm:text-sm font-medium text-neutral-200 italic line-clamp-1"
+              >
                 "{profile.featuredQuote || 'Art is the blueprint of the soul, and rhythm is its foundation.'}"
-              </p>
+              </motion.p>
             </div>
 
             {/* Quick Live Stats & Audio Wave */}
             <div className="flex items-center gap-3">
               {/* Dynamic Animated Soundwave Pill */}
-              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-neutral-900/90 backdrop-blur-md border border-neutral-700/60 text-xs font-mono">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.55 }}
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-neutral-900/90 backdrop-blur-md border border-neutral-700/60 text-xs font-mono"
+              >
                 <div className="flex items-center gap-0.5 h-3">
                   {[40, 90, 60, 100, 50, 80].map((height, i) => (
                     <motion.span 
@@ -134,15 +166,18 @@ export const HomeView: React.FC = () => {
                   ))}
                 </div>
                 <span className="text-neutral-200">{profile.stats?.totalStreams || '380K+ Streams'}</span>
-              </div>
+              </motion.div>
               <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.94 }}
+                initial={{ opacity: 0, scale: 0.94 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, ease: CINEMATIC_EASE, delay: 0.65 }}
+                whileHover={{ scale: 1.04, y: -1 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => {
                   hapticLight();
                   setCurrentTab('music');
                 }}
-                className="px-4 py-2 rounded-full bg-white hover:bg-neutral-100 text-neutral-950 font-bold text-xs shadow-lg backdrop-blur-md flex items-center gap-1.5 transition-all cursor-pointer"
+                className="button-sheen px-4 py-2 rounded-full bg-white hover:bg-neutral-100 text-neutral-950 font-bold text-xs shadow-lg backdrop-blur-md flex items-center gap-1.5 transition-colors cursor-pointer"
               >
                 <span>Explore Vault</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -157,53 +192,78 @@ export const HomeView: React.FC = () => {
           {/* Left Text & Bio */}
           <div className="lg:col-span-7 space-y-6">
             
-            {/* Charismatic Main Headline & Clean Subtitle */}
-            <motion.div 
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.4 }}
-              className="space-y-3"
-            >
+            {/* Charismatic Masked Main Headline & Subtitle Reveal */}
+            <div className="space-y-3">
               <div>
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-display font-extrabold tracking-tight text-neutral-950 dark:text-white leading-[1.06]">
-                  Arjun Bharti Mina
-                </h1>
-                <p className="text-neutral-600 dark:text-neutral-400 font-display font-semibold text-lg sm:text-xl lg:text-2xl mt-1.5 tracking-tight flex items-center gap-2">
-                  <span>Independent Artist & Creative Technologist</span>
-                </p>
+                <div className="overflow-hidden py-1">
+                  <motion.h1 
+                    initial={{ y: '100%', opacity: 0 }}
+                    animate={{ y: '0%', opacity: 1 }}
+                    transition={{ duration: 0.85, ease: CINEMATIC_EASE, delay: 0.15 }}
+                    className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-display font-extrabold tracking-tight text-neutral-950 dark:text-white leading-[1.06]"
+                  >
+                    Arjun Bharti Mina
+                  </motion.h1>
+                </div>
+                
+                <div className="overflow-hidden">
+                  <motion.p 
+                    initial={{ y: '100%', opacity: 0 }}
+                    animate={{ y: '0%', opacity: 1 }}
+                    transition={{ duration: 0.75, ease: CINEMATIC_EASE, delay: 0.3 }}
+                    className="text-neutral-600 dark:text-neutral-400 font-display font-semibold text-lg sm:text-xl lg:text-2xl mt-1.5 tracking-tight flex items-center gap-2"
+                  >
+                    <span>Independent Artist & Creative Technologist</span>
+                  </motion.p>
+                </div>
               </div>
 
-              <p className="text-sm sm:text-base font-medium text-neutral-800 dark:text-neutral-200 flex items-center gap-2 pt-1">
+              <motion.p 
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, ease: CINEMATIC_EASE, delay: 0.45 }}
+                className="text-sm sm:text-base font-medium text-neutral-800 dark:text-neutral-200 flex items-center gap-2 pt-1"
+              >
                 <span className="w-5 h-[2px] bg-neutral-900 dark:bg-neutral-100 inline-block shrink-0" />
                 <span>{profile.tagline || 'Rapper, Writer, Civil Engineer & Tech Architect'}</span>
-              </p>
-            </motion.div>
+              </motion.p>
+            </div>
 
             {/* Short Introduction */}
-            <p className="text-sm sm:text-base text-neutral-600 dark:text-neutral-400 max-w-xl leading-relaxed">
+            <motion.p 
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.65, ease: CINEMATIC_EASE, delay: 0.55 }}
+              className="text-sm sm:text-base text-neutral-600 dark:text-neutral-400 max-w-xl leading-relaxed"
+            >
               {profile.bio} Graduating in Civil Engineering from SKIT Jaipur (2022–2026), balancing engineering calculations by day with underground Desi Hip-Hop beats and creative web ecosystems by night.
-            </p>
+            </motion.p>
 
             {/* Primary Action Buttons with Motion */}
-            <div className="flex flex-wrap items-center gap-3 pt-2">
+            <motion.div 
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: CINEMATIC_EASE, delay: 0.65 }}
+              className="flex flex-wrap items-center gap-3 pt-2"
+            >
               <motion.button
                 id="hero-explore-work-btn"
-                whileHover={{ scale: 1.03 }}
+                whileHover={{ scale: 1.025, y: -1.5 }}
                 whileTap={{ scale: 0.96 }}
                 onClick={() => {
                   hapticLight();
                   setCurrentTab('music');
                 }}
-                className="px-6 sm:px-7 py-3 sm:py-3.5 rounded-full bg-neutral-950 text-white hover:bg-neutral-800 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200 font-bold text-xs sm:text-sm flex items-center gap-2 shadow-md transition-all cursor-pointer"
+                className="button-sheen px-6 sm:px-7 py-3 sm:py-3.5 rounded-full bg-neutral-950 text-white hover:bg-neutral-800 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200 font-bold text-xs sm:text-sm flex items-center gap-2 shadow-md transition-all cursor-pointer group"
               >
                 <Headphones className="w-4 h-4" />
                 <span>Listen To Music Vault</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </motion.button>
 
               <motion.button
                 id="hero-about-me-btn"
-                whileHover={{ scale: 1.03 }}
+                whileHover={{ scale: 1.025, y: -1.5 }}
                 whileTap={{ scale: 0.96 }}
                 onClick={() => {
                   hapticLight();
@@ -213,98 +273,116 @@ export const HomeView: React.FC = () => {
               >
                 About Arjun
               </motion.button>
-            </div>
+            </motion.div>
 
             {/* Quick Profile Meta */}
-            <div className="pt-4 flex flex-wrap items-center gap-4 text-xs font-mono text-neutral-600 dark:text-neutral-400 border-t border-neutral-200 dark:border-neutral-800">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.75 }}
+              className="pt-4 flex flex-wrap items-center gap-4 text-xs font-mono text-neutral-600 dark:text-neutral-400 border-t border-neutral-200 dark:border-neutral-800"
+            >
               <span className="flex items-center gap-1.5">📍 <strong className="text-neutral-900 dark:text-neutral-100">{profile.location}</strong></span>
               <span className="flex items-center gap-1.5">🎓 <strong className="text-neutral-900 dark:text-neutral-100">SKIT Jaipur ({profile.education.period})</strong></span>
               <span className="flex items-center gap-1.5">🎂 <strong className="text-neutral-900 dark:text-neutral-100">Age {calculateAge(profile.dob)}</strong></span>
-            </div>
+            </motion.div>
 
           </div>
 
-          {/* Right Portrait & Latest Release Spotlight with Motion Disc */}
+          {/* Right Portrait & Latest Release Spotlight with Motion Disc & 3D Tilt */}
           <div className="lg:col-span-5 relative">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5 }}
-              className="relative mx-auto max-w-sm sm:max-w-md rounded-3xl overflow-hidden shadow-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-950 group"
-            >
-              <img 
-                src={profile.profileImage} 
-                alt={profile.name} 
-                referrerPolicy="no-referrer"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1000&auto=format&fit=crop';
-                }}
-                className="w-full aspect-[4/5] object-cover group-hover:scale-105 transition-transform duration-700"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/40 to-transparent"></div>
-
-              {/* Floating Release Card on Portrait */}
-              <div className="absolute bottom-4 left-4 right-4 p-4 rounded-2xl bg-neutral-950/90 backdrop-blur-lg border border-neutral-800 text-white flex items-center justify-between shadow-2xl">
-                <div className="flex items-center gap-3 min-w-0">
-                  {/* Rotating Vinyl Disc */}
-                  <motion.div 
-                    animate={isPlaying && currentSong?.slug === 'rutba' ? { rotate: 360 } : { rotate: 0 }}
-                    transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
-                    className="w-10 h-10 rounded-full bg-neutral-900 border-2 border-neutral-700 flex items-center justify-center shrink-0 shadow-md relative overflow-hidden"
-                  >
-                    <Disc className="w-8 h-8 text-neutral-400" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-white absolute" />
-                  </motion.div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                      <span className="text-[10px] font-mono uppercase text-neutral-300 font-bold tracking-wider">
-                        Featured Anthem
-                      </span>
-                    </div>
-                    <h4 className="text-sm font-black truncate mt-0.5">RUTBA (2026)</h4>
-                    <p className="text-[11px] text-neutral-400 truncate">Street Rap Anthem • ABM Studio’s</p>
-                  </div>
-                </div>
-                
-                <motion.button
-                  whileHover={{ scale: 1.15 }}
-                  whileTap={{ scale: 0.88 }}
-                  onClick={() => {
-                    hapticBeat();
-                    const rutba = songs.find(s => s.slug === 'rutba') || songs[0];
-                    if (rutba) {
-                      if (currentSong?.id === rutba.id && isPlaying) {
-                        togglePlay();
-                      } else {
-                        playSong(rutba);
-                      }
-                    }
+            <TiltCard maxTilt={6} className="mx-auto max-w-sm sm:max-w-md">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.97 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.75, ease: CINEMATIC_EASE, delay: 0.2 }}
+                className="relative rounded-3xl overflow-hidden shadow-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-950 group"
+              >
+                <motion.img 
+                  initial={{ scale: 1.04 }}
+                  animate={{ scale: 1 }}
+                  transition={{ duration: 1.1, ease: CINEMATIC_EASE }}
+                  src={profile.profileImage} 
+                  alt={profile.name} 
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1000&auto=format&fit=crop';
                   }}
-                  className="w-11 h-11 rounded-full bg-white text-neutral-950 hover:bg-neutral-200 flex items-center justify-center flex-shrink-0 shadow-lg font-bold cursor-pointer transition-colors"
-                  title="Play Anthem"
-                >
-                  {currentSong?.slug === 'rutba' && isPlaying ? (
-                    <Pause className="w-5 h-5 fill-current" />
-                  ) : (
-                    <Play className="w-5 h-5 fill-current ml-0.5" />
-                  )}
-                </motion.button>
-              </div>
-            </motion.div>
+                  className="w-full aspect-[4/5] object-cover group-hover:scale-104 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/40 to-transparent"></div>
+
+                {/* Floating Release Card on Portrait */}
+                <div className="absolute bottom-4 left-4 right-4 p-4 rounded-2xl bg-neutral-950/90 backdrop-blur-lg border border-neutral-800 text-white flex items-center justify-between shadow-2xl">
+                  <div className="flex items-center gap-3 min-w-0">
+                    {/* Rotating Vinyl Disc */}
+                    <motion.div 
+                      animate={isPlaying && currentSong?.slug === 'rutba' ? { rotate: 360 } : { rotate: 0 }}
+                      transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                      className="w-10 h-10 rounded-full bg-neutral-900 border-2 border-neutral-700 flex items-center justify-center shrink-0 shadow-md relative overflow-hidden"
+                    >
+                      <Disc className="w-8 h-8 text-neutral-400" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-white absolute" />
+                    </motion.div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                        <span className="text-[10px] font-mono uppercase text-neutral-300 font-bold tracking-wider">
+                          Featured Anthem
+                        </span>
+                      </div>
+                      <h4 className="text-sm font-black truncate mt-0.5">RUTBA (2026)</h4>
+                      <p className="text-[11px] text-neutral-400 truncate">Street Rap Anthem • ABM Studio’s</p>
+                    </div>
+                  </div>
+                  
+                  <motion.button
+                    whileHover={{ scale: 1.12 }}
+                    whileTap={{ scale: 0.92 }}
+                    onClick={() => {
+                      hapticBeat();
+                      const rutba = songs.find(s => s.slug === 'rutba') || songs[0];
+                      if (rutba) {
+                        if (currentSong?.id === rutba.id && isPlaying) {
+                          togglePlay();
+                        } else {
+                          playSong(rutba);
+                        }
+                      }
+                    }}
+                    className="w-11 h-11 rounded-full bg-white text-neutral-950 hover:bg-neutral-200 flex items-center justify-center flex-shrink-0 shadow-lg font-bold cursor-pointer transition-colors"
+                    title="Play Anthem"
+                  >
+                    {currentSong?.slug === 'rutba' && isPlaying ? (
+                      <Pause className="w-5 h-5 fill-current" />
+                    ) : (
+                      <Play className="w-5 h-5 fill-current ml-0.5" />
+                    )}
+                  </motion.button>
+                </div>
+              </motion.div>
+            </TiltCard>
           </div>
 
         </div>
       </section>
 
-      {/* 2. DYNAMIC CREATIVE STATISTICS WITH MOTION */}
-      <section id="creative-statistics" className="border-y border-neutral-200 dark:border-neutral-800 py-6 sm:py-8 bg-neutral-50/70 dark:bg-neutral-900/30">
+      {/* 2. DYNAMIC CREATIVE STATISTICS WITH COUNT-UP & STAGGER */}
+      <motion.section 
+        id="creative-statistics"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-40px" }}
+        variants={cardStaggerContainer}
+        className="border-y border-neutral-200 dark:border-neutral-800 py-6 sm:py-8 bg-neutral-50/70 dark:bg-neutral-900/30"
+      >
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
           {stats.map((stat, idx) => (
             <motion.button
               key={idx}
-              whileHover={{ y: -4, scale: 1.02 }}
-              whileTap={{ scale: 0.95 }}
+              variants={cardStaggerItem}
+              whileHover={{ y: -3.5, scale: 1.02 }}
+              whileTap={{ scale: 0.96 }}
               onClick={() => {
                 hapticSelection();
                 setCurrentTab(stat.tab as any);
@@ -312,11 +390,11 @@ export const HomeView: React.FC = () => {
               className="p-4 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 hover:border-neutral-900 dark:hover:border-white hover:shadow-md transition-all text-left group cursor-pointer"
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="p-1.5 rounded-lg bg-neutral-100 dark:bg-neutral-800 group-hover:scale-110 transition-transform">
+                <span className="p-1.5 rounded-lg bg-neutral-100 dark:bg-neutral-800 group-hover:scale-110 group-hover:rotate-3 transition-transform">
                   {stat.icon}
                 </span>
-                <span className="text-xl sm:text-2xl font-display font-extrabold text-neutral-950 dark:text-neutral-50">
-                  {stat.count < 10 ? `0${stat.count}` : stat.count}
+                <span className="text-xl sm:text-2xl font-display font-extrabold text-neutral-950 dark:text-neutral-50 font-mono">
+                  <CountUp end={stat.count} padZero duration={1.2} />
                 </span>
               </div>
               <span className="text-xs font-medium text-neutral-600 dark:text-neutral-400 group-hover:text-amber-500 transition-colors">
@@ -325,10 +403,17 @@ export const HomeView: React.FC = () => {
             </motion.button>
           ))}
         </div>
-      </section>
+      </motion.section>
 
       {/* 3. FEATURED WORK (CURATED HIGHLIGHTS) WITH MOTION */}
-      <section id="featured-work-section" className="space-y-6">
+      <motion.section 
+        id="featured-work-section" 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-40px" }}
+        variants={sectionReveal}
+        className="space-y-6"
+      >
         <div className="flex items-end justify-between">
           <div>
             <span className="text-xs font-mono uppercase tracking-wider text-neutral-500 dark:text-neutral-400 font-semibold block">
@@ -357,99 +442,110 @@ export const HomeView: React.FC = () => {
           
           {/* Card 1: RUTBA Featured Song */}
           {featuredSongs[0] && (
-            <motion.div 
-              whileHover={{ y: -4 }}
-              className="md:col-span-2 group relative rounded-3xl overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-neutral-950 min-h-[320px] flex flex-col justify-end p-6 sm:p-8 cursor-pointer shadow-md"
-              onClick={() => {
-                hapticSelection();
-                setSelectedSongId(featuredSongs[0].id);
-                setCurrentTab('music');
-              }}
-            >
-              <img 
-                src={featuredSongs[0].cover} 
-                alt={featuredSongs[0].title}
-                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-60"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/60 to-transparent"></div>
+            <TiltCard maxTilt={4} className="md:col-span-2">
+              <motion.div 
+                whileHover={{ y: -3 }}
+                className="group relative rounded-3xl overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-neutral-950 min-h-[320px] flex flex-col justify-end p-6 sm:p-8 cursor-pointer shadow-md h-full"
+                onClick={() => {
+                  hapticSelection();
+                  setSelectedSongId(featuredSongs[0].id);
+                  setCurrentTab('music');
+                }}
+              >
+                <img 
+                  src={featuredSongs[0].cover} 
+                  alt={featuredSongs[0].title}
+                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-104 transition-transform duration-700 opacity-60"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/60 to-transparent"></div>
 
-              <div className="relative z-10 space-y-3 text-white">
-                <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold uppercase bg-white text-neutral-950">
-                    Featured Anthem
-                  </span>
-                  <span className="text-xs font-mono text-neutral-300">{featuredSongs[0].year}</span>
-                </div>
-                <h3 className="text-2xl sm:text-4xl font-display font-extrabold tracking-tight">
-                  {featuredSongs[0].title}
-                </h3>
-                <p className="text-xs sm:text-sm text-neutral-300 max-w-lg line-clamp-2">
-                  {featuredSongs[0].description}
-                </p>
+                <div className="relative z-10 space-y-3 text-white">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold uppercase bg-white text-neutral-950">
+                      Featured Anthem
+                    </span>
+                    <span className="text-xs font-mono text-neutral-300">{featuredSongs[0].year}</span>
+                  </div>
+                  <h3 className="text-2xl sm:text-4xl font-display font-extrabold tracking-tight">
+                    {featuredSongs[0].title}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-neutral-300 max-w-lg line-clamp-2">
+                    {featuredSongs[0].description}
+                  </p>
 
-                <div className="pt-2 flex items-center gap-3">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.92 }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      hapticBeat();
-                      playSong(featuredSongs[0]);
-                    }}
-                    className="px-4 py-2 rounded-full bg-white text-neutral-950 hover:bg-neutral-200 font-semibold text-xs flex items-center gap-1.5 shadow-md transition-colors cursor-pointer"
-                  >
-                    <Play className="w-3.5 h-3.5 fill-current" />
-                    <span>Play Audio Preview</span>
-                  </motion.button>
-                  <span className="text-xs text-neutral-400 font-mono">
-                    {featuredSongs[0].genre}
-                  </span>
+                  <div className="pt-2 flex items-center gap-3">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.92 }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        hapticBeat();
+                        playSong(featuredSongs[0]);
+                      }}
+                      className="button-sheen px-4 py-2 rounded-full bg-white text-neutral-950 hover:bg-neutral-200 font-semibold text-xs flex items-center gap-1.5 shadow-md transition-colors cursor-pointer"
+                    >
+                      <Play className="w-3.5 h-3.5 fill-current" />
+                      <span>Play Audio Preview</span>
+                    </motion.button>
+                    <span className="text-xs text-neutral-400 font-mono">
+                      {featuredSongs[0].genre}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
+              </motion.div>
+            </TiltCard>
           )}
 
           {/* Card 2: Aether Gallery Digital Project */}
           {featuredProjects[0] && (
-            <motion.div 
-              whileHover={{ y: -4 }}
-              className="group relative rounded-3xl overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-neutral-950 min-h-[320px] flex flex-col justify-end p-6 cursor-pointer shadow-md"
-              onClick={() => {
-                hapticSelection();
-                setSelectedProjectId(featuredProjects[0].id);
-                setCurrentTab('projects');
-              }}
-            >
-              <img 
-                src={featuredProjects[0].thumbnail} 
-                alt={featuredProjects[0].title}
-                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-50"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/70 to-transparent"></div>
+            <TiltCard maxTilt={4}>
+              <motion.div 
+                whileHover={{ y: -3 }}
+                className="group relative rounded-3xl overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-neutral-950 min-h-[320px] flex flex-col justify-end p-6 cursor-pointer shadow-md h-full"
+                onClick={() => {
+                  hapticSelection();
+                  setSelectedProjectId(featuredProjects[0].id);
+                  setCurrentTab('projects');
+                }}
+              >
+                <img 
+                  src={featuredProjects[0].thumbnail} 
+                  alt={featuredProjects[0].title}
+                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-104 transition-transform duration-700 opacity-50"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/70 to-transparent"></div>
 
-              <div className="relative z-10 space-y-2 text-white">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold uppercase bg-white/20 text-white border border-white/30 backdrop-blur-md">
-                  Digital Project
-                </span>
-                <h3 className="text-lg font-bold">
-                  {featuredProjects[0].title}
-                </h3>
-                <p className="text-xs text-neutral-300 line-clamp-2">
-                  {featuredProjects[0].shortDescription}
-                </p>
-                <div className="pt-2 flex items-center gap-2 text-xs text-neutral-200 font-mono">
-                  <span>Explore Project</span>
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                <div className="relative z-10 space-y-2 text-white">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold uppercase bg-white/20 text-white border border-white/30 backdrop-blur-md">
+                    Digital Project
+                  </span>
+                  <h3 className="text-lg font-bold">
+                    {featuredProjects[0].title}
+                  </h3>
+                  <p className="text-xs text-neutral-300 line-clamp-2">
+                    {featuredProjects[0].shortDescription}
+                  </p>
+                  <div className="pt-2 flex items-center gap-2 text-xs text-neutral-200 font-mono">
+                    <span>Explore Project</span>
+                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                  </div>
                 </div>
-              </div>
-            </motion.div>
+              </motion.div>
+            </TiltCard>
           )}
 
         </div>
-      </section>
+      </motion.section>
 
       {/* 4. MUSIC LIBRARY SPOTLIGHT WITH ANIMATED PLAY BUTTONS */}
-      <section id="music-spotlight" className="space-y-6">
+      <motion.section 
+        id="music-spotlight" 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-40px" }}
+        variants={sectionReveal}
+        className="space-y-6"
+      >
         <div className="flex items-end justify-between">
           <div>
             <span className="text-xs font-mono uppercase tracking-wider text-neutral-500 dark:text-neutral-400 font-semibold block">
@@ -479,7 +575,8 @@ export const HomeView: React.FC = () => {
             return (
               <motion.div
                 key={song.id}
-                whileHover={{ y: -4 }}
+                whileHover={{ y: -4, scale: 1.01 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => {
                   hapticSelection();
                   setSelectedSongId(song.id);
@@ -492,11 +589,11 @@ export const HomeView: React.FC = () => {
                     <img 
                       src={song.cover} 
                       alt={song.title} 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-500"
                     />
                     <motion.button
                       whileHover={{ scale: 1.15 }}
-                      whileTap={{ scale: 0.88 }}
+                      whileTap={{ scale: 0.9 }}
                       onClick={(e) => {
                         e.stopPropagation();
                         hapticBeat();
@@ -537,16 +634,16 @@ export const HomeView: React.FC = () => {
             );
           })}
         </div>
-      </section>
+      </motion.section>
 
       {/* 5. YOUTUBE & VISUAL STORIES */}
       {featuredVideos[0] && (
         <motion.section 
           id="youtube-spotlight" 
-          initial={{ opacity: 0, y: 15 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-40px" }}
+          variants={sectionReveal}
           className="p-6 sm:p-8 rounded-3xl bg-neutral-950 text-white border border-neutral-800 space-y-6"
         >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -562,10 +659,10 @@ export const HomeView: React.FC = () => {
               href="https://youtube.com/@arjunbhartimina"
               target="_blank"
               rel="noreferrer"
-              whileHover={{ scale: 1.04 }}
+              whileHover={{ scale: 1.04, y: -1 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => hapticLight()}
-              className="px-4 py-2 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-semibold flex items-center gap-2 self-start transition-colors"
+              className="button-sheen px-4 py-2 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-semibold flex items-center gap-2 self-start transition-colors"
             >
               <span>Visit YouTube Channel</span>
               <ExternalLink className="w-3.5 h-3.5" />
@@ -574,7 +671,7 @@ export const HomeView: React.FC = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
             <motion.div 
-              whileHover={{ scale: 1.01 }}
+              whileHover={{ scale: 1.015 }}
               whileTap={{ scale: 0.98 }}
               className="lg:col-span-7 relative aspect-video rounded-2xl overflow-hidden cursor-pointer group shadow-xl bg-neutral-900 border border-neutral-800"
               onClick={() => {
@@ -585,12 +682,15 @@ export const HomeView: React.FC = () => {
               <img 
                 src={featuredVideos[0].thumbnail} 
                 alt={featuredVideos[0].title} 
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80"
+                className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-500 opacity-80"
               />
               <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                <div className="w-14 h-14 rounded-full bg-red-600 text-white flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform">
+                <motion.div 
+                  whileHover={{ scale: 1.15 }}
+                  className="w-14 h-14 rounded-full bg-red-600 text-white flex items-center justify-center shadow-2xl transition-transform"
+                >
                   <Play className="w-6 h-6 fill-current ml-1" />
-                </div>
+                </motion.div>
               </div>
               <span className="absolute bottom-3 right-3 px-2 py-0.5 rounded bg-black/80 text-[11px] font-mono text-white">
                 {featuredVideos[0].duration}
@@ -607,7 +707,7 @@ export const HomeView: React.FC = () => {
               </p>
               <div className="pt-2">
                 <motion.button
-                  whileHover={{ scale: 1.03 }}
+                  whileHover={{ scale: 1.03, y: -1 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => {
                     hapticMedium();
@@ -625,7 +725,14 @@ export const HomeView: React.FC = () => {
 
       {/* 6. BOOKS & PUBLICATIONS PREVIEW */}
       {books.length > 0 && (
-        <section id="books-preview-section" className="p-6 sm:p-8 rounded-3xl bg-neutral-50 dark:bg-neutral-900/60 border border-neutral-200 dark:border-neutral-800 space-y-6">
+        <motion.section 
+          id="books-preview-section" 
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-40px" }}
+          variants={sectionReveal}
+          className="p-6 sm:p-8 rounded-3xl bg-neutral-50 dark:bg-neutral-900/60 border border-neutral-200 dark:border-neutral-800 space-y-6"
+        >
           <div className="flex items-end justify-between">
             <div>
               <span className="text-xs font-mono uppercase tracking-wider text-neutral-500 dark:text-neutral-400 font-semibold block">
@@ -653,7 +760,7 @@ export const HomeView: React.FC = () => {
             {books.slice(0, 2).map((book) => (
               <motion.div
                 key={book.id}
-                whileHover={{ y: -3 }}
+                whileHover={{ y: -3, scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => {
                   hapticSelection();
@@ -684,15 +791,16 @@ export const HomeView: React.FC = () => {
               </motion.div>
             ))}
           </div>
-        </section>
+        </motion.section>
       )}
 
       {/* 7. CONNECT BANNER */}
       <motion.section 
         id="connect-banner" 
-        initial={{ opacity: 0, scale: 0.97 }}
-        whileInView={{ opacity: 1, scale: 1 }}
-        viewport={{ once: true }}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-40px" }}
+        variants={sectionReveal}
         className="p-8 sm:p-12 rounded-3xl bg-neutral-950 text-white border border-neutral-800 text-center space-y-4 shadow-xl"
       >
         <h2 className="text-2xl sm:text-4xl font-display font-extrabold">
@@ -703,18 +811,18 @@ export const HomeView: React.FC = () => {
         </p>
         <div className="pt-2 flex flex-wrap justify-center gap-3">
           <motion.button
-            whileHover={{ scale: 1.05 }}
+            whileHover={{ scale: 1.035, y: -1.5 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => {
               hapticMedium();
               setCurrentTab('contact');
             }}
-            className="px-6 py-3 rounded-full bg-white text-neutral-950 hover:bg-neutral-100 font-semibold text-xs sm:text-sm transition-colors shadow-md cursor-pointer"
+            className="button-sheen px-6 py-3 rounded-full bg-white text-neutral-950 hover:bg-neutral-100 font-semibold text-xs sm:text-sm transition-colors shadow-md cursor-pointer"
           >
             Send a Message
           </motion.button>
           <motion.button
-            whileHover={{ scale: 1.05 }}
+            whileHover={{ scale: 1.035, y: -1.5 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => {
               hapticLight();

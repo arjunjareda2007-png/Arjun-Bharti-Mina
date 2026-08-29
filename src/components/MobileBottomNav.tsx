@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { useStore } from '../context/StoreContext';
 import { ActiveTab } from '../types';
 import { hapticSelection, hapticMedium } from '../utils/haptics';
+import { SMOOTH_EASE } from '../utils/motion';
 import { Sparkles, Music2, FileText, BookOpen, LayoutGrid } from 'lucide-react';
 
 export const MobileBottomNav: React.FC = () => {
@@ -21,7 +22,7 @@ export const MobileBottomNav: React.FC = () => {
     <nav 
       id="mobile-bottom-nav" 
       aria-label="Mobile Navigation"
-      className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-neutral-950/95 border-t border-neutral-200/80 dark:border-neutral-800/80 backdrop-blur-xl transition-all duration-200 px-3 py-1.5 pb-safe shadow-lg"
+      className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-neutral-950/95 border-t border-neutral-200/80 dark:border-neutral-800/80 backdrop-blur-xl transition-colors duration-200 px-3 py-1.5 pb-safe shadow-lg"
     >
       <div className="flex items-center justify-around max-w-lg mx-auto">
         {mainTabs.map((tab) => {
@@ -31,28 +32,38 @@ export const MobileBottomNav: React.FC = () => {
               key={tab.id}
               id={`mobile-tab-${tab.id}`}
               type="button"
-              whileTap={{ scale: 0.88 }}
+              whileTap={{ scale: 0.9 }}
+              animate={{ y: isActive ? -2 : 0 }}
+              transition={{ duration: 0.25, ease: SMOOTH_EASE }}
               onClick={() => {
                 hapticSelection();
                 setCurrentTab(tab.id);
                 closeMenu();
               }}
-              className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all cursor-pointer select-none ${
+              className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-colors duration-200 cursor-pointer select-none ${
                 isActive 
                   ? 'text-amber-600 dark:text-amber-400 font-bold' 
                   : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
               }`}
             >
               <div className="relative">
-                {tab.icon}
+                <motion.div
+                  animate={{ scale: isActive ? 1.08 : 1 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {tab.icon}
+                </motion.div>
                 {isActive && (
                   <motion.span 
                     layoutId="mobileNavActiveDot"
-                    className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-amber-500 rounded-full shadow-xs shadow-amber-500" 
+                    transition={{ type: 'spring', stiffness: 450, damping: 30 }}
+                    className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-amber-500 rounded-full shadow-xs shadow-amber-500" 
                   />
                 )}
               </div>
-              <span className="text-[10px] tracking-tight mt-0.5">{tab.label}</span>
+              <span className={`text-[10px] tracking-tight mt-0.5 transition-all ${isActive ? 'font-bold scale-105' : 'font-medium'}`}>
+                {tab.label}
+              </span>
             </motion.button>
           );
         })}
@@ -61,12 +72,14 @@ export const MobileBottomNav: React.FC = () => {
         <motion.button
           id="mobile-tab-menu"
           type="button"
-          whileTap={{ scale: 0.88 }}
+          whileTap={{ scale: 0.9 }}
+          animate={{ y: isMenuOpen || isSecondaryTabActive ? -2 : 0 }}
+          transition={{ duration: 0.25, ease: SMOOTH_EASE }}
           onClick={() => {
             hapticMedium();
             toggleMenu();
           }}
-          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all cursor-pointer select-none ${
+          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-colors duration-200 cursor-pointer select-none ${
             isMenuOpen || isSecondaryTabActive
               ? 'text-amber-600 dark:text-amber-400 font-bold' 
               : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
@@ -74,15 +87,21 @@ export const MobileBottomNav: React.FC = () => {
           aria-label="Toggle Full Menu & Sections"
         >
           <div className="relative">
-            <LayoutGrid className="w-5 h-5" />
+            <motion.div
+              animate={{ scale: isMenuOpen || isSecondaryTabActive ? 1.08 : 1 }}
+              transition={{ duration: 0.2 }}
+            >
+              <LayoutGrid className="w-5 h-5" />
+            </motion.div>
             {(isMenuOpen || isSecondaryTabActive) && (
               <motion.span 
                 layoutId="mobileNavActiveDot"
-                className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-amber-500 rounded-full shadow-xs shadow-amber-500" 
+                transition={{ type: 'spring', stiffness: 450, damping: 30 }}
+                className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-amber-500 rounded-full shadow-xs shadow-amber-500" 
               />
             )}
           </div>
-          <span className="text-[10px] tracking-tight mt-0.5">
+          <span className={`text-[10px] tracking-tight mt-0.5 transition-all ${isMenuOpen || isSecondaryTabActive ? 'font-bold scale-105' : 'font-medium'}`}>
             {isMenuOpen ? 'Close' : 'Menu'}
           </span>
         </motion.button>
