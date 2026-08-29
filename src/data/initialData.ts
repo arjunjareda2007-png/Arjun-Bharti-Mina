@@ -922,6 +922,11 @@ export const initialHomepage: HomepageConfig = {
   ctaPrimaryLink: 'music',
   ctaSecondaryText: 'Explore Projects & Tech',
   ctaSecondaryLink: 'projects',
+  showFeaturedAnthem: true,
+  featuredAnthemSongId: 'rutba-2026',
+  featuredAnthemTitle: 'RUTBA (2026)',
+  featuredAnthemSubtitle: 'Street Rap Anthem • ABM Studio’s',
+  featuredAnthemBadge: 'Featured Anthem',
   sections: [
     { id: 'spotlight', name: 'Profile Spotlight & Stats', enabled: true, order: 1 },
     { id: 'music', name: 'Featured Music Releases', enabled: true, order: 2 },

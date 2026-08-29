@@ -280,6 +280,11 @@ export interface HomepageConfig {
   ctaSecondaryText: string;
   ctaSecondaryLink: string;
   sections: HomepageSectionConfig[];
+  showFeaturedAnthem?: boolean;
+  featuredAnthemSongId?: string;
+  featuredAnthemTitle?: string;
+  featuredAnthemSubtitle?: string;
+  featuredAnthemBadge?: string;
 }
 
 export interface NavigationItem {

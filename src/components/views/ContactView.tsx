@@ -8,7 +8,7 @@ export const ContactView: React.FC = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    subject: 'Music Collaboration',
+    subject: '',
     message: ''
   });
 
@@ -25,16 +25,16 @@ export const ContactView: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.email || !formData.message) {
+    if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) {
       setError('Please fill in all required fields.');
       return;
     }
 
     await submitContactMessage({
-      name: formData.name,
-      email: formData.email,
-      subject: formData.subject,
-      message: formData.message
+      name: formData.name.trim(),
+      email: formData.email.trim(),
+      subject: formData.subject.trim() || 'General Inquiry',
+      message: formData.message.trim()
     });
 
     setSubmitted(true);
@@ -42,7 +42,7 @@ export const ContactView: React.FC = () => {
     setFormData({
       name: '',
       email: '',
-      subject: 'Music Collaboration',
+      subject: '',
       message: ''
     });
   };
@@ -173,7 +173,7 @@ export const ContactView: React.FC = () => {
                     <input
                       type="text"
                       required
-                      placeholder="e.g. Rahul Sharma"
+                      placeholder="e.g. Nyra Rajawat"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       className="w-full px-4 py-2.5 rounded-xl bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-xs text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-none focus:border-amber-500"
@@ -185,7 +185,7 @@ export const ContactView: React.FC = () => {
                     <input
                       type="email"
                       required
-                      placeholder="e.g. rahul@example.com"
+                      placeholder="e.g. nyra@example.com"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       className="w-full px-4 py-2.5 rounded-xl bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-xs text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-none focus:border-amber-500"
@@ -194,18 +194,15 @@ export const ContactView: React.FC = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-mono uppercase text-neutral-500">Inquiry Purpose</label>
-                  <select
+                  <label className="text-xs font-mono uppercase text-neutral-500">Inquiry Purpose *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Enter your inquiry purpose (e.g. Music Collaboration, Feature, Show Booking, Project...)"
                     value={formData.subject}
                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-xs text-neutral-900 dark:text-neutral-100 focus:outline-none focus:border-amber-500"
-                  >
-                    <option value="Music Collaboration">Music Collaboration (Rap Feature / Vocals / Production)</option>
-                    <option value="Live Performance & Show Booking">Live Performance & College Fest Booking</option>
-                    <option value="Civil Engineering Project">Civil Engineering & Structural Consulting</option>
-                    <option value="Website & Creative Tech">Website & Digital Media Project</option>
-                    <option value="General Greetings & Feedback">General Greetings & Feedback</option>
-                  </select>
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-xs text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-none focus:border-amber-500"
+                  />
                 </div>
 
                 <div className="space-y-1.5">

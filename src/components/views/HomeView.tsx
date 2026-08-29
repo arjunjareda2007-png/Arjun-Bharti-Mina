@@ -35,6 +35,7 @@ import {
 export const HomeView: React.FC = () => {
   const { 
     profile, 
+    homepage,
     songs, 
     projects, 
     videos, 
@@ -56,6 +57,13 @@ export const HomeView: React.FC = () => {
   const featuredProjects = projects.filter(p => p.featured);
   const featuredVideos = videos.filter(v => v.featured);
   const featuredPhotos = gallery.filter(g => g.featured);
+
+  // Dynamic Featured Anthem configuration from homepage settings
+  const heroAnthemSong = songs.find(s => s.id === homepage.featuredAnthemSongId || s.slug === homepage.featuredAnthemSongId) || songs.find(s => s.slug === 'rutba') || songs[0];
+  const heroAnthemTitle = homepage.featuredAnthemTitle || (heroAnthemSong ? `${heroAnthemSong.title} (${heroAnthemSong.year})` : 'RUTBA (2026)');
+  const heroAnthemSubtitle = homepage.featuredAnthemSubtitle || (heroAnthemSong ? `${heroAnthemSong.genre} • ABM Studio’s` : 'Street Rap Anthem • ABM Studio’s');
+  const heroAnthemBadge = homepage.featuredAnthemBadge || 'Featured Anthem';
+  const showHeroAnthem = homepage.showFeaturedAnthem !== false && !!heroAnthemSong;
 
   // Creative statistics
   const stats = [
@@ -313,53 +321,52 @@ export const HomeView: React.FC = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/40 to-transparent"></div>
 
                 {/* Floating Release Card on Portrait */}
-                <div className="absolute bottom-4 left-4 right-4 p-4 rounded-2xl bg-neutral-950/90 backdrop-blur-lg border border-neutral-800 text-white flex items-center justify-between shadow-2xl">
-                  <div className="flex items-center gap-3 min-w-0">
-                    {/* Rotating Vinyl Disc */}
-                    <motion.div 
-                      animate={isPlaying && currentSong?.slug === 'rutba' ? { rotate: 360 } : { rotate: 0 }}
-                      transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
-                      className="w-10 h-10 rounded-full bg-neutral-900 border-2 border-neutral-700 flex items-center justify-center shrink-0 shadow-md relative overflow-hidden"
-                    >
-                      <Disc className="w-8 h-8 text-neutral-400" />
-                      <div className="w-2.5 h-2.5 rounded-full bg-white absolute" />
-                    </motion.div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                        <span className="text-[10px] font-mono uppercase text-neutral-300 font-bold tracking-wider">
-                          Featured Anthem
-                        </span>
+                {showHeroAnthem && heroAnthemSong && (
+                  <div className="absolute bottom-4 left-4 right-4 p-4 rounded-2xl bg-neutral-950/90 backdrop-blur-lg border border-neutral-800 text-white flex items-center justify-between shadow-2xl">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {/* Rotating Vinyl Disc */}
+                      <motion.div 
+                        animate={isPlaying && currentSong?.id === heroAnthemSong.id ? { rotate: 360 } : { rotate: 0 }}
+                        transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                        className="w-10 h-10 rounded-full bg-neutral-900 border-2 border-neutral-700 flex items-center justify-center shrink-0 shadow-md relative overflow-hidden"
+                      >
+                        <Disc className="w-8 h-8 text-neutral-400" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-white absolute" />
+                      </motion.div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                          <span className="text-[10px] font-mono uppercase text-neutral-300 font-bold tracking-wider">
+                            {heroAnthemBadge}
+                          </span>
+                        </div>
+                        <h4 className="text-sm font-black truncate mt-0.5">{heroAnthemTitle}</h4>
+                        <p className="text-[11px] text-neutral-400 truncate">{heroAnthemSubtitle}</p>
                       </div>
-                      <h4 className="text-sm font-black truncate mt-0.5">RUTBA (2026)</h4>
-                      <p className="text-[11px] text-neutral-400 truncate">Street Rap Anthem • ABM Studio’s</p>
                     </div>
-                  </div>
-                  
-                  <motion.button
-                    whileHover={{ scale: 1.12 }}
-                    whileTap={{ scale: 0.92 }}
-                    onClick={() => {
-                      hapticBeat();
-                      const rutba = songs.find(s => s.slug === 'rutba') || songs[0];
-                      if (rutba) {
-                        if (currentSong?.id === rutba.id && isPlaying) {
+                    
+                    <motion.button
+                      whileHover={{ scale: 1.12 }}
+                      whileTap={{ scale: 0.92 }}
+                      onClick={() => {
+                        hapticBeat();
+                        if (currentSong?.id === heroAnthemSong.id && isPlaying) {
                           togglePlay();
                         } else {
-                          playSong(rutba);
+                          playSong(heroAnthemSong);
                         }
-                      }
-                    }}
-                    className="w-11 h-11 rounded-full bg-white text-neutral-950 hover:bg-neutral-200 flex items-center justify-center flex-shrink-0 shadow-lg font-bold cursor-pointer transition-colors"
-                    title="Play Anthem"
-                  >
-                    {currentSong?.slug === 'rutba' && isPlaying ? (
-                      <Pause className="w-5 h-5 fill-current" />
-                    ) : (
-                      <Play className="w-5 h-5 fill-current ml-0.5" />
-                    )}
-                  </motion.button>
-                </div>
+                      }}
+                      className="w-11 h-11 rounded-full bg-white text-neutral-950 hover:bg-neutral-200 flex items-center justify-center flex-shrink-0 shadow-lg font-bold cursor-pointer transition-colors"
+                      title={`Play Anthem: ${heroAnthemTitle}`}
+                    >
+                      {currentSong?.id === heroAnthemSong.id && isPlaying ? (
+                        <Pause className="w-5 h-5 fill-current" />
+                      ) : (
+                        <Play className="w-5 h-5 fill-current ml-0.5" />
+                      )}
+                    </motion.button>
+                  </div>
+                )}
               </motion.div>
             </TiltCard>
           </div>
