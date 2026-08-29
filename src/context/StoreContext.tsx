@@ -525,10 +525,23 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const loadFirestoreData = async () => {
       try {
         const firestoreProfile = await firestoreService.fetchDocument<UserProfile>('profiles', 'main');
-        if (firestoreProfile) setProfile(firestoreProfile);
+        if (firestoreProfile) {
+          setProfile({
+            ...initialProfile,
+            ...firestoreProfile,
+            education: { ...initialProfile.education, ...(firestoreProfile.education || {}) },
+            schoolEducation: firestoreProfile.schoolEducation || initialProfile.schoolEducation
+          });
+        }
 
         const firestoreBranding = await firestoreService.fetchDocument<SiteBranding>('siteSettings', 'branding');
-        if (firestoreBranding) setBranding(firestoreBranding);
+        if (firestoreBranding) {
+          setBranding({
+            ...initialBranding,
+            ...firestoreBranding,
+            logoText: firestoreBranding.logoText || initialBranding.logoText || 'ABM'
+          });
+        }
 
         const firestoreHomepage = await firestoreService.fetchDocument<HomepageConfig>('homepage', 'config');
         if (firestoreHomepage) setHomepage(firestoreHomepage);

@@ -19,6 +19,23 @@ export interface UserProfilePrivacy {
   showEducation: boolean;
 }
 
+export interface SchoolRecord {
+  level: string;
+  standard: string;
+  schoolName: string;
+  percentage: string;
+  stream?: string;
+  period: string;
+  board?: string;
+  status: string;
+  location?: string;
+}
+
+export interface SchoolEducationConfig {
+  tenth: SchoolRecord;
+  twelfth: SchoolRecord;
+}
+
 export interface UserProfile {
   name: string;
   shortName: string;
@@ -40,6 +57,7 @@ export interface UserProfile {
     period: string;
     status: string;
   };
+  schoolEducation?: SchoolEducationConfig;
   creativeRoles: string[];
   interests: string[];
   profileImage: string;
@@ -253,6 +271,7 @@ export interface SiteAnalytics {
 export interface SiteBranding {
   siteName: string;
   shortName: string;
+  logoText?: string;
   logoUrl: string;
   faviconUrl: string;
   siteDescription: string;

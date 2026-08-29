@@ -17,7 +17,8 @@ import {
   CheckCircle2,
   Image as ImageIcon,
   GraduationCap,
-  Crop
+  Crop,
+  School
 } from 'lucide-react';
 
 export const ProfileTab: React.FC = () => {
@@ -38,6 +39,44 @@ export const ProfileTab: React.FC = () => {
       education: {
         ...prev.education,
         [field]: value
+      }
+    }));
+  };
+
+  const handleSchoolEducationChange = (
+    tier: 'tenth' | 'twelfth',
+    field: string,
+    value: string
+  ) => {
+    setFormData(prev => ({
+      ...prev,
+      schoolEducation: {
+        tenth: {
+          level: 'Class 10th (Secondary)',
+          standard: '10th',
+          schoolName: 'Stanford Global Academy Sr. Sec. School, Jagatpura, Jaipur',
+          percentage: '69.86%',
+          stream: 'Secondary School Examination',
+          period: '2020 – 2021',
+          board: 'State Board / Secondary',
+          status: 'Completed (69.86%)',
+          location: 'Jagatpura, Jaipur',
+          ...(prev.schoolEducation?.tenth || {}),
+          ...(tier === 'tenth' ? { [field]: value } : {})
+        },
+        twelfth: {
+          level: 'Class 12th (Senior Secondary)',
+          standard: '12th',
+          schoolName: 'Stanford Global Academy Sr. Sec. School, Jagatpura, Jaipur',
+          percentage: '72%',
+          stream: 'Senior Secondary (Science)',
+          period: '2022 – 2023',
+          board: 'State Board / Senior Secondary',
+          status: 'Completed (72%)',
+          location: 'Jagatpura, Jaipur',
+          ...(prev.schoolEducation?.twelfth || {}),
+          ...(tier === 'twelfth' ? { [field]: value } : {})
+        }
       }
     }));
   };
@@ -463,11 +502,16 @@ export const ProfileTab: React.FC = () => {
       </div>
 
       {/* Education Credentials */}
-      <div className="p-6 rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 space-y-4">
-        <h3 className="text-sm font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 flex items-center gap-2">
-          <GraduationCap className="w-4 h-4 text-amber-500" />
-          <span>Academic & Engineering Degree</span>
-        </h3>
+      <div className="p-6 rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 space-y-6">
+        <div>
+          <h3 className="text-sm font-bold uppercase tracking-wider text-neutral-900 dark:text-white flex items-center gap-2">
+            <GraduationCap className="w-5 h-5 text-amber-500" />
+            <span>Academic & Higher Education Degree</span>
+          </h3>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+            Details of college graduation and technical specialization.
+          </p>
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -478,7 +522,7 @@ export const ProfileTab: React.FC = () => {
               type="text"
               value={formData.education.degree}
               onChange={(e) => handleEducationChange('degree', e.target.value)}
-              className="w-full px-3.5 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs sm:text-sm"
+              className="w-full px-3.5 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs sm:text-sm focus:outline-none focus:border-amber-500"
             />
           </div>
 
@@ -490,7 +534,7 @@ export const ProfileTab: React.FC = () => {
               type="text"
               value={formData.education.field}
               onChange={(e) => handleEducationChange('field', e.target.value)}
-              className="w-full px-3.5 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs sm:text-sm"
+              className="w-full px-3.5 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs sm:text-sm focus:outline-none focus:border-amber-500"
             />
           </div>
 
@@ -502,32 +546,225 @@ export const ProfileTab: React.FC = () => {
               type="text"
               value={formData.education.college}
               onChange={(e) => handleEducationChange('college', e.target.value)}
-              className="w-full px-3.5 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs sm:text-sm"
+              className="w-full px-3.5 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs sm:text-sm focus:outline-none focus:border-amber-500"
             />
           </div>
 
           <div>
             <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
-              Tenure Period
+              Tenure Period / Batch
             </label>
             <input
               type="text"
               value={formData.education.period}
               onChange={(e) => handleEducationChange('period', e.target.value)}
-              className="w-full px-3.5 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs sm:text-sm"
+              className="w-full px-3.5 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs sm:text-sm focus:outline-none focus:border-amber-500"
             />
           </div>
 
           <div>
             <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
-              Status
+              Status (e.g. Graduated / Final Year)
             </label>
             <input
               type="text"
               value={formData.education.status}
               onChange={(e) => handleEducationChange('status', e.target.value)}
-              className="w-full px-3.5 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs sm:text-sm"
+              className="w-full px-3.5 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs sm:text-sm focus:outline-none focus:border-amber-500"
             />
+          </div>
+        </div>
+
+        {/* School Education Section (10th and 12th) */}
+        <div className="pt-6 border-t border-neutral-200 dark:border-neutral-800 space-y-6">
+          <div>
+            <h4 className="text-sm font-bold uppercase tracking-wider text-neutral-900 dark:text-white flex items-center gap-2">
+              <School className="w-5 h-5 text-amber-500" />
+              <span>Schooling Credentials (10th & 12th Standards)</span>
+            </h4>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+              Edit school name, score percentage, stream, and completion status for 10th and 12th grade cards.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* 12th Standard Card Editor */}
+            <div className="p-5 rounded-2xl bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200 dark:border-neutral-700 space-y-4">
+              <div className="flex items-center justify-between pb-2 border-b border-neutral-200 dark:border-neutral-700">
+                <span className="text-xs font-bold font-mono text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                  Class 12th (Senior Secondary)
+                </span>
+                <span className="px-2 py-0.5 rounded-full text-xs font-mono font-black bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
+                  {formData.schoolEducation?.twelfth?.percentage || '72%'}
+                </span>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+                  School Name
+                </label>
+                <input
+                  type="text"
+                  value={formData.schoolEducation?.twelfth?.schoolName || 'Stanford Global Academy Sr. Sec. School, Jagatpura, Jaipur'}
+                  onChange={(e) => handleSchoolEducationChange('twelfth', 'schoolName', e.target.value)}
+                  className="w-full px-3 py-2 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+                    Percentage / Score
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.schoolEducation?.twelfth?.percentage || '72%'}
+                    onChange={(e) => handleSchoolEducationChange('twelfth', 'percentage', e.target.value)}
+                    placeholder="72%"
+                    className="w-full px-3 py-2 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs font-bold text-emerald-600 focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+                    Level / Header Label
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.schoolEducation?.twelfth?.level || 'Class 12th (Senior Secondary)'}
+                    onChange={(e) => handleSchoolEducationChange('twelfth', 'level', e.target.value)}
+                    className="w-full px-3 py-2 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+                    Stream / Subject Focus
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.schoolEducation?.twelfth?.stream || 'Senior Secondary (Science)'}
+                    onChange={(e) => handleSchoolEducationChange('twelfth', 'stream', e.target.value)}
+                    className="w-full px-3 py-2 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+                    Academic Period / Year
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.schoolEducation?.twelfth?.period || '2022 – 2023'}
+                    onChange={(e) => handleSchoolEducationChange('twelfth', 'period', e.target.value)}
+                    className="w-full px-3 py-2 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+                  Status
+                </label>
+                <input
+                  type="text"
+                  value={formData.schoolEducation?.twelfth?.status || 'Completed (72%)'}
+                  onChange={(e) => handleSchoolEducationChange('twelfth', 'status', e.target.value)}
+                  className="w-full px-3 py-2 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs focus:outline-none focus:border-amber-500"
+                />
+              </div>
+            </div>
+
+            {/* 10th Standard Card Editor */}
+            <div className="p-5 rounded-2xl bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200 dark:border-neutral-700 space-y-4">
+              <div className="flex items-center justify-between pb-2 border-b border-neutral-200 dark:border-neutral-700">
+                <span className="text-xs font-bold font-mono text-amber-600 dark:text-amber-400 uppercase tracking-wider">
+                  Class 10th (Secondary)
+                </span>
+                <span className="px-2 py-0.5 rounded-full text-xs font-mono font-black bg-amber-500/15 text-amber-700 dark:text-amber-300">
+                  {formData.schoolEducation?.tenth?.percentage || '69.86%'}
+                </span>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+                  School Name
+                </label>
+                <input
+                  type="text"
+                  value={formData.schoolEducation?.tenth?.schoolName || 'Stanford Global Academy Sr. Sec. School, Jagatpura, Jaipur'}
+                  onChange={(e) => handleSchoolEducationChange('tenth', 'schoolName', e.target.value)}
+                  className="w-full px-3 py-2 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+                    Percentage / Score
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.schoolEducation?.tenth?.percentage || '69.86%'}
+                    onChange={(e) => handleSchoolEducationChange('tenth', 'percentage', e.target.value)}
+                    placeholder="69.86%"
+                    className="w-full px-3 py-2 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs font-bold text-amber-600 focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+                    Level / Header Label
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.schoolEducation?.tenth?.level || 'Class 10th (Secondary)'}
+                    onChange={(e) => handleSchoolEducationChange('tenth', 'level', e.target.value)}
+                    className="w-full px-3 py-2 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+                    Stream / Examination
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.schoolEducation?.tenth?.stream || 'Secondary School Examination'}
+                    onChange={(e) => handleSchoolEducationChange('tenth', 'stream', e.target.value)}
+                    className="w-full px-3 py-2 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+                    Academic Period / Year
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.schoolEducation?.tenth?.period || '2020 – 2021'}
+                    onChange={(e) => handleSchoolEducationChange('tenth', 'period', e.target.value)}
+                    className="w-full px-3 py-2 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+                  Status
+                </label>
+                <input
+                  type="text"
+                  value={formData.schoolEducation?.tenth?.status || 'Completed (69.86%)'}
+                  onChange={(e) => handleSchoolEducationChange('tenth', 'status', e.target.value)}
+                  className="w-full px-3 py-2 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs focus:outline-none focus:border-amber-500"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>

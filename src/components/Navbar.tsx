@@ -28,7 +28,8 @@ export const Navbar: React.FC = () => {
     openSearch, 
     isMenuOpen,
     toggleMenu,
-    closeMenu
+    closeMenu,
+    branding
   } = useStore();
 
   const [isScrolled, setIsScrolled] = useState(false);
@@ -40,6 +41,9 @@ export const Navbar: React.FC = () => {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const logoText = branding?.logoText?.trim() || 'ABM';
+  const customLogoUrl = branding?.logoUrl?.trim();
 
   const navItems: { id: ActiveTab; label: string; icon: React.ReactNode }[] = [
     { id: 'home', label: 'Home', icon: <Sparkles className="w-4 h-4" /> },
@@ -81,19 +85,29 @@ export const Navbar: React.FC = () => {
                 setCurrentTab('home'); 
                 closeMenu();
               }}
-              title="Arjun Bharti Mina (ABM)"
+              title={`${branding.siteName || 'Arjun Bharti Mina'} (${logoText})`}
               className="flex items-center text-left group focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 rounded-2xl p-1 -ml-1 cursor-pointer"
             >
-              {/* Crisp Stylized ABM Vector Monogram */}
-              <div className="relative px-3.5 sm:px-4 py-1.5 h-10 sm:h-11 rounded-xl bg-white dark:bg-neutral-900 text-neutral-950 dark:text-white border-2 border-neutral-200 dark:border-neutral-800 shadow-sm flex items-center justify-center gap-2 group-hover:border-neutral-900 dark:group-hover:border-white group-hover:shadow-md transition-all duration-300 shrink-0">
-                <div className="w-6 h-6 rounded-md bg-neutral-950 dark:bg-white flex items-center justify-center shrink-0 group-hover:rotate-6 transition-transform duration-300">
-                  <svg viewBox="0 0 100 100" className="w-4 h-4">
-                    <polygon points="50,8 92,50 50,92 8,50" fill="none" stroke="currentColor" className="text-white dark:text-neutral-950" strokeWidth="7" />
-                    <circle cx="50" cy="50" r="15" fill="currentColor" className="text-rose-500" />
-                  </svg>
-                </div>
+              {/* Crisp Stylized ABM Vector Monogram / Custom Logo */}
+              <div className="relative px-3 sm:px-3.5 py-1.5 h-10 sm:h-11 rounded-xl bg-white dark:bg-neutral-900 text-neutral-950 dark:text-white border-2 border-neutral-200 dark:border-neutral-800 shadow-sm flex items-center justify-center gap-2 group-hover:border-neutral-900 dark:group-hover:border-white group-hover:shadow-md transition-all duration-300 shrink-0">
+                {customLogoUrl ? (
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg overflow-hidden flex items-center justify-center shrink-0 bg-neutral-100 dark:bg-neutral-800">
+                    <img 
+                      src={customLogoUrl} 
+                      alt="Site Logo" 
+                      className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-6 h-6 rounded-md bg-neutral-950 dark:bg-white flex items-center justify-center shrink-0 group-hover:rotate-6 transition-transform duration-300">
+                    <svg viewBox="0 0 100 100" className="w-4 h-4">
+                      <polygon points="50,8 92,50 50,92 8,50" fill="none" stroke="currentColor" className="text-white dark:text-neutral-950" strokeWidth="7" />
+                      <circle cx="50" cy="50" r="15" fill="currentColor" className="text-rose-500" />
+                    </svg>
+                  </div>
+                )}
                 <span className="font-display font-black tracking-widest text-sm sm:text-base text-neutral-950 dark:text-white font-mono select-none">
-                  ABM
+                  {logoText}
                 </span>
               </div>
             </motion.button>

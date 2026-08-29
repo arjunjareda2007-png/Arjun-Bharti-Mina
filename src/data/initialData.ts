@@ -42,6 +42,30 @@ export const initialProfile: UserProfile = {
     period: '2022 – 2026',
     status: 'Graduated / Final Year'
   },
+  schoolEducation: {
+    tenth: {
+      level: 'Class 10th (Secondary)',
+      standard: '10th',
+      schoolName: 'Stanford Global Academy Sr. Sec. School, Jagatpura, Jaipur',
+      percentage: '69.86%',
+      stream: 'Secondary School Examination',
+      period: '2020 – 2021',
+      board: 'State Board / Secondary',
+      status: 'Completed (69.86%)',
+      location: 'Jagatpura, Jaipur, Rajasthan'
+    },
+    twelfth: {
+      level: 'Class 12th (Senior Secondary)',
+      standard: '12th',
+      schoolName: 'Stanford Global Academy Sr. Sec. School, Jagatpura, Jaipur',
+      percentage: '72%',
+      stream: 'Senior Secondary (Science)',
+      period: '2022 – 2023',
+      board: 'State Board / Senior Secondary',
+      status: 'Completed (72%)',
+      location: 'Jagatpura, Jaipur, Rajasthan'
+    }
+  },
   creativeRoles: [
     'Music Artist & Rapper',
     'Singer & Vocalist',
@@ -903,6 +927,7 @@ export const initialSocialLinks: SocialLink[] = [
 export const initialBranding: SiteBranding = {
   siteName: 'Arjun Bharti Mina',
   shortName: 'Arjun Bharti Mina',
+  logoText: 'ABM',
   logoUrl: '',
   faviconUrl: '/logo.png',
   siteDescription: 'Official digital universe, music library, lyrical vault, and multidisciplinary portfolio of independent artist Arjun Bharti Mina (ABM).',
