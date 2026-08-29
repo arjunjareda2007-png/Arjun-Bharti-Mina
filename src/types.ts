@@ -301,11 +301,16 @@ export interface NavigationItem {
 export interface YouTubeSettings {
   channelName: string;
   channelUrl: string;
+  channelHandle?: string;
   channelLogo: string;
   channelBanner: string;
   subscribersCount: string;
+  totalViews?: string;
+  totalVideos?: string;
   description: string;
   featuredVideoId: string;
+  lastSyncedAt?: string;
+  autoSyncEnabled?: boolean;
   playlistLinks: { title: string; url: string }[];
 }
 

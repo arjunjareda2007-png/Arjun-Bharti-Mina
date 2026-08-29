@@ -36,6 +36,7 @@ export const HomeView: React.FC = () => {
   const { 
     profile, 
     homepage,
+    youtube,
     songs, 
     projects, 
     videos, 
@@ -663,7 +664,7 @@ export const HomeView: React.FC = () => {
               </h2>
             </div>
             <motion.a
-              href="https://youtube.com/@arjunbhartimina"
+              href={youtube?.channelUrl || "https://youtube.com/@arjunbhartimina"}
               target="_blank"
               rel="noreferrer"
               whileHover={{ scale: 1.04, y: -1 }}

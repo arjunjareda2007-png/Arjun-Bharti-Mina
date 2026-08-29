@@ -4,7 +4,7 @@ import { VideoItem } from '../../types';
 import { Video, Play, ExternalLink, Calendar, Clock, Eye, Share2 } from 'lucide-react';
 
 export const VideosView: React.FC = () => {
-  const { videos, openVideoPlayer, profile, openShare } = useStore();
+  const { videos, openVideoPlayer, profile, youtube, openShare } = useStore();
   const [selectedCat, setSelectedCat] = useState<string>('All');
 
   const categories = ['All', 'Music Video', 'Shorts', 'BTS', 'Live Performance', 'Creative'];
@@ -13,6 +13,9 @@ export const VideosView: React.FC = () => {
     selectedCat === 'All' || v.category === selectedCat
   );
 
+  const channelUrl = youtube?.channelUrl || 'https://youtube.com/@arjunbhartimina';
+  const subCount = youtube?.subscribersCount || profile?.stats?.youtubeSubs || '12.8K+';
+
   return (
     <div id="videos-view" className="space-y-10 max-w-7xl mx-auto">
       
@@ -20,26 +23,28 @@ export const VideosView: React.FC = () => {
       <div className="p-6 sm:p-8 rounded-3xl bg-neutral-950 text-white border border-neutral-800 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 border-red-600 flex-shrink-0">
-            <img src={profile.profileImage} alt={profile.name} className="w-full h-full object-cover" />
+            <img src={youtube?.channelLogo || profile.profileImage} alt={profile.name} className="w-full h-full object-cover" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-xl sm:text-2xl font-bold font-display">{profile.name}</h2>
+              <h2 className="text-xl sm:text-2xl font-bold font-display">{youtube?.channelName || profile.name}</h2>
               <span className="px-2 py-0.5 rounded bg-red-600/20 text-red-400 border border-red-500/30 text-[10px] font-mono">
                 Official YouTube
               </span>
             </div>
             <p className="text-xs text-neutral-400 mt-1">
-              Music Videos • Studio Sessions • Desi Cyphers • Civil Engineering Vlogs
+              {youtube?.description || 'Music Videos • Studio Sessions • Desi Cyphers • Civil Engineering Vlogs'}
             </p>
-            <span className="text-xs font-mono text-amber-400 mt-1 block">
-              {profile.stats.youtubeSubs} Subscribers
-            </span>
+            <div className="flex items-center gap-3 text-xs font-mono text-amber-400 mt-1.5">
+              <span>{subCount} Subscribers</span>
+              {youtube?.totalViews && <span>• {youtube.totalViews}</span>}
+              {youtube?.totalVideos && <span>• {youtube.totalVideos}</span>}
+            </div>
           </div>
         </div>
 
         <a
-          href="https://youtube.com/@arjunbhartimina?sub_confirmation=1"
+          href={`${channelUrl}?sub_confirmation=1`}
           target="_blank"
           rel="noreferrer"
           className="px-6 py-3 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all shadow-lg self-start md:self-center flex-shrink-0"

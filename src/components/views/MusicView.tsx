@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useStore } from '../../context/StoreContext';
 import { Song } from '../../types';
+import { getYouTubeIdForSong, getYouTubeWatchUrl } from '../../utils/youtubeUtils';
 import { 
   Play, 
   Pause, 
@@ -237,36 +238,34 @@ export const MusicView: React.FC = () => {
                       </button>
 
                       {/* Video Player Quick Button if Song has Video */}
-                      {(song.youtubeEmbedId || song.streamingLinks.youtube || videos.some(v => v.title.toLowerCase().includes(song.title.toLowerCase()))) && (
-                        <button
-                          onClick={() => {
-                            const matched = videos.find(v => v.title.toLowerCase().includes(song.title.toLowerCase()));
-                            if (matched) {
-                              openVideoPlayer(matched);
-                            } else {
-                              const ytId = song.youtubeEmbedId || (song.streamingLinks?.youtube?.includes('v=') ? song.streamingLinks.youtube.split('v=')[1]?.split('&')[0] : 'dQw4w9WgXcQ');
-                              openVideoPlayer({
-                                id: `song-vid-${song.id}`,
-                                title: `${song.title} (Official Visualizer)`,
-                                youtubeEmbedId: ytId,
-                                youtubeUrl: song.streamingLinks?.youtube || `https://youtube.com/watch?v=${ytId}`,
-                                thumbnail: song.cover,
-                                category: 'Music Video',
-                                duration: song.duration,
-                                description: `Official music visualizer for "${song.title}" by ${song.artist}.`,
-                                viewsCount: 'Official',
-                                date: song.releaseDate,
-                                featured: song.featured,
-                                published: true
-                              });
-                            }
-                          }}
-                          className="p-1.5 rounded-lg text-red-500 hover:bg-red-500/10 transition-colors"
-                          title="Watch Official Video / Visualizer"
-                        >
-                          <Video className="w-4 h-4" />
-                        </button>
-                      )}
+                      <button
+                        onClick={() => {
+                          const matched = videos.find(v => v.title.toLowerCase().includes(song.title.toLowerCase()));
+                          if (matched) {
+                            openVideoPlayer(matched);
+                          } else {
+                            const ytId = getYouTubeIdForSong(song);
+                            openVideoPlayer({
+                              id: `song-vid-${song.id}`,
+                              title: `${song.title} (Official Music Video)`,
+                              youtubeEmbedId: ytId,
+                              youtubeUrl: getYouTubeWatchUrl(song),
+                              thumbnail: song.cover,
+                              category: 'Music Video',
+                              duration: song.duration,
+                              description: `Official music video stream for "${song.title}" by ${song.artist}.`,
+                              viewsCount: 'Official',
+                              date: song.releaseDate,
+                              featured: song.featured,
+                              published: true
+                            });
+                          }
+                        }}
+                        className="p-1.5 rounded-lg text-red-500 hover:bg-red-500/10 transition-colors"
+                        title="Watch Official Video / Visualizer"
+                      >
+                        <Video className="w-4 h-4" />
+                      </button>
 
                       {/* Spotify Direct Link */}
                       <a

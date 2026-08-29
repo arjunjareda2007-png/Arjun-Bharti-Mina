@@ -971,11 +971,16 @@ export const initialSEO: SEOConfig = {
 export const initialYouTube: YouTubeSettings = {
   channelName: 'Arjun Bharti Mina Official',
   channelUrl: 'https://youtube.com/@arjunbhartimina',
+  channelHandle: '@arjunbhartimina',
   channelLogo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=400&auto=format&fit=crop',
   channelBanner: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1600&auto=format&fit=crop',
   subscribersCount: '12.8K+',
-  description: 'Official home for music videos, lyrical breakdowns, behind-the-scenes vlogs, and creative acoustic sessions.',
+  totalViews: '350K+ Views',
+  totalVideos: '24+ Videos',
+  description: 'Official home for music videos, lyrical breakdowns, behind-the-scenes vlogs, and creative studio releases by Arjun Bharti Mina.',
   featuredVideoId: 'fJ9rUzIMcZQ',
+  lastSyncedAt: new Date().toISOString(),
+  autoSyncEnabled: true,
   playlistLinks: [
     { title: 'Official Music Videos', url: 'https://youtube.com/@arjunbhartimina/playlists' },
     { title: 'Acoustic & Studio Sessions', url: 'https://youtube.com/@arjunbhartimina/playlists' },

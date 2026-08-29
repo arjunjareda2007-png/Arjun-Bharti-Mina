@@ -1,6 +1,7 @@
 import React from 'react';
 import { useStore } from '../context/StoreContext';
 import { getSpotifyEmbedForSong, getSpotifyWebUrlForSong } from '../utils/spotifyUtils';
+import { getYouTubeIdForSong, getYouTubeWatchUrl } from '../utils/youtubeUtils';
 import { 
   X, 
   Play, 
@@ -44,21 +45,23 @@ export const SongDetailModal: React.FC = () => {
   const isCurrentActive = currentSong?.id === song.id;
   const relatedSongs = songs.filter(s => s.id !== song.id && (s.genre === song.genre || s.year === song.year)).slice(0, 3);
   
-  const matchedVideo = videos.find(v => v.title.toLowerCase().includes(song.title.toLowerCase())) || 
-    (song.youtubeEmbedId || (song.streamingLinks?.youtube && song.streamingLinks.youtube.includes('watch')) ? {
-      id: `song-vid-${song.id}`,
-      title: `${song.title} (Official Visualizer)`,
-      youtubeEmbedId: song.youtubeEmbedId || (song.streamingLinks?.youtube?.split('v=')[1]?.split('&')[0] || 'dQw4w9WgXcQ'),
-      youtubeUrl: song.streamingLinks?.youtube || `https://youtube.com/watch?v=${song.youtubeEmbedId}`,
-      thumbnail: song.cover,
-      category: 'Music Video' as const,
-      duration: song.duration,
-      description: `Official music video for "${song.title}" by ${song.artist}.`,
-      viewsCount: 'Official',
-      date: song.releaseDate,
-      featured: song.featured,
-      published: true
-    } : null);
+  const ytId = getYouTubeIdForSong(song);
+  const ytWatchUrl = getYouTubeWatchUrl(song);
+
+  const matchedVideo = videos.find(v => v.title.toLowerCase().includes(song.title.toLowerCase())) || {
+    id: `song-vid-${song.id}`,
+    title: `${song.title} (Official Music Video)`,
+    youtubeEmbedId: ytId,
+    youtubeUrl: ytWatchUrl,
+    thumbnail: song.cover,
+    category: 'Music Video' as const,
+    duration: song.duration,
+    description: `Official music video stream for "${song.title}" by ${song.artist}.`,
+    viewsCount: 'Official',
+    date: song.releaseDate,
+    featured: song.featured,
+    published: true
+  };
 
   const handleCopyLyrics = () => {
     navigator.clipboard.writeText(song.lyrics);

@@ -1,8 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../context/StoreContext';
-import { getYouTubeIdForSong, getYouTubeEmbedUrl, getYouTubeThumbnail } from '../utils/youtubeUtils';
-import { hapticBeat, hapticLight, hapticSelection, hapticMedium } from '../utils/haptics';
+import { 
+  getYouTubeIdForSong, 
+  getYouTubeEmbedUrl, 
+  getYouTubeThumbnail, 
+  getYouTubeWatchUrl 
+} from '../utils/youtubeUtils';
+import { hapticBeat, hapticLight, hapticSelection, hapticSuccess } from '../utils/haptics';
 import { 
   Play, 
   Pause, 
@@ -10,16 +15,16 @@ import {
   SkipForward, 
   X, 
   Maximize2, 
+  Minimize2, 
   ExternalLink, 
   Volume2, 
   VolumeX, 
-  FileText,
-  Video,
+  Video, 
+  Youtube, 
+  ListMusic, 
+  Sparkles,
   Tv,
-  Disc,
-  Radio,
-  SlidersHorizontal,
-  Minimize2
+  Share2
 } from 'lucide-react';
 
 export const GlobalAudioPlayer: React.FC = () => {
@@ -35,41 +40,44 @@ export const GlobalAudioPlayer: React.FC = () => {
     closePlayer, 
     openFullScreenPlayer,
     isFullScreenPlayerOpen,
-    activePlayerView,
     activeVideo,
+    songs,
+    playSong,
     volume,
     changeVolume,
     isMuted,
-    toggleMute
+    toggleMute,
+    showToast,
+    openShare
   } = useStore();
 
-  const [isPipMode, setIsPipMode] = useState(false);
-  const [showVolumePopup, setShowVolumePopup] = useState(false);
-  const [isIframeLoaded, setIsIframeLoaded] = useState(false);
+  // Mode: 'bar' (compact bottom player) | 'theater' (expanded floating video screen)
+  const [playerLayout, setPlayerLayout] = useState<'bar' | 'theater'>('bar');
+  const [showVolumeSlider, setShowVolumeSlider] = useState<boolean>(false);
+  const [showPlaylistDrawer, setShowPlaylistDrawer] = useState<boolean>(false);
   const progressBarRef = useRef<HTMLDivElement>(null);
 
-  // Close player with Esc key if not in full-screen modal
+  // Close player or collapse on ESC
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && !isFullScreenPlayerOpen && currentSong) {
-        closePlayer();
+        if (playerLayout === 'theater') {
+          setPlayerLayout('bar');
+        } else {
+          closePlayer();
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isFullScreenPlayerOpen, currentSong, closePlayer]);
-
-  // Reset loading state on song change
-  useEffect(() => {
-    setIsIframeLoaded(false);
-  }, [currentSong?.id]);
+  }, [isFullScreenPlayerOpen, currentSong, playerLayout, closePlayer]);
 
   if (!currentSong) return null;
 
   const youtubeId = getYouTubeIdForSong(currentSong);
-  const youtubeUrl = currentSong.streamingLinks?.youtube || `https://www.youtube.com/watch?v=${youtubeId}`;
-  const highResThumb = getYouTubeThumbnail(youtubeId, 'hq') || currentSong.cover;
-  
+  const youtubeWatchUrl = getYouTubeWatchUrl(currentSong);
+  const youtubeThumbnail = getYouTubeThumbnail(youtubeId, 'hq') || currentSong.cover;
+
   // Format seconds to mm:ss
   const formatTime = (secs: number) => {
     if (isNaN(secs) || secs < 0) return '0:00';
@@ -80,400 +88,421 @@ export const GlobalAudioPlayer: React.FC = () => {
 
   const progressPercent = duration > 0 ? Math.min(100, Math.max(0, (playbackTime / duration) * 100)) : 0;
 
-  // Handle seeking along progress bar
-  const handleSeekClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  // Progress Bar Seek
+  const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!progressBarRef.current || duration <= 0) return;
     const rect = progressBarRef.current.getBoundingClientRect();
     const clickX = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
-    const newRatio = clickX / rect.width;
-    const newTime = newRatio * duration;
+    const ratio = clickX / rect.width;
+    const targetSeconds = ratio * duration;
     hapticSelection();
-    seekSong(newTime);
+    seekSong(targetSeconds);
   };
 
-  // Video embed parameters
-  const isVideoActive = isPlaying && (!isFullScreenPlayerOpen || activePlayerView !== 'video') && !activeVideo;
-  const embedUrl = getYouTubeEmbedUrl(youtubeId, {
-    autoplay: isVideoActive,
+  // Build YouTube Embed URL - automatically plays video when song is selected
+  const shouldAutoplay = isPlaying && !activeVideo && !isFullScreenPlayerOpen;
+  const embedSrc = getYouTubeEmbedUrl(youtubeId, {
+    autoplay: shouldAutoplay,
     controls: true,
     mute: isMuted || volume === 0,
     start: Math.max(0, Math.floor(playbackTime))
   });
 
   return (
-    <>
-      {/* 1. YouTube Audio & Video Stream Engine */}
-      {/* When in PiP mode: render as visible floating video window; otherwise hidden audio player */}
-      <AnimatePresence>
-        {isPipMode && !isFullScreenPlayerOpen && (
-          <motion.div
-            id="youtube-pip-window"
-            initial={{ opacity: 0, scale: 0.85, y: 50 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.85, y: 50 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-            className="fixed bottom-24 right-4 sm:right-8 z-50 w-72 sm:w-80 rounded-2xl overflow-hidden shadow-2xl bg-neutral-950 border border-neutral-800 text-white"
-          >
-            {/* PiP Header Bar */}
-            <div className="flex items-center justify-between px-3 py-2 bg-neutral-900 border-b border-neutral-800">
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                <span className="text-[11px] font-bold truncate text-neutral-200">
-                  {currentSong.title}
-                </span>
-              </div>
-              <div className="flex items-center gap-1">
-                <a
-                  href={youtubeUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="p-1 rounded hover:bg-neutral-800 text-red-500 hover:text-red-400 transition-colors"
-                  title="Open YouTube video link"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-                <button
-                  onClick={() => setIsPipMode(false)}
-                  className="p-1 rounded hover:bg-neutral-800 text-neutral-400 hover:text-white transition-colors"
-                  title="Minimize Video"
-                >
-                  <Minimize2 className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Embedded YouTube Player */}
-            <div className="relative w-full aspect-video bg-black">
-              <iframe
-                id="youtube-pip-iframe"
-                src={embedUrl}
-                title={`YouTube Video - ${currentSong.title}`}
-                className="w-full h-full border-0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Hidden audio iframe stream when not in PiP mode */}
-      {!isPipMode && isVideoActive && (
-        <div className="fixed -top-96 -left-96 w-10 h-10 opacity-0 pointer-events-none overflow-hidden" aria-hidden="true">
-          <iframe
-            id="youtube-audio-stream-frame"
-            key={`${currentSong.id}-${isVideoActive ? 'active' : 'inactive'}`}
-            src={embedUrl}
-            title={`YouTube Stream - ${currentSong.title}`}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            onLoad={() => setIsIframeLoaded(true)}
-          />
-        </div>
-      )}
-
-      {/* 2. Redesigned Floating YouTube Music Miniplayer */}
-      <AnimatePresence>
-        {!isFullScreenPlayerOpen && (
-          <motion.div 
-            id="global-youtube-song-miniplayer"
-            initial={{ opacity: 0, y: 50, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 50, scale: 0.95 }}
-            transition={{ type: 'spring', damping: 26, stiffness: 360 }}
-            className="fixed bottom-16 sm:bottom-5 left-3 right-3 sm:left-6 sm:right-6 max-w-4xl mx-auto z-40 pointer-events-auto"
-          >
-            <div className="relative rounded-2xl sm:rounded-3xl bg-neutral-950/95 text-white border border-neutral-800 shadow-2xl backdrop-blur-2xl hover:border-neutral-700 transition-all overflow-hidden flex flex-col">
-              
-              {/* Interactive Scrubbable Progress Line across the top */}
-              <div 
-                ref={progressBarRef}
-                onClick={handleSeekClick}
-                className="w-full h-1.5 bg-neutral-800 hover:h-2.5 transition-all cursor-pointer relative group"
-                title={`Seek: ${formatTime(playbackTime)} / ${formatTime(duration)}`}
-              >
-                <div 
-                  className="h-full bg-gradient-to-r from-red-600 via-amber-500 to-red-500 relative transition-[width] duration-150 ease-out"
-                  style={{ width: `${progressPercent}%` }}
-                >
-                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-white shadow-md opacity-0 group-hover:opacity-100 transition-opacity scale-125" />
-                </div>
-              </div>
-
-              {/* Main Player Row */}
-              <div className="flex items-center justify-between gap-2 sm:gap-4 px-3 sm:px-5 py-2.5 sm:py-3">
-                
-                {/* Left Column: YouTube Video Cover, Badge & Metadata */}
-                <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1">
-                  {/* High-Res Thumbnail with Play State */}
-                  <motion.button
-                    id="miniplayer-art-btn"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.94 }}
-                    onClick={() => {
-                      hapticMedium();
-                      openFullScreenPlayer('art');
-                    }}
-                    className="relative w-11 h-11 sm:w-13 sm:h-13 rounded-xl sm:rounded-2xl overflow-hidden bg-neutral-900 shrink-0 border border-neutral-800 group focus:outline-none focus:ring-2 focus:ring-red-500 shadow-md cursor-pointer"
-                    title="Open Fullscreen Visualizer & Lyrics"
-                  >
-                    <img 
-                      src={highResThumb} 
-                      alt={currentSong.title} 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    
-                    {/* Hover Expand Icon */}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                      <Maximize2 className="w-4 h-4 text-white drop-shadow" />
-                    </div>
-
-                    {/* Playing animated soundwave badge */}
-                    {isPlaying && (
-                      <div className="absolute bottom-1 right-1 flex items-end gap-0.5 bg-black/80 px-1 py-0.5 rounded">
-                        <motion.span 
-                          animate={{ height: ['4px', '12px', '4px'] }} 
-                          transition={{ duration: 0.45, repeat: Infinity }}
-                          className="w-0.5 bg-red-500 rounded-full" 
-                        />
-                        <motion.span 
-                          animate={{ height: ['8px', '14px', '6px'] }} 
-                          transition={{ duration: 0.55, repeat: Infinity, delay: 0.1 }}
-                          className="w-0.5 bg-amber-400 rounded-full" 
-                        />
-                        <motion.span 
-                          animate={{ height: ['5px', '11px', '3px'] }} 
-                          transition={{ duration: 0.4, repeat: Infinity, delay: 0.2 }}
-                          className="w-0.5 bg-red-500 rounded-full" 
-                        />
-                      </div>
-                    )}
-                  </motion.button>
-
-                  {/* Title, Artist & YouTube Link Badge */}
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <a
-                        href={youtubeUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-red-600/20 border border-red-500/30 text-red-400 hover:text-red-300 text-[10px] font-mono font-bold tracking-wider hover:bg-red-600/30 transition-colors"
-                        title="Direct YouTube Video Song Link"
-                      >
-                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />
-                        <span>YouTube Video</span>
-                        <ExternalLink className="w-2.5 h-2.5 opacity-80" />
-                      </a>
-                      <span className="text-[11px] font-mono text-neutral-400 hidden sm:inline">
-                        {formatTime(playbackTime)} / {formatTime(duration)}
-                      </span>
-                    </div>
-
-                    <div 
-                      className="cursor-pointer group"
-                      onClick={() => {
-                        hapticMedium();
-                        openFullScreenPlayer('art');
-                      }}
-                      title="Open Fullscreen Player"
-                    >
-                      <h4 className="text-xs sm:text-sm font-bold text-white group-hover:text-amber-400 transition-colors truncate max-w-[130px] xs:max-w-[180px] sm:max-w-[280px] md:max-w-[340px]">
-                        {currentSong.title}
-                      </h4>
-                      <p className="text-[11px] text-neutral-400 truncate max-w-[120px] xs:max-w-[160px] sm:max-w-[240px]">
-                        {currentSong.artist} • {currentSong.genre}
-                      </p>
-                    </div>
+    <AnimatePresence>
+      <div 
+        id="youtube-song-miniplayer" 
+        className="fixed z-40 inset-x-0 bottom-0 pointer-events-none"
+      >
+        {/* ======================================================== */}
+        {/* 1. EXPANDED THEATER / FLOATING VIDEO MODE               */}
+        {/* ======================================================== */}
+        {playerLayout === 'theater' && (
+          <div className="pointer-events-auto p-3 sm:p-4 flex justify-center items-end">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92, y: 40 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: 40 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 320 }}
+              className="w-full max-w-2xl bg-neutral-950/95 text-white border border-neutral-800 rounded-3xl p-4 sm:p-5 shadow-2xl backdrop-blur-2xl space-y-3 relative overflow-hidden"
+            >
+              {/* Header with Title & Collapse */}
+              <div className="flex items-center justify-between gap-3 pb-2 border-b border-neutral-800/80">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="px-2 py-0.5 rounded-md bg-red-600/20 border border-red-500/30 text-red-400 font-mono text-[10px] font-bold uppercase flex items-center gap-1 shrink-0">
+                    <Youtube className="w-3 h-3 fill-current" />
+                    <span>YouTube Video</span>
                   </div>
+                  <h3 className="text-sm sm:text-base font-bold text-white truncate">
+                    {currentSong.title}
+                  </h3>
+                  <span className="text-xs text-neutral-400 truncate hidden sm:inline">
+                    • {currentSong.artist}
+                  </span>
                 </div>
 
-                {/* Center Column: Core Playback Controls */}
-                <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-                  <motion.button
-                    id="miniplayer-prev-btn"
-                    whileHover={{ scale: 1.15 }}
-                    whileTap={{ scale: 0.88 }}
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
                     onClick={() => {
-                      hapticSelection();
+                      hapticLight();
+                      setPlayerLayout('bar');
+                    }}
+                    className="p-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white transition-colors cursor-pointer"
+                    title="Minimize to Bottom Bar"
+                  >
+                    <Minimize2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => {
+                      hapticLight();
+                      closePlayer();
+                    }}
+                    className="p-1.5 rounded-xl bg-neutral-900 hover:bg-red-500/20 text-neutral-300 hover:text-red-400 transition-colors cursor-pointer"
+                    title="Close Player"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* High-Definition Embedded YouTube Video Frame */}
+              <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black border border-neutral-800 shadow-xl">
+                <iframe
+                  key={`theater-${youtubeId}`}
+                  src={embedSrc}
+                  title={`${currentSong.title} - YouTube Music Video`}
+                  className="w-full h-full border-0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+
+              {/* Theater Controls & Playlist Switcher */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      hapticLight();
                       prevSong();
                     }}
-                    className="p-2 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-900 transition-colors cursor-pointer"
-                    title="Previous Song"
+                    className="p-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-200 hover:text-white transition-colors cursor-pointer"
+                    title="Previous Video Track"
                   >
-                    <SkipBack className="w-4 h-4 fill-current" />
-                  </motion.button>
+                    <SkipBack className="w-4 h-4" />
+                  </button>
 
-                  <motion.button
-                    id="miniplayer-play-btn"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
+                  <button
                     onClick={() => {
                       hapticBeat();
                       togglePlay();
                     }}
-                    className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-red-600 hover:bg-red-500 text-white flex items-center justify-center shadow-lg shadow-red-900/30 transition-all font-bold cursor-pointer shrink-0"
-                    title={isPlaying ? "Pause YouTube Song" : "Play YouTube Song"}
+                    className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs flex items-center gap-1.5 shadow-md cursor-pointer transition-all"
                   >
-                    {isPlaying ? (
-                      <Pause className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
-                    ) : (
-                      <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-current ml-0.5" />
-                    )}
-                  </motion.button>
+                    {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current" />}
+                    <span>{isPlaying ? 'Pause' : 'Play'}</span>
+                  </button>
 
-                  <motion.button
-                    id="miniplayer-next-btn"
-                    whileHover={{ scale: 1.15 }}
-                    whileTap={{ scale: 0.88 }}
+                  <button
                     onClick={() => {
-                      hapticSelection();
+                      hapticLight();
                       nextSong();
                     }}
-                    className="p-2 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-900 transition-colors cursor-pointer"
-                    title="Next Song"
+                    className="p-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-200 hover:text-white transition-colors cursor-pointer"
+                    title="Next Video Track"
                   >
-                    <SkipForward className="w-4 h-4 fill-current" />
-                  </motion.button>
+                    <SkipForward className="w-4 h-4" />
+                  </button>
+
+                  <button
+                    onClick={() => setShowPlaylistDrawer(!showPlaylistDrawer)}
+                    className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+                      showPlaylistDrawer ? 'bg-amber-500/20 border border-amber-500/40 text-amber-300' : 'bg-neutral-900 hover:bg-neutral-800 text-neutral-300'
+                    }`}
+                  >
+                    <ListMusic className="w-3.5 h-3.5" />
+                    <span>Songs ({songs.length})</span>
+                  </button>
                 </div>
 
-                {/* Right Column: YouTube Mode Switchers & Utility Actions */}
-                <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+                <div className="flex items-center gap-2 self-end sm:self-auto">
+                  <a
+                    href={youtubeWatchUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-3 py-2 rounded-xl bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 text-red-400 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                  >
+                    <Youtube className="w-3.5 h-3.5" />
+                    <span>Watch on YouTube</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+
+                  <button
+                    onClick={() => {
+                      hapticLight();
+                      openFullScreenPlayer();
+                    }}
+                    className="p-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white transition-colors cursor-pointer"
+                    title="Full Screen Theater"
+                  >
+                    <Maximize2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Fast Song Selector Drawer in Theater Mode */}
+              {showPlaylistDrawer && (
+                <div className="pt-2 max-h-40 overflow-y-auto space-y-1 divide-y divide-neutral-900">
+                  {songs.map((s, idx) => {
+                    const isSelected = s.id === currentSong.id;
+                    return (
+                      <button
+                        key={s.id}
+                        onClick={() => {
+                          hapticLight();
+                          playSong(s);
+                        }}
+                        className={`w-full py-1.5 px-2.5 rounded-xl flex items-center justify-between text-left transition-colors cursor-pointer ${
+                          isSelected ? 'bg-amber-500/15 text-amber-300 font-bold' : 'hover:bg-neutral-900 text-neutral-300'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="text-[11px] font-mono text-neutral-500">#{idx + 1}</span>
+                          <span className="text-xs truncate">{s.title}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-[11px] font-mono text-neutral-400">
+                          <span>{s.duration}</span>
+                          {isSelected && <Sparkles className="w-3 h-3 text-amber-400" />}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </motion.div>
+          </div>
+        )}
+
+        {/* ======================================================== */}
+        {/* 2. COMPACT FLOATING BOTTOM MINIPLAYER BAR (DEFAULT)     */}
+        {/* ======================================================== */}
+        {playerLayout === 'bar' && (
+          <motion.div
+            id="youtube-song-miniplayer-bar"
+            initial={{ y: 80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 80, opacity: 0 }}
+            transition={{ type: 'spring', damping: 28, stiffness: 350 }}
+            className="pointer-events-auto w-full max-w-5xl mx-auto px-2 sm:px-4 pb-2 sm:pb-3"
+          >
+            <div className="relative bg-neutral-950/95 text-white border border-neutral-800/90 rounded-2xl sm:rounded-3xl p-2.5 sm:p-3 shadow-2xl backdrop-blur-2xl overflow-hidden">
+              
+              {/* Scrubbable Top Progress Bar */}
+              <div 
+                ref={progressBarRef}
+                onClick={handleSeek}
+                className="absolute top-0 inset-x-0 h-1.5 bg-neutral-900 hover:h-2 transition-all cursor-pointer group"
+                title="Click to seek song video"
+              >
+                <div 
+                  className="h-full bg-gradient-to-r from-red-600 via-amber-500 to-amber-400 relative"
+                  style={{ width: `${progressPercent}%` }}
+                >
+                  <span className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between gap-2 sm:gap-4 mt-0.5">
+                
+                {/* Left: Embedded Mini Video Screen & Song Details */}
+                <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+                  {/* Interactive Mini Video Screen */}
+                  <div 
+                    onClick={() => {
+                      hapticBeat();
+                      setPlayerLayout('theater');
+                    }}
+                    className="relative w-14 h-10 sm:w-20 sm:h-12 rounded-xl overflow-hidden bg-black border border-neutral-800 shrink-0 cursor-pointer group shadow-md"
+                    title="Click to expand YouTube video theater"
+                  >
+                    <img 
+                      src={youtubeThumbnail} 
+                      alt={currentSong.title} 
+                      className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-300 opacity-80"
+                    />
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/20 transition-colors">
+                      <div className="w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg">
+                        {isPlaying ? (
+                          <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                        ) : (
+                          <Play className="w-2.5 h-2.5 fill-current ml-0.5" />
+                        )}
+                      </div>
+                    </div>
+                    <span className="absolute bottom-0.5 right-1 text-[8px] font-mono px-1 rounded bg-black/80 text-amber-400">
+                      YT
+                    </span>
+                  </div>
+
+                  {/* Title & Artist & Live Tag */}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <span className="px-1.5 py-0.2 rounded bg-red-600/20 border border-red-500/30 text-red-400 font-mono text-[9px] font-bold uppercase inline-flex items-center gap-0.5">
+                        <Youtube className="w-2.5 h-2.5 fill-current" />
+                        <span>Song Video</span>
+                      </span>
+                      <span className="text-[10px] font-mono text-neutral-400 hidden sm:inline">
+                        {formatTime(playbackTime)} / {formatTime(duration)}
+                      </span>
+                    </div>
+
+                    <h4 
+                      onClick={() => setPlayerLayout('theater')}
+                      className="text-xs sm:text-sm font-bold text-white hover:text-amber-400 transition-colors truncate cursor-pointer"
+                    >
+                      {currentSong.title}
+                    </h4>
+
+                    <p className="text-[11px] text-neutral-400 truncate">
+                      {currentSong.artist} {currentSong.year ? `• ${currentSong.year}` : ''}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Center & Playback Controls */}
+                <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+                  <button
+                    id="miniplayer-prev-btn"
+                    onClick={() => {
+                      hapticLight();
+                      prevSong();
+                    }}
+                    className="p-2 rounded-full hover:bg-neutral-800 text-neutral-300 hover:text-white transition-colors cursor-pointer"
+                    title="Previous Song"
+                  >
+                    <SkipBack className="w-4 h-4" />
+                  </button>
+
+                  <button
+                    id="miniplayer-play-toggle-btn"
+                    onClick={() => {
+                      hapticBeat();
+                      togglePlay();
+                    }}
+                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-gradient-to-r from-red-600 to-amber-500 hover:from-red-500 hover:to-amber-400 text-neutral-950 flex items-center justify-center shadow-lg shadow-red-600/20 transition-all cursor-pointer"
+                    title={isPlaying ? 'Pause Video' : 'Play Video'}
+                  >
+                    {isPlaying ? (
+                      <Pause className="w-5 h-5 fill-current" />
+                    ) : (
+                      <Play className="w-5 h-5 fill-current ml-0.5" />
+                    )}
+                  </button>
+
+                  <button
+                    id="miniplayer-next-btn"
+                    onClick={() => {
+                      hapticLight();
+                      nextSong();
+                    }}
+                    className="p-2 rounded-full hover:bg-neutral-800 text-neutral-300 hover:text-white transition-colors cursor-pointer"
+                    title="Next Song"
+                  >
+                    <SkipForward className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Right: Actions & Expand Controls */}
+                <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                   
-                  {/* PiP Mini Video Mode Toggle */}
-                  <motion.button
-                    id="miniplayer-pip-toggle"
-                    whileHover={{ scale: 1.08 }}
-                    whileTap={{ scale: 0.92 }}
-                    onClick={() => {
-                      hapticSelection();
-                      setIsPipMode(!isPipMode);
-                    }}
-                    className={`p-2 rounded-xl text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer ${
-                      isPipMode 
-                        ? 'bg-red-600 text-white shadow' 
-                        : 'text-neutral-300 hover:text-white hover:bg-neutral-800/80'
-                    }`}
-                    title={isPipMode ? "Hide Mini Video Window" : "Watch YouTube Video (PiP)"}
+                  {/* Direct YouTube Link Badge */}
+                  <a
+                    href={youtubeWatchUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="hidden md:flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-red-400 hover:text-red-300 text-xs font-semibold transition-colors"
+                    title="Open in YouTube"
                   >
-                    <Tv className="w-4 h-4" />
-                    <span className="hidden md:inline text-[11px]">{isPipMode ? 'PiP Active' : 'Mini Video'}</span>
-                  </motion.button>
+                    <Youtube className="w-3.5 h-3.5 fill-current" />
+                    <span className="text-[11px]">YouTube</span>
+                    <ExternalLink className="w-3 h-3 text-neutral-400" />
+                  </a>
 
-                  {/* Synced Lyrics Button */}
-                  <motion.button
-                    id="miniplayer-lyrics-btn"
-                    whileHover={{ scale: 1.08 }}
-                    whileTap={{ scale: 0.92 }}
-                    onClick={() => {
-                      hapticSelection();
-                      openFullScreenPlayer('lyrics');
-                    }}
-                    className="hidden sm:flex p-2 rounded-xl text-neutral-300 hover:text-amber-400 hover:bg-neutral-800/80 transition-colors cursor-pointer items-center gap-1"
-                    title="View Synced Lyrics"
-                  >
-                    <FileText className="w-4 h-4" />
-                    <span className="text-[11px] font-semibold hidden lg:inline">Lyrics</span>
-                  </motion.button>
-
-                  {/* Volume Control / Popup Toggle */}
+                  {/* Volume Button & Flyout */}
                   <div className="relative hidden sm:block">
-                    <motion.button
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => {
-                        hapticLight();
-                        toggleMute();
-                      }}
-                      onMouseEnter={() => setShowVolumePopup(true)}
-                      className="p-2 rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-900 transition-colors cursor-pointer"
-                      title={isMuted ? "Unmute" : "Mute"}
+                    <button
+                      onClick={() => setShowVolumeSlider(!showVolumeSlider)}
+                      className="p-2 rounded-xl hover:bg-neutral-800 text-neutral-300 hover:text-white transition-colors cursor-pointer"
+                      title="Volume"
                     >
                       {isMuted || volume === 0 ? (
                         <VolumeX className="w-4 h-4 text-red-400" />
                       ) : (
                         <Volume2 className="w-4 h-4" />
                       )}
-                    </motion.button>
+                    </button>
 
-                    {/* Quick Volume Slider Popover on Hover */}
-                    <AnimatePresence>
-                      {showVolumePopup && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: 10 }}
-                          onMouseLeave={() => setShowVolumePopup(false)}
-                          className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 p-3 rounded-2xl bg-neutral-900 border border-neutral-800 shadow-xl flex items-center gap-2 z-50"
-                        >
-                          <input
-                            type="range"
-                            min="0"
-                            max="1"
-                            step="0.05"
-                            value={isMuted ? 0 : volume}
-                            onChange={(e) => changeVolume(parseFloat(e.target.value))}
-                            className="w-20 accent-red-500 cursor-pointer h-1.5 bg-neutral-700 rounded-lg"
-                          />
-                          <span className="text-[10px] font-mono text-neutral-300 w-6 text-right">
-                            {Math.round((isMuted ? 0 : volume) * 100)}%
-                          </span>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                    {showVolumeSlider && (
+                      <div className="absolute bottom-full right-0 mb-2 p-3 bg-neutral-900 border border-neutral-800 rounded-2xl shadow-xl flex items-center gap-2 w-36">
+                        <button onClick={toggleMute} className="text-neutral-400 hover:text-white">
+                          {isMuted ? <VolumeX className="w-3.5 h-3.5 text-red-400" /> : <Volume2 className="w-3.5 h-3.5" />}
+                        </button>
+                        <input
+                          type="range"
+                          min="0"
+                          max="1"
+                          step="0.05"
+                          value={isMuted ? 0 : volume}
+                          onChange={(e) => changeVolume(parseFloat(e.target.value))}
+                          className="w-full h-1.5 bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                        />
+                      </div>
+                    )}
                   </div>
 
-                  {/* Fullscreen Expand */}
-                  <motion.button
-                    id="miniplayer-expand-btn"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                  {/* Theater Mode Expand Button */}
+                  <button
+                    id="miniplayer-theater-btn"
                     onClick={() => {
-                      hapticMedium();
-                      openFullScreenPlayer('art');
+                      hapticLight();
+                      setPlayerLayout('theater');
                     }}
-                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition-all shadow-sm cursor-pointer shrink-0"
-                    title="Open Fullscreen Visualizer"
+                    className="p-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white transition-colors cursor-pointer"
+                    title="Expand Video Theater"
                   >
-                    <Maximize2 className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline text-xs">Expand</span>
-                  </motion.button>
+                    <Tv className="w-4 h-4 text-amber-400" />
+                  </button>
 
-                  {/* Direct YouTube Video Link */}
-                  <motion.a
-                    href={youtubeUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => hapticLight()}
-                    className="p-2 rounded-xl text-red-500 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer shrink-0"
-                    title="Watch directly on YouTube"
+                  {/* Fullscreen Modal View */}
+                  <button
+                    id="miniplayer-fullscreen-btn"
+                    onClick={() => {
+                      hapticLight();
+                      openFullScreenPlayer();
+                    }}
+                    className="p-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white transition-colors cursor-pointer hidden xs:block"
+                    title="Fullscreen Player Modal"
                   >
-                    <ExternalLink className="w-4 h-4" />
-                  </motion.a>
+                    <Maximize2 className="w-4 h-4" />
+                  </button>
 
-                  {/* Close / Dismiss Player */}
-                  <motion.button
+                  {/* Close Miniplayer Button */}
+                  <button
                     id="miniplayer-close-btn"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
                     onClick={() => {
                       hapticLight();
                       closePlayer();
                     }}
-                    className="p-2 rounded-xl text-neutral-400 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer shrink-0"
-                    title="Close Player (Esc)"
+                    className="p-2 rounded-xl hover:bg-red-500/20 text-neutral-400 hover:text-red-400 transition-colors cursor-pointer ml-0.5"
+                    title="Close Song Player"
                   >
                     <X className="w-4 h-4" />
-                  </motion.button>
-
+                  </button>
                 </div>
-
               </div>
-
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
-    </>
+      </div>
+    </AnimatePresence>
   );
 };
