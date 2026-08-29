@@ -2,94 +2,66 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Helper functions
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-    
-    function isOwner() {
-      return isAuthenticated() && (
-        request.auth.token.email == 'arjunjareda1355@gmail.com' ||
-        request.auth.token.email == 'arjunjareda2007@gmail.com'
-      );
-    }
-
-    // Public readable content collections
+    // Public readable and writable content collections for portfolio CMS
     match /profiles/{document} {
-      allow read: if true;
-      allow write: if isOwner();
+      allow read, write: if true;
     }
 
     match /siteSettings/{document} {
-      allow read: if true;
-      allow write: if isOwner();
+      allow read, write: if true;
     }
 
     match /homepage/{document} {
-      allow read: if true;
-      allow write: if isOwner();
+      allow read, write: if true;
     }
 
     match /songs/{document} {
-      allow read: if true;
-      allow write: if isOwner();
+      allow read, write: if true;
     }
 
     match /lyrics/{document} {
-      allow read: if true;
-      allow write: if isOwner();
+      allow read, write: if true;
     }
 
     match /gallery/{document} {
-      allow read: if true;
-      allow write: if isOwner();
+      allow read, write: if true;
     }
 
     match /videos/{document} {
-      allow read: if true;
-      allow write: if isOwner();
+      allow read, write: if true;
     }
 
     match /projects/{document} {
-      allow read: if true;
-      allow write: if isOwner();
+      allow read, write: if true;
     }
 
     match /books/{document} {
-      allow read: if true;
-      allow write: if isOwner();
+      allow read, write: if true;
     }
 
     match /timeline/{document} {
-      allow read: if true;
-      allow write: if isOwner();
+      allow read, write: if true;
     }
 
     match /socialLinks/{document} {
-      allow read: if true;
-      allow write: if isOwner();
+      allow read, write: if true;
     }
 
-    // Contact messages: anyone can submit a message, only owner can read/delete
     match /messages/{document} {
-      allow create: if true;
-      allow read, update, delete: if isOwner();
+      allow read, write: if true;
     }
 
-    // Analytics: public can increment, owner can view/manage
     match /analytics/{document} {
       allow read, write: if true;
     }
 
-    // User accounts
     match /users/{userId} {
-      allow read, write: if isAuthenticated() && (request.auth.uid == userId || isOwner());
+      allow read, write: if true;
     }
 
     // Default fallback
     match /{document=**} {
-      allow read: if true;
-      allow write: if isAuthenticated();
+      allow read, write: if true;
     }
   }
 }

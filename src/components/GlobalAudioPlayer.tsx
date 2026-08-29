@@ -19,12 +19,13 @@ import {
   ExternalLink, 
   Volume2, 
   VolumeX, 
-  Video, 
   Youtube, 
   ListMusic, 
   Sparkles,
   Tv,
-  Share2
+  Music,
+  Radio,
+  Disc3
 } from 'lucide-react';
 
 export const GlobalAudioPlayer: React.FC = () => {
@@ -47,8 +48,7 @@ export const GlobalAudioPlayer: React.FC = () => {
     changeVolume,
     isMuted,
     toggleMute,
-    showToast,
-    openShare
+    showToast
   } = useStore();
 
   // Mode: 'bar' (compact bottom player) | 'theater' (expanded floating video screen)
@@ -56,10 +56,17 @@ export const GlobalAudioPlayer: React.FC = () => {
   const [showVolumeSlider, setShowVolumeSlider] = useState<boolean>(false);
   const [showPlaylistDrawer, setShowPlaylistDrawer] = useState<boolean>(false);
   const progressBarRef = useRef<HTMLDivElement>(null);
+  const [isScrubbing, setIsScrubbing] = useState<boolean>(false);
 
-  // Close player or collapse on ESC
+  // Keyboard accessibility
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger if typing in an input or textarea
+      const target = e.target as HTMLElement;
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(target?.tagName) || target?.isContentEditable) {
+        return;
+      }
+
       if (e.key === 'Escape' && !isFullScreenPlayerOpen && currentSong) {
         if (playerLayout === 'theater') {
           setPlayerLayout('bar');
@@ -72,12 +79,6 @@ export const GlobalAudioPlayer: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isFullScreenPlayerOpen, currentSong, playerLayout, closePlayer]);
 
-  if (!currentSong) return null;
-
-  const youtubeId = getYouTubeIdForSong(currentSong);
-  const youtubeWatchUrl = getYouTubeWatchUrl(currentSong);
-  const youtubeThumbnail = getYouTubeThumbnail(youtubeId, 'hq') || currentSong.cover;
-
   // Format seconds to mm:ss
   const formatTime = (secs: number) => {
     if (isNaN(secs) || secs < 0) return '0:00';
@@ -88,16 +89,90 @@ export const GlobalAudioPlayer: React.FC = () => {
 
   const progressPercent = duration > 0 ? Math.min(100, Math.max(0, (playbackTime / duration) * 100)) : 0;
 
-  // Progress Bar Seek
-  const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
+  // Handle Seek from pointer / touch
+  const handleSeekFromEvent = (clientX: number) => {
     if (!progressBarRef.current || duration <= 0) return;
     const rect = progressBarRef.current.getBoundingClientRect();
-    const clickX = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+    const clickX = Math.max(0, Math.min(clientX - rect.left, rect.width));
     const ratio = clickX / rect.width;
     const targetSeconds = ratio * duration;
-    hapticSelection();
     seekSong(targetSeconds);
   };
+
+  const handleSeekClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    hapticSelection();
+    handleSeekFromEvent(e.clientX);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    setIsScrubbing(true);
+    if (e.touches.length > 0) {
+      handleSeekFromEvent(e.touches[0].clientX);
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (isScrubbing && e.touches.length > 0) {
+      handleSeekFromEvent(e.touches[0].clientX);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsScrubbing(false);
+  };
+
+  // Launch audio from floating launcher if idle
+  const handleLaunchFirstSong = () => {
+    hapticSuccess();
+    if (songs && songs.length > 0) {
+      const featured = songs.find(s => s.featured) || songs[0];
+      playSong(featured);
+      showToast(`Playing "${featured.title}"`, 'success');
+    }
+  };
+
+  // If no song is active, show the quick-access floating audio launcher dock
+  if (!currentSong) {
+    if (!songs || songs.length === 0) return null;
+    return (
+      <div 
+        id="miniplayer-quick-launcher-container"
+        className="fixed z-40 bottom-20 lg:bottom-6 right-4 sm:right-6 pointer-events-auto"
+      >
+        <motion.button
+          id="miniplayer-quick-launcher-btn"
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          whileHover={{ scale: 1.06 }}
+          whileTap={{ scale: 0.94 }}
+          onClick={handleLaunchFirstSong}
+          className="group flex items-center gap-2.5 px-3.5 py-2.5 rounded-full bg-neutral-900/95 hover:bg-neutral-900 text-white border border-amber-500/40 shadow-xl shadow-amber-500/10 backdrop-blur-md cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+          aria-label="Open Music Miniplayer"
+          title="Play Arjun's Music (Miniplayer)"
+        >
+          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-500 to-amber-300 text-neutral-950 flex items-center justify-center shadow-md">
+            <Disc3 className="w-4 h-4 animate-spin" style={{ animationDuration: '6s' }} />
+          </div>
+          <div className="flex flex-col text-left pr-1 hidden sm:flex">
+            <span className="text-[11px] font-bold text-white leading-tight flex items-center gap-1">
+              Music Miniplayer
+              <Sparkles className="w-3 h-3 text-amber-400" />
+            </span>
+            <span className="text-[10px] text-neutral-400 leading-tight truncate max-w-[120px]">
+              {songs[0]?.title || 'Play tracks'}
+            </span>
+          </div>
+          <div className="w-7 h-7 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-black transition-colors">
+            <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
+          </div>
+        </motion.button>
+      </div>
+    );
+  }
+
+  const youtubeId = getYouTubeIdForSong(currentSong);
+  const youtubeWatchUrl = getYouTubeWatchUrl(currentSong);
+  const youtubeThumbnail = getYouTubeThumbnail(youtubeId, 'hq') || currentSong.cover;
 
   // Build YouTube Embed URL - automatically plays video when song is selected
   const shouldAutoplay = isPlaying && !activeVideo && !isFullScreenPlayerOpen;
@@ -112,19 +187,25 @@ export const GlobalAudioPlayer: React.FC = () => {
     <AnimatePresence>
       <div 
         id="youtube-song-miniplayer" 
-        className="fixed z-40 inset-x-0 bottom-0 pointer-events-none"
+        role="region"
+        aria-label="YouTube Song Audio Miniplayer"
+        className={`fixed z-50 inset-x-0 pointer-events-none transition-all duration-300 ${
+          playerLayout === 'theater' 
+            ? 'bottom-16 lg:bottom-4' 
+            : 'bottom-16 sm:bottom-16 lg:bottom-2'
+        }`}
       >
         {/* ======================================================== */}
         {/* 1. EXPANDED THEATER / FLOATING VIDEO MODE               */}
         {/* ======================================================== */}
         {playerLayout === 'theater' && (
-          <div className="pointer-events-auto p-3 sm:p-4 flex justify-center items-end">
+          <div className="pointer-events-auto p-2 sm:p-4 flex justify-center items-end max-w-4xl mx-auto">
             <motion.div
-              initial={{ opacity: 0, scale: 0.92, y: 40 }}
+              initial={{ opacity: 0, scale: 0.92, y: 30 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.92, y: 40 }}
+              exit={{ opacity: 0, scale: 0.92, y: 30 }}
               transition={{ type: 'spring', damping: 25, stiffness: 320 }}
-              className="w-full max-w-2xl bg-neutral-950/95 text-white border border-neutral-800 rounded-3xl p-4 sm:p-5 shadow-2xl backdrop-blur-2xl space-y-3 relative overflow-hidden"
+              className="w-full max-w-2xl bg-neutral-950/98 text-white border border-neutral-800 rounded-3xl p-3 sm:p-5 shadow-2xl backdrop-blur-2xl space-y-3 relative overflow-hidden ring-1 ring-white/10"
             >
               {/* Header with Title & Collapse */}
               <div className="flex items-center justify-between gap-3 pb-2 border-b border-neutral-800/80">
@@ -147,8 +228,9 @@ export const GlobalAudioPlayer: React.FC = () => {
                       hapticLight();
                       setPlayerLayout('bar');
                     }}
-                    className="p-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white transition-colors cursor-pointer"
+                    className="p-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white transition-colors cursor-pointer"
                     title="Minimize to Bottom Bar"
+                    aria-label="Minimize to Bottom Bar"
                   >
                     <Minimize2 className="w-4 h-4" />
                   </button>
@@ -157,8 +239,9 @@ export const GlobalAudioPlayer: React.FC = () => {
                       hapticLight();
                       closePlayer();
                     }}
-                    className="p-1.5 rounded-xl bg-neutral-900 hover:bg-red-500/20 text-neutral-300 hover:text-red-400 transition-colors cursor-pointer"
+                    className="p-2 rounded-xl bg-neutral-900 hover:bg-red-500/20 text-neutral-300 hover:text-red-400 transition-colors cursor-pointer"
                     title="Close Player"
+                    aria-label="Close Player"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -185,8 +268,9 @@ export const GlobalAudioPlayer: React.FC = () => {
                       hapticLight();
                       prevSong();
                     }}
-                    className="p-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-200 hover:text-white transition-colors cursor-pointer"
+                    className="p-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-200 hover:text-white transition-colors cursor-pointer min-w-[40px] min-h-[40px] flex items-center justify-center"
                     title="Previous Video Track"
+                    aria-label="Previous Video Track"
                   >
                     <SkipBack className="w-4 h-4" />
                   </button>
@@ -196,7 +280,8 @@ export const GlobalAudioPlayer: React.FC = () => {
                       hapticBeat();
                       togglePlay();
                     }}
-                    className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs flex items-center gap-1.5 shadow-md cursor-pointer transition-all"
+                    className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs flex items-center gap-1.5 shadow-md cursor-pointer transition-all min-h-[40px]"
+                    aria-label={isPlaying ? 'Pause Song' : 'Play Song'}
                   >
                     {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current" />}
                     <span>{isPlaying ? 'Pause' : 'Play'}</span>
@@ -207,17 +292,19 @@ export const GlobalAudioPlayer: React.FC = () => {
                       hapticLight();
                       nextSong();
                     }}
-                    className="p-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-200 hover:text-white transition-colors cursor-pointer"
+                    className="p-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-200 hover:text-white transition-colors cursor-pointer min-w-[40px] min-h-[40px] flex items-center justify-center"
                     title="Next Video Track"
+                    aria-label="Next Video Track"
                   >
                     <SkipForward className="w-4 h-4" />
                   </button>
 
                   <button
                     onClick={() => setShowPlaylistDrawer(!showPlaylistDrawer)}
-                    className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+                    className={`px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer min-h-[40px] ${
                       showPlaylistDrawer ? 'bg-amber-500/20 border border-amber-500/40 text-amber-300' : 'bg-neutral-900 hover:bg-neutral-800 text-neutral-300'
                     }`}
+                    aria-label="Toggle Playlist"
                   >
                     <ListMusic className="w-3.5 h-3.5" />
                     <span>Songs ({songs.length})</span>
@@ -229,9 +316,9 @@ export const GlobalAudioPlayer: React.FC = () => {
                     href={youtubeWatchUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="px-3 py-2 rounded-xl bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 text-red-400 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                    className="px-3 py-2.5 rounded-xl bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 text-red-400 text-xs font-semibold flex items-center gap-1.5 transition-colors min-h-[40px]"
                   >
-                    <Youtube className="w-3.5 h-3.5" />
+                    <Youtube className="w-3.5 h-3.5 fill-current" />
                     <span>Watch on YouTube</span>
                     <ExternalLink className="w-3 h-3" />
                   </a>
@@ -241,8 +328,9 @@ export const GlobalAudioPlayer: React.FC = () => {
                       hapticLight();
                       openFullScreenPlayer();
                     }}
-                    className="p-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white transition-colors cursor-pointer"
+                    className="p-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white transition-colors cursor-pointer min-w-[40px] min-h-[40px] flex items-center justify-center"
                     title="Full Screen Theater"
+                    aria-label="Full Screen Theater"
                   >
                     <Maximize2 className="w-4 h-4" />
                   </button>
@@ -261,7 +349,7 @@ export const GlobalAudioPlayer: React.FC = () => {
                           hapticLight();
                           playSong(s);
                         }}
-                        className={`w-full py-1.5 px-2.5 rounded-xl flex items-center justify-between text-left transition-colors cursor-pointer ${
+                        className={`w-full py-2 px-2.5 rounded-xl flex items-center justify-between text-left transition-colors cursor-pointer ${
                           isSelected ? 'bg-amber-500/15 text-amber-300 font-bold' : 'hover:bg-neutral-900 text-neutral-300'
                         }`}
                       >
@@ -288,41 +376,50 @@ export const GlobalAudioPlayer: React.FC = () => {
         {playerLayout === 'bar' && (
           <motion.div
             id="youtube-song-miniplayer-bar"
-            initial={{ y: 80, opacity: 0 }}
+            initial={{ y: 60, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 80, opacity: 0 }}
+            exit={{ y: 60, opacity: 0 }}
             transition={{ type: 'spring', damping: 28, stiffness: 350 }}
-            className="pointer-events-auto w-full max-w-5xl mx-auto px-2 sm:px-4 pb-2 sm:pb-3"
+            className="pointer-events-auto w-full max-w-5xl mx-auto px-2 sm:px-4"
           >
-            <div className="relative bg-neutral-950/95 text-white border border-neutral-800/90 rounded-2xl sm:rounded-3xl p-2.5 sm:p-3 shadow-2xl backdrop-blur-2xl overflow-hidden">
+            <div className="relative bg-neutral-950/95 text-white border border-neutral-800/90 rounded-2xl sm:rounded-3xl p-2.5 sm:p-3 shadow-2xl backdrop-blur-2xl overflow-hidden ring-1 ring-white/10">
               
-              {/* Scrubbable Top Progress Bar */}
+              {/* Scrubbable Top Progress Bar with touch & click support */}
               <div 
                 ref={progressBarRef}
-                onClick={handleSeek}
-                className="absolute top-0 inset-x-0 h-1.5 bg-neutral-900 hover:h-2 transition-all cursor-pointer group"
-                title="Click to seek song video"
+                onClick={handleSeekClick}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                className="absolute top-0 inset-x-0 h-1.5 sm:h-2 bg-neutral-900 hover:h-2.5 transition-all cursor-pointer group"
+                title="Click or drag to seek video"
+                role="progressbar"
+                aria-valuenow={Math.round(progressPercent)}
+                aria-valuemin={0}
+                aria-valuemax={100}
               >
                 <div 
                   className="h-full bg-gradient-to-r from-red-600 via-amber-500 to-amber-400 relative"
                   style={{ width: `${progressPercent}%` }}
                 >
-                  <span className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <span className="absolute right-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-white rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
               </div>
 
-              <div className="flex items-center justify-between gap-2 sm:gap-4 mt-0.5">
+              <div className="flex items-center justify-between gap-2 sm:gap-4 mt-1">
                 
                 {/* Left: Embedded Mini Video Screen & Song Details */}
                 <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
                   {/* Interactive Mini Video Screen */}
-                  <div 
+                  <button 
+                    type="button"
                     onClick={() => {
                       hapticBeat();
                       setPlayerLayout('theater');
                     }}
-                    className="relative w-14 h-10 sm:w-20 sm:h-12 rounded-xl overflow-hidden bg-black border border-neutral-800 shrink-0 cursor-pointer group shadow-md"
+                    className="relative w-12 h-10 sm:w-20 sm:h-12 rounded-xl overflow-hidden bg-black border border-neutral-800 shrink-0 cursor-pointer group shadow-md text-left focus:outline-none focus:ring-2 focus:ring-amber-500/50"
                     title="Click to expand YouTube video theater"
+                    aria-label="Expand YouTube Video Theater"
                   >
                     <img 
                       src={youtubeThumbnail} 
@@ -338,10 +435,10 @@ export const GlobalAudioPlayer: React.FC = () => {
                         )}
                       </div>
                     </div>
-                    <span className="absolute bottom-0.5 right-1 text-[8px] font-mono px-1 rounded bg-black/80 text-amber-400">
+                    <span className="absolute bottom-0.5 right-1 text-[8px] font-mono px-1 rounded bg-black/80 text-amber-400 font-bold">
                       YT
                     </span>
-                  </div>
+                  </button>
 
                   {/* Title & Artist & Live Tag */}
                   <div className="min-w-0 flex-1">
@@ -376,8 +473,9 @@ export const GlobalAudioPlayer: React.FC = () => {
                       hapticLight();
                       prevSong();
                     }}
-                    className="p-2 rounded-full hover:bg-neutral-800 text-neutral-300 hover:text-white transition-colors cursor-pointer"
+                    className="p-2 sm:p-2.5 rounded-full hover:bg-neutral-800 text-neutral-300 hover:text-white transition-colors cursor-pointer min-w-[38px] min-h-[38px] flex items-center justify-center"
                     title="Previous Song"
+                    aria-label="Previous Song"
                   >
                     <SkipBack className="w-4 h-4" />
                   </button>
@@ -390,6 +488,7 @@ export const GlobalAudioPlayer: React.FC = () => {
                     }}
                     className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-gradient-to-r from-red-600 to-amber-500 hover:from-red-500 hover:to-amber-400 text-neutral-950 flex items-center justify-center shadow-lg shadow-red-600/20 transition-all cursor-pointer"
                     title={isPlaying ? 'Pause Video' : 'Play Video'}
+                    aria-label={isPlaying ? 'Pause Video' : 'Play Video'}
                   >
                     {isPlaying ? (
                       <Pause className="w-5 h-5 fill-current" />
@@ -404,23 +503,25 @@ export const GlobalAudioPlayer: React.FC = () => {
                       hapticLight();
                       nextSong();
                     }}
-                    className="p-2 rounded-full hover:bg-neutral-800 text-neutral-300 hover:text-white transition-colors cursor-pointer"
+                    className="p-2 sm:p-2.5 rounded-full hover:bg-neutral-800 text-neutral-300 hover:text-white transition-colors cursor-pointer min-w-[38px] min-h-[38px] flex items-center justify-center"
                     title="Next Song"
+                    aria-label="Next Song"
                   >
                     <SkipForward className="w-4 h-4" />
                   </button>
                 </div>
 
                 {/* Right: Actions & Expand Controls */}
-                <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+                <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
                   
                   {/* Direct YouTube Link Badge */}
                   <a
                     href={youtubeWatchUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="hidden md:flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-red-400 hover:text-red-300 text-xs font-semibold transition-colors"
+                    className="hidden md:flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-red-400 hover:text-red-300 text-xs font-semibold transition-colors min-h-[36px]"
                     title="Open in YouTube"
+                    aria-label="Open in YouTube"
                   >
                     <Youtube className="w-3.5 h-3.5 fill-current" />
                     <span className="text-[11px]">YouTube</span>
@@ -431,8 +532,9 @@ export const GlobalAudioPlayer: React.FC = () => {
                   <div className="relative hidden sm:block">
                     <button
                       onClick={() => setShowVolumeSlider(!showVolumeSlider)}
-                      className="p-2 rounded-xl hover:bg-neutral-800 text-neutral-300 hover:text-white transition-colors cursor-pointer"
-                      title="Volume"
+                      className="p-2 rounded-xl hover:bg-neutral-800 text-neutral-300 hover:text-white transition-colors cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center"
+                      title="Volume Control"
+                      aria-label="Volume Control"
                     >
                       {isMuted || volume === 0 ? (
                         <VolumeX className="w-4 h-4 text-red-400" />
@@ -442,8 +544,8 @@ export const GlobalAudioPlayer: React.FC = () => {
                     </button>
 
                     {showVolumeSlider && (
-                      <div className="absolute bottom-full right-0 mb-2 p-3 bg-neutral-900 border border-neutral-800 rounded-2xl shadow-xl flex items-center gap-2 w-36">
-                        <button onClick={toggleMute} className="text-neutral-400 hover:text-white">
+                      <div className="absolute bottom-full right-0 mb-2 p-3 bg-neutral-900 border border-neutral-800 rounded-2xl shadow-xl flex items-center gap-2 w-36 z-50">
+                        <button onClick={toggleMute} className="text-neutral-400 hover:text-white" aria-label="Toggle Mute">
                           {isMuted ? <VolumeX className="w-3.5 h-3.5 text-red-400" /> : <Volume2 className="w-3.5 h-3.5" />}
                         </button>
                         <input
@@ -454,6 +556,7 @@ export const GlobalAudioPlayer: React.FC = () => {
                           value={isMuted ? 0 : volume}
                           onChange={(e) => changeVolume(parseFloat(e.target.value))}
                           className="w-full h-1.5 bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                          aria-label="Volume Slider"
                         />
                       </div>
                     )}
@@ -466,8 +569,9 @@ export const GlobalAudioPlayer: React.FC = () => {
                       hapticLight();
                       setPlayerLayout('theater');
                     }}
-                    className="p-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white transition-colors cursor-pointer"
+                    className="p-2 sm:p-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white transition-colors cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center"
                     title="Expand Video Theater"
+                    aria-label="Expand Video Theater"
                   >
                     <Tv className="w-4 h-4 text-amber-400" />
                   </button>
@@ -479,8 +583,9 @@ export const GlobalAudioPlayer: React.FC = () => {
                       hapticLight();
                       openFullScreenPlayer();
                     }}
-                    className="p-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white transition-colors cursor-pointer hidden xs:block"
+                    className="p-2 sm:p-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white transition-colors cursor-pointer hidden xs:flex min-w-[36px] min-h-[36px] items-center justify-center"
                     title="Fullscreen Player Modal"
+                    aria-label="Fullscreen Player Modal"
                   >
                     <Maximize2 className="w-4 h-4" />
                   </button>
@@ -492,8 +597,9 @@ export const GlobalAudioPlayer: React.FC = () => {
                       hapticLight();
                       closePlayer();
                     }}
-                    className="p-2 rounded-xl hover:bg-red-500/20 text-neutral-400 hover:text-red-400 transition-colors cursor-pointer ml-0.5"
+                    className="p-2 sm:p-2.5 rounded-xl hover:bg-red-500/20 text-neutral-400 hover:text-red-400 transition-colors cursor-pointer ml-0.5 min-w-[36px] min-h-[36px] flex items-center justify-center"
                     title="Close Song Player"
+                    aria-label="Close Song Player"
                   >
                     <X className="w-4 h-4" />
                   </button>

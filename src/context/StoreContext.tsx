@@ -526,49 +526,118 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       try {
         const firestoreProfile = await firestoreService.fetchDocument<UserProfile>('profiles', 'main');
         if (firestoreProfile) {
-          setProfile({
-            ...initialProfile,
-            ...firestoreProfile,
-            education: { ...initialProfile.education, ...(firestoreProfile.education || {}) },
-            schoolEducation: firestoreProfile.schoolEducation || initialProfile.schoolEducation
+          setProfile(prev => {
+            const merged: UserProfile = {
+              ...initialProfile,
+              ...prev,
+              ...firestoreProfile,
+              education: { 
+                ...initialProfile.education, 
+                ...(prev.education || {}), 
+                ...(firestoreProfile.education || {}) 
+              },
+              schoolEducation: {
+                tenth: {
+                  ...initialProfile.schoolEducation?.tenth,
+                  ...(prev.schoolEducation?.tenth || {}),
+                  ...(firestoreProfile.schoolEducation?.tenth || {})
+                },
+                twelfth: {
+                  ...initialProfile.schoolEducation?.twelfth,
+                  ...(prev.schoolEducation?.twelfth || {}),
+                  ...(firestoreProfile.schoolEducation?.twelfth || {})
+                }
+              },
+              stats: {
+                ...initialProfile.stats,
+                ...(prev.stats || {}),
+                ...(firestoreProfile.stats || {})
+              },
+              privacy: {
+                ...initialProfile.privacy,
+                ...(prev.privacy || {}),
+                ...(firestoreProfile.privacy || {})
+              }
+            };
+            localStorage.setItem(`${STORAGE_KEY_PREFIX}profile`, JSON.stringify(merged));
+            return merged;
           });
         }
 
         const firestoreBranding = await firestoreService.fetchDocument<SiteBranding>('siteSettings', 'branding');
         if (firestoreBranding) {
-          setBranding({
-            ...initialBranding,
-            ...firestoreBranding,
-            logoText: firestoreBranding.logoText || initialBranding.logoText || 'ABM'
+          setBranding(prev => {
+            const merged: SiteBranding = {
+              ...initialBranding,
+              ...prev,
+              ...firestoreBranding,
+              logoText: firestoreBranding.logoText || prev.logoText || initialBranding.logoText || 'ABM',
+              logoUrl: firestoreBranding.logoUrl !== undefined ? firestoreBranding.logoUrl : prev.logoUrl
+            };
+            localStorage.setItem(`${STORAGE_KEY_PREFIX}branding`, JSON.stringify(merged));
+            return merged;
           });
         }
 
         const firestoreHomepage = await firestoreService.fetchDocument<HomepageConfig>('homepage', 'config');
-        if (firestoreHomepage) setHomepage(firestoreHomepage);
+        if (firestoreHomepage) {
+          setHomepage(prev => {
+            const merged = { ...prev, ...firestoreHomepage };
+            localStorage.setItem(`${STORAGE_KEY_PREFIX}homepage`, JSON.stringify(merged));
+            return merged;
+          });
+        }
 
         const firestoreSEO = await firestoreService.fetchDocument<SEOConfig>('siteSettings', 'seo');
-        if (firestoreSEO) setSEO(firestoreSEO);
+        if (firestoreSEO) {
+          setSEO(prev => {
+            const merged = { ...prev, ...firestoreSEO };
+            localStorage.setItem(`${STORAGE_KEY_PREFIX}seo`, JSON.stringify(merged));
+            return merged;
+          });
+        }
 
         const firestoreSongs = await firestoreService.fetchCollection<Song>('songs');
-        if (firestoreSongs && firestoreSongs.length > 0) setSongs(firestoreSongs);
+        if (firestoreSongs && firestoreSongs.length > 0) {
+          setSongs(firestoreSongs);
+          localStorage.setItem(`${STORAGE_KEY_PREFIX}songs`, JSON.stringify(firestoreSongs));
+        }
 
         const firestoreLyrics = await firestoreService.fetchCollection<LyricItem>('lyrics');
-        if (firestoreLyrics && firestoreLyrics.length > 0) setLyrics(firestoreLyrics);
+        if (firestoreLyrics && firestoreLyrics.length > 0) {
+          setLyrics(firestoreLyrics);
+          localStorage.setItem(`${STORAGE_KEY_PREFIX}lyrics`, JSON.stringify(firestoreLyrics));
+        }
 
         const firestoreGallery = await firestoreService.fetchCollection<GalleryItem>('gallery');
-        if (firestoreGallery && firestoreGallery.length > 0) setGallery(firestoreGallery);
+        if (firestoreGallery && firestoreGallery.length > 0) {
+          setGallery(firestoreGallery);
+          localStorage.setItem(`${STORAGE_KEY_PREFIX}gallery`, JSON.stringify(firestoreGallery));
+        }
 
         const firestoreVideos = await firestoreService.fetchCollection<VideoItem>('videos');
-        if (firestoreVideos && firestoreVideos.length > 0) setVideos(firestoreVideos);
+        if (firestoreVideos && firestoreVideos.length > 0) {
+          setVideos(firestoreVideos);
+          localStorage.setItem(`${STORAGE_KEY_PREFIX}videos`, JSON.stringify(firestoreVideos));
+        }
 
         const firestoreProjects = await firestoreService.fetchCollection<ProjectItem>('projects');
-        if (firestoreProjects && firestoreProjects.length > 0) setProjects(firestoreProjects);
+        if (firestoreProjects && firestoreProjects.length > 0) {
+          setProjects(firestoreProjects);
+          localStorage.setItem(`${STORAGE_KEY_PREFIX}projects`, JSON.stringify(firestoreProjects));
+        }
 
         const firestoreBooks = await firestoreService.fetchCollection<BookItem>('books');
-        if (firestoreBooks && firestoreBooks.length > 0) setBooks(firestoreBooks);
+        if (firestoreBooks && firestoreBooks.length > 0) {
+          setBooks(firestoreBooks);
+          localStorage.setItem(`${STORAGE_KEY_PREFIX}books`, JSON.stringify(firestoreBooks));
+        }
 
         const firestoreSocial = await firestoreService.fetchCollection<SocialLink>('socialLinks');
-        if (firestoreSocial && firestoreSocial.length > 0) setSocialLinks(firestoreSocial);
+        if (firestoreSocial && firestoreSocial.length > 0) {
+          setSocialLinks(firestoreSocial);
+          localStorage.setItem(`${STORAGE_KEY_PREFIX}socialLinks`, JSON.stringify(firestoreSocial));
+        }
       } catch (err) {
         console.warn('Initial Firestore hydration notice:', err);
       }
