@@ -8,100 +8,237 @@
     --font-display: 'Outfit', 'Plus Jakarta Sans', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
 
-    /* Theme color variables default (Light) */
+    /* Theme color variables default (Editorial Paper / Light) */
     --app-bg: #fafafa;
     --app-surface: #ffffff;
-    --app-surface-subtle: #f5f5f5;
-    --app-border: #e5e5e5;
-    --app-text: #171717;
-    --app-text-muted: #737373;
-    --color-accent-primary: #171717;
-    --color-accent-glow: rgba(0, 0, 0, 0.08);
+    --app-surface-subtle: #f4f4f5;
+    --app-border: #e4e4e7;
+    --app-text: #09090b;
+    --app-text-muted: #71717a;
+    --color-accent-primary: #d97706;
+    --color-accent-glow: rgba(217, 119, 6, 0.15);
   }
 
-  /* Default Onyx Dark */
+  /* ==========================================================================
+     THEME DEFINITIONS: Complete Atmospheric Palettes
+     ========================================================================== */
+
+  /* 1. Default / Onyx Minimal (Studio Dark) */
   html.dark,
-  html[data-theme="dark"] {
-    --app-bg: #0a0a0a;
-    --app-surface: #141414;
-    --app-surface-subtle: #1c1c1c;
-    --app-border: #262626;
+  html[data-theme="dark"].dark {
+    --app-bg: #09090b;
+    --app-surface: #121215;
+    --app-surface-subtle: #18181c;
+    --app-border: #27272a;
     --app-text: #fafafa;
-    --app-text-muted: #a3a3a3;
+    --app-text-muted: #a1a1aa;
     --color-accent-primary: #f59e0b;
-    --color-accent-glow: rgba(245, 158, 11, 0.15);
+    --color-accent-glow: rgba(245, 158, 11, 0.2);
+
+    /* Tailwind neutral palette overrides */
+    --color-neutral-950: #09090b;
+    --color-neutral-900: #121215;
+    --color-neutral-850: #16161a;
+    --color-neutral-800: #27272a;
+    --color-neutral-700: #3f3f46;
+    --color-neutral-600: #52525b;
+    --color-neutral-400: #a1a1aa;
+    --color-neutral-300: #d4d4d8;
+    --color-neutral-200: #e4e4e7;
+    --color-neutral-100: #f4f4f5;
+    --color-neutral-50: #fafafa;
   }
 
-  /* Cyber Midnight (Slate & Icy Cyan) */
-  html[data-theme="midnight"] {
-    --app-bg: #090e1a;
+  /* 2. Editorial Paper (Crisp Light) */
+  html[data-theme="light"]:not(.dark) {
+    --app-bg: #fafafa;
+    --app-surface: #ffffff;
+    --app-surface-subtle: #f4f4f5;
+    --app-border: #e4e4e7;
+    --app-text: #09090b;
+    --app-text-muted: #71717a;
+    --color-accent-primary: #d97706;
+    --color-accent-glow: rgba(217, 119, 6, 0.15);
+  }
+
+  /* 3. Cyber Midnight (Slate Navy & Ice Cyan) */
+  html[data-theme="midnight"].dark {
+    --app-bg: #070c18;
     --app-surface: #0f172a;
-    --app-surface-subtle: #172033;
+    --app-surface-subtle: #162238;
     --app-border: #1e293b;
     --app-text: #f8fafc;
     --app-text-muted: #94a3b8;
     --color-accent-primary: #38bdf8;
-    --color-accent-glow: rgba(56, 189, 248, 0.2);
+    --color-accent-glow: rgba(56, 189, 248, 0.25);
+
+    /* Tailwind neutral palette overrides */
+    --color-neutral-950: #070c18;
+    --color-neutral-900: #0f172a;
+    --color-neutral-850: #131e34;
+    --color-neutral-800: #1e293b;
+    --color-neutral-700: #334155;
+    --color-neutral-600: #475569;
+    --color-neutral-400: #94a3b8;
+    --color-neutral-300: #cbd5e1;
+    --color-neutral-200: #e2e8f0;
+    --color-neutral-100: #f1f5f9;
+    --color-neutral-50: #f8fafc;
+
+    /* Accent color overrides */
+    --color-amber-500: #38bdf8;
+    --color-amber-400: #7dd3fc;
+    --color-amber-600: #0284c7;
   }
 
-  /* Forest Noir (Deep Pine & Jade Mint) */
-  html[data-theme="emerald"] {
-    --app-bg: #05120c;
-    --app-surface: #0a1f16;
+  /* 4. Forest Noir (Deep Pine & Jade Mint) */
+  html[data-theme="emerald"].dark {
+    --app-bg: #04100a;
+    --app-surface: #091f15;
     --app-surface-subtle: #0f2d20;
     --app-border: #143829;
     --app-text: #ecfdf5;
     --app-text-muted: #6ee7b7;
     --color-accent-primary: #10b981;
-    --color-accent-glow: rgba(16, 185, 129, 0.2);
+    --color-accent-glow: rgba(16, 185, 129, 0.25);
+
+    /* Tailwind neutral palette overrides */
+    --color-neutral-950: #04100a;
+    --color-neutral-900: #091f15;
+    --color-neutral-850: #0d281c;
+    --color-neutral-800: #143829;
+    --color-neutral-700: #1a4734;
+    --color-neutral-600: #26634a;
+    --color-neutral-400: #6ee7b7;
+    --color-neutral-300: #a7f3d0;
+    --color-neutral-200: #d1fae5;
+    --color-neutral-100: #ecfdf5;
+    --color-neutral-50: #f0fdf4;
+
+    /* Accent color overrides */
+    --color-amber-500: #10b981;
+    --color-amber-400: #34d399;
+    --color-amber-600: #059669;
   }
 
-  /* Analog Sepia (Vintage Tape & Warm Amber) */
-  html[data-theme="amber"] {
-    --app-bg: #140e0a;
-    --app-surface: #1d1510;
-    --app-surface-subtle: #291e17;
-    --app-border: #38271e;
+  /* 5. Analog Sepia (Vintage Vinyl & Warm Amber) */
+  html[data-theme="amber"].dark {
+    --app-bg: #120b07;
+    --app-surface: #1b120c;
+    --app-surface-subtle: #261a12;
+    --app-border: #38261a;
     --app-text: #fef3c7;
-    --app-text-muted: #d97706;
+    --app-text-muted: #fbbf24;
     --color-accent-primary: #f59e0b;
-    --color-accent-glow: rgba(245, 158, 11, 0.2);
+    --color-accent-glow: rgba(245, 158, 11, 0.25);
+
+    /* Tailwind neutral palette overrides */
+    --color-neutral-950: #120b07;
+    --color-neutral-900: #1b120c;
+    --color-neutral-850: #231710;
+    --color-neutral-800: #33231a;
+    --color-neutral-700: #4a3427;
+    --color-neutral-600: #694a38;
+    --color-neutral-400: #fbbf24;
+    --color-neutral-300: #fde68a;
+    --color-neutral-200: #fef3c7;
+    --color-neutral-100: #fffbeb;
+    --color-neutral-50: #fffbeb;
+
+    /* Accent color overrides */
+    --color-amber-500: #f59e0b;
+    --color-amber-400: #fbbf24;
+    --color-amber-600: #d97706;
   }
 
-  /* Nordic Titanium (Graphite & Platinum) */
-  html[data-theme="nordic"] {
-    --app-bg: #101216;
-    --app-surface: #171a21;
-    --app-surface-subtle: #212530;
+  /* 6. Nordic Titanium (Matte Graphite & Platinum) */
+  html[data-theme="nordic"].dark {
+    --app-bg: #0e1014;
+    --app-surface: #151820;
+    --app-surface-subtle: #1d212b;
     --app-border: #282f3d;
     --app-text: #f1f5f9;
     --app-text-muted: #94a3b8;
     --color-accent-primary: #cbd5e1;
-    --color-accent-glow: rgba(203, 213, 225, 0.2);
+    --color-accent-glow: rgba(203, 213, 225, 0.25);
+
+    /* Tailwind neutral palette overrides */
+    --color-neutral-950: #0e1014;
+    --color-neutral-900: #151820;
+    --color-neutral-850: #1b1f28;
+    --color-neutral-800: #252a35;
+    --color-neutral-700: #363c4a;
+    --color-neutral-600: #4a5162;
+    --color-neutral-400: #94a3b8;
+    --color-neutral-300: #cbd5e1;
+    --color-neutral-200: #e2e8f0;
+    --color-neutral-100: #f1f5f9;
+    --color-neutral-50: #f8fafc;
+
+    /* Accent color overrides */
+    --color-amber-500: #cbd5e1;
+    --color-amber-400: #e2e8f0;
+    --color-amber-600: #94a3b8;
   }
 
-  /* Neon Horizon (Abyss Violet & Magenta) */
-  html[data-theme="cyber"] {
-    --app-bg: #0c0818;
-    --app-surface: #130d26;
-    --app-surface-subtle: #1c1338;
-    --app-border: #2b1b4d;
+  /* 7. Neon Horizon (Abyss Violet & Magenta) */
+  html[data-theme="cyber"].dark {
+    --app-bg: #0a0614;
+    --app-surface: #130c24;
+    --app-surface-subtle: #1c1236;
+    --app-border: #291848;
     --app-text: #faf5ff;
     --app-text-muted: #c084fc;
     --color-accent-primary: #c084fc;
     --color-accent-glow: rgba(192, 132, 252, 0.25);
+
+    /* Tailwind neutral palette overrides */
+    --color-neutral-950: #0a0614;
+    --color-neutral-900: #130c24;
+    --color-neutral-850: #1a1030;
+    --color-neutral-800: #26184a;
+    --color-neutral-700: #3b2570;
+    --color-neutral-600: #55359e;
+    --color-neutral-400: #d8b4fe;
+    --color-neutral-300: #e9d5ff;
+    --color-neutral-200: #f3e8ff;
+    --color-neutral-100: #faf5ff;
+    --color-neutral-50: #faf5ff;
+
+    /* Accent color overrides */
+    --color-amber-500: #c084fc;
+    --color-amber-400: #d8b4fe;
+    --color-amber-600: #a855f7;
   }
 
-  /* Coral Dusk (Espresso Twilight & Rose Gold) */
-  html[data-theme="sunset"] {
-    --app-bg: #140910;
-    --app-surface: #1e0e19;
-    --app-surface-subtle: #2b1424;
-    --app-border: #3b1932;
+  /* 8. Coral Dusk (Espresso Twilight & Rose Gold) */
+  html[data-theme="sunset"].dark {
+    --app-bg: #11070c;
+    --app-surface: #1c0d16;
+    --app-surface-subtle: #271320;
+    --app-border: #3b182d;
     --app-text: #fff1f2;
     --app-text-muted: #fda4af;
     --color-accent-primary: #fb7185;
     --color-accent-glow: rgba(251, 113, 133, 0.25);
+
+    /* Tailwind neutral palette overrides */
+    --color-neutral-950: #11070c;
+    --color-neutral-900: #1c0d16;
+    --color-neutral-850: #24111d;
+    --color-neutral-800: #361528;
+    --color-neutral-700: #4f203b;
+    --color-neutral-600: #6e2d53;
+    --color-neutral-400: #fda4af;
+    --color-neutral-300: #fecdd3;
+    --color-neutral-200: #ffe4e6;
+    --color-neutral-100: #fff1f2;
+    --color-neutral-50: #fff1f2;
+
+    /* Accent color overrides */
+    --color-amber-500: #fb7185;
+    --color-amber-400: #fda4af;
+    --color-amber-600: #f43f5e;
   }
 
   *, *::before, *::after {
@@ -115,14 +252,14 @@
     margin: 0;
     padding: 0;
     font-family: var(--font-sans);
-    background-color: var(--app-bg);
+    background-color: var(--app-bg) !important;
     color: var(--app-text);
     transition: background-color 0.35s cubic-bezier(0.16, 1, 0.3, 1), color 0.25s ease, border-color 0.25s ease;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 
-    /* Global Text Selection Lock: Whole app text unable to copy by default */
+    /* Global Text Selection Lock */
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
@@ -130,7 +267,34 @@
     -webkit-touch-callout: none;
   }
 
-  /* Whitelist: Allow text selection ONLY on essential items (emails, phones, forms, inputs, lyrics, code, selectable items) */
+  /* Direct Scoped Overrides for Root App Elements */
+  html.dark body,
+  html.dark .min-h-screen {
+    background-color: var(--app-bg) !important;
+  }
+
+  /* Card and Container Theme Overrides */
+  html.dark .bg-neutral-900,
+  html.dark [class*="dark:bg-neutral-900"] {
+    background-color: var(--app-surface) !important;
+  }
+
+  html.dark .bg-neutral-950,
+  html.dark [class*="dark:bg-neutral-950"] {
+    background-color: var(--app-bg) !important;
+  }
+
+  html.dark .bg-neutral-800,
+  html.dark [class*="dark:bg-neutral-800"] {
+    background-color: var(--app-surface-subtle) !important;
+  }
+
+  html.dark .border-neutral-800,
+  html.dark [class*="dark:border-neutral-800"] {
+    border-color: var(--app-border) !important;
+  }
+
+  /* Whitelist: Allow text selection ONLY on essential items */
   input,
   textarea,
   [contenteditable="true"],
@@ -282,5 +446,3 @@
     transform: none !important;
   }
 }
-
-

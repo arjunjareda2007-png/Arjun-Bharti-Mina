@@ -383,6 +383,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   });
 
   const [appearance, setAppearance] = useState<AppearanceConfig>(() => {
+    const savedTheme = localStorage.getItem(`${STORAGE_KEY_PREFIX}theme`) as ThemeMode | null;
     const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}appearance`);
     if (saved) {
       try {
@@ -390,14 +391,20 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         return {
           ...initialAppearance,
           ...parsed,
-          themeMode: parsed.themeMode || 'light',
+          themeMode: savedTheme || parsed.themeMode || 'dark',
           accentColor: parsed.accentColor || 'neutral'
         };
       } catch (e) {
-        return initialAppearance;
+        return {
+          ...initialAppearance,
+          themeMode: savedTheme || 'dark'
+        };
       }
     }
-    return initialAppearance;
+    return {
+      ...initialAppearance,
+      themeMode: savedTheme || initialAppearance.themeMode || 'dark'
+    };
   });
 
   const [seo, setSEO] = useState<SEOConfig>(() => {
@@ -843,6 +850,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setAppearance(prev => {
       const updated = { ...prev, themeMode: newTheme };
       applyAppearanceStyles(updated);
+      localStorage.setItem(`${STORAGE_KEY_PREFIX}appearance`, JSON.stringify(updated));
       return updated;
     });
     localStorage.setItem(`${STORAGE_KEY_PREFIX}theme`, newTheme);
@@ -851,7 +859,12 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const updateAppearance = (config: Partial<AppearanceConfig>) => {
     setAppearance(prev => {
       const updated = { ...prev, ...config };
+      if (config.themeMode) {
+        setThemeState(config.themeMode);
+        localStorage.setItem(`${STORAGE_KEY_PREFIX}theme`, config.themeMode);
+      }
       applyAppearanceStyles(updated);
+      localStorage.setItem(`${STORAGE_KEY_PREFIX}appearance`, JSON.stringify(updated));
       return updated;
     });
     showToast('Appearance settings saved and applied');
@@ -859,6 +872,16 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   useEffect(() => {
     applyAppearanceStyles(appearance);
+
+    // If system theme is selected, listen for OS dark/light mode switches
+    if (appearance.themeMode === 'system') {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const handleChange = () => {
+        applyAppearanceStyles(appearance);
+      };
+      mediaQuery.addEventListener('change', handleChange);
+      return () => mediaQuery.removeEventListener('change', handleChange);
+    }
   }, [appearance, applyAppearanceStyles]);
 
   // Analytics Helpers
