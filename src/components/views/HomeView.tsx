@@ -773,7 +773,11 @@ export const HomeView: React.FC = () => {
                 <img 
                   src={book.cover} 
                   alt={book.title} 
-                  className="w-24 sm:w-28 rounded-lg object-cover shadow-md flex-shrink-0"
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=800&auto=format&fit=crop';
+                  }}
+                  className="w-24 sm:w-28 rounded-lg object-cover shadow-md flex-shrink-0 bg-neutral-950 aspect-[2/3]"
                 />
                 <div className="space-y-2 min-w-0">
                   <span className="text-[10px] font-mono uppercase text-neutral-500 font-semibold">

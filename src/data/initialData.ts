@@ -748,14 +748,26 @@ export const initialBooks: BookItem[] = [
     subtitle: 'A Modern Guide to Crafting Authentic Verses, Metaphors, and Cadences',
     cover: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=800&auto=format&fit=crop',
     author: 'Arjun Bharti Mina',
+    publisher: 'ABM Media & Literary Press',
+    genre: 'Music & Lyricism',
+    category: 'Music & Lyricism',
+    isbn: '9789388302198',
     description: 'A comprehensive handbook exploring the art and mechanics of Desi Hip-Hop songwriting, multisyllabic rhyming, flow switches, and cultural storytelling.',
     longSynopsis: 'In "The Lyricist’s Blueprint", independent music artist Arjun Bharti Mina (ABM) deconstructs the architecture of modern Indian rap. From understanding syllable stress and meter synchronization to weaving regional dialect into universal hooks, this book is an invaluable companion for aspiring songwriters, rappers, and poetic creators.',
     publicationYear: 2025,
+    publicationDate: '2025-04-15',
     pages: 184,
-    language: 'English / Hindi References',
-    playStoreUrl: 'https://play.google.com/store/books/details?id=arjun_bharti_mina_lyricists_blueprint',
+    language: 'English / Hindi',
+    googleBooksVolumeId: 'M71vDwAAQBAJ',
+    previewEmbedUrl: 'https://books.google.com/books?id=M71vDwAAQBAJ&printsec=frontcover&output=embed',
+    webReaderLink: 'https://play.google.com/books/reader?id=M71vDwAAQBAJ&hl=en',
+    googlePlayUrl: 'https://play.google.com/store/books/details?id=M71vDwAAQBAJ',
+    playStoreUrl: 'https://play.google.com/store/books/details?id=M71vDwAAQBAJ',
+    buyLink: 'https://play.google.com/store/books/details?id=M71vDwAAQBAJ',
     amazonUrl: 'https://amazon.in/dp/B0EXAMP123',
     pdfPreviewUrl: '#',
+    rating: 4.8,
+    ratingsCount: 142,
     chaptersSummary: [
       'Chapter 1: The Anatomy of a Verse — Syllables, Accents & Cadence',
       'Chapter 2: Multisyllabic Rhyming & Internal Assonance in Hindi/Urdu',
@@ -763,7 +775,8 @@ export const initialBooks: BookItem[] = [
       'Chapter 4: Beats & Bars — Engineering Precision in 808 Placement',
       'Chapter 5: Building Independence as a Modern 21st-Century Artist'
     ],
-    featured: true
+    featured: true,
+    published: true
   },
   {
     id: 'book-2',
@@ -771,14 +784,26 @@ export const initialBooks: BookItem[] = [
     subtitle: 'Practical Concepts, Structural Analysis & Site Applications',
     cover: 'https://images.unsplash.com/photo-1532012164546-f432f2e3777a?q=80&w=800&auto=format&fit=crop',
     author: 'Arjun Bharti Mina',
+    publisher: 'SKIT Academic Publications',
+    genre: 'Engineering & Tech',
+    category: 'Engineering & Tech',
+    isbn: '9780134460581',
     description: 'A simplified, visually structured reference guide compiling key civil engineering formulas, structural matrix methods, and concrete technology fundamentals.',
     longSynopsis: 'Penned during his final year B.Tech coursework at SKIT Jaipur, this textbook summary provides clear graphical explanations and computational shortcuts for civil engineering students mastering RCC beam calculations, soil mechanics, and survey triangulations.',
     publicationYear: 2026,
+    publicationDate: '2026-02-10',
     pages: 220,
     language: 'English',
-    playStoreUrl: 'https://play.google.com/store/books/details?id=arjun_mina_civil_mechanics_primer',
+    googleBooksVolumeId: '3u7eDwAAQBAJ',
+    previewEmbedUrl: 'https://books.google.com/books?id=3u7eDwAAQBAJ&printsec=frontcover&output=embed',
+    webReaderLink: 'https://play.google.com/books/reader?id=3u7eDwAAQBAJ&hl=en',
+    googlePlayUrl: 'https://play.google.com/store/books/details?id=3u7eDwAAQBAJ',
+    playStoreUrl: 'https://play.google.com/store/books/details?id=3u7eDwAAQBAJ',
+    buyLink: 'https://play.google.com/store/books/details?id=3u7eDwAAQBAJ',
     amazonUrl: 'https://amazon.in/dp/B0CIVIL456',
     pdfPreviewUrl: '#',
+    rating: 4.9,
+    ratingsCount: 89,
     chaptersSummary: [
       'Section I: Stress, Strain, and Elastic Constants',
       'Section II: Shear Force & Bending Moment Diagrams in Continuous Beams',
@@ -786,7 +811,8 @@ export const initialBooks: BookItem[] = [
       'Section IV: Soil Mechanics & Foundation Stability',
       'Section V: Digital Tools & CAD Integration in Modern Construction'
     ],
-    featured: true
+    featured: true,
+    published: true
   }
 ];
 

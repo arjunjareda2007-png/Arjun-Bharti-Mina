@@ -210,6 +210,12 @@ export interface BookItem {
   language?: string;
   googlePlayUrl?: string;
   playStoreUrl?: string;
+  googleBooksVolumeId?: string;
+  previewEmbedUrl?: string;
+  webReaderLink?: string;
+  buyLink?: string;
+  rating?: number;
+  ratingsCount?: number;
   amazonUrl?: string;
   pdfPreviewUrl?: string;
   chapters?: string[];
