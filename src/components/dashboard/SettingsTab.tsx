@@ -11,16 +11,11 @@ import {
   AlertTriangle,
   CheckCircle2,
   Lock,
-  KeyRound,
   Check,
-  Sparkles
+  Sparkles,
+  Shield
 } from 'lucide-react';
-import { 
-  getClerkPublishableKey, 
-  setClerkPublishableKey, 
-  isClerkKeyConfigured, 
-  CLERK_APP_ID 
-} from '../../clerkConfig';
+import { isClerkKeyConfigured } from '../../clerkConfig';
 
 export const SettingsTab: React.FC = () => {
   const { 
@@ -34,8 +29,6 @@ export const SettingsTab: React.FC = () => {
 
   const [importJsonText, setImportJsonText] = useState('');
   const [showResetConfirm, setShowResetConfirm] = useState(false);
-  const [clerkKeyInput, setClerkKeyInput] = useState(getClerkPublishableKey());
-  const [keySaved, setKeySaved] = useState(false);
 
   const handleExport = () => {
     const jsonString = exportWebsiteData();
@@ -70,15 +63,6 @@ export const SettingsTab: React.FC = () => {
     if (success) {
       setImportJsonText('');
     }
-  };
-
-  const handleSaveClerkKey = (e: React.FormEvent) => {
-    e.preventDefault();
-    setClerkPublishableKey(clerkKeyInput.trim());
-    window.dispatchEvent(new Event('clerk_key_updated'));
-    setKeySaved(true);
-    showToast(clerkKeyInput.trim() ? 'Clerk Key saved successfully!' : 'Clerk Key cleared');
-    setTimeout(() => setKeySaved(false), 2500);
   };
 
   const isClerkActive = isClerkKeyConfigured();
@@ -129,75 +113,45 @@ export const SettingsTab: React.FC = () => {
         </div>
       </div>
 
-      {/* Clerk Authentication Integration */}
+      {/* Security & Authentication System */}
       <div className="p-6 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 flex items-center gap-2">
-            <KeyRound className="w-4 h-4 text-amber-500" />
-            <span>Clerk Authentication Setup</span>
+            <ShieldCheck className="w-4 h-4 text-amber-500" />
+            <span>Identity & Access Security</span>
           </h3>
           <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
             isClerkActive 
               ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' 
               : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
           }`}>
-            {isClerkActive ? '● Clerk Live Active' : '○ Standalone / Local Mode'}
+            {isClerkActive ? '● Clerk Production Secure' : '○ Standalone Auth'}
           </span>
         </div>
 
-        <p className="text-xs text-neutral-500 dark:text-neutral-400">
-          Clerk Application ID: <code className="text-neutral-800 dark:text-neutral-200 font-mono font-bold">{CLERK_APP_ID}</code>. 
-          Provide your Clerk Publishable Key (<code className="text-amber-500 font-mono">pk_test_...</code> or <code className="text-amber-500 font-mono">pk_live_...</code>) below or in <code className="text-neutral-700 dark:text-neutral-300 font-mono">VITE_CLERK_PUBLISHABLE_KEY</code>.
-        </p>
-
-        <form onSubmit={handleSaveClerkKey} className="space-y-3 pt-1">
-          <div>
-            <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
-              Clerk Publishable Key
-            </label>
-            <input
-              type="text"
-              value={clerkKeyInput}
-              onChange={(e) => setClerkKeyInput(e.target.value)}
-              placeholder="pk_test_xxxxxxxxxxxxxxxxxxxxxxxx"
-              className="w-full px-3.5 py-2.5 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs font-mono text-neutral-900 dark:text-white focus:outline-none focus:border-amber-500"
-            />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          <div className="p-3.5 rounded-2xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700/60 space-y-1">
+            <div className="text-neutral-400 text-[11px] font-mono">Sign-In Verification Strategy</div>
+            <div className="font-bold text-neutral-900 dark:text-white flex items-center gap-1.5">
+              <Lock className="w-3.5 h-3.5 text-amber-500" />
+              <span>Password Authentication</span>
+            </div>
+            <p className="text-[11px] text-neutral-500 dark:text-neutral-400 pt-0.5">
+              Direct sign-in using account passwords. Email verification codes are only required when creating new accounts.
+            </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <button
-              type="submit"
-              className="py-2 px-4 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
-            >
-              {keySaved ? (
-                <>
-                  <Check className="w-3.5 h-3.5" />
-                  <span>Saved!</span>
-                </>
-              ) : (
-                <>
-                  <KeyRound className="w-3.5 h-3.5" />
-                  <span>Save Publishable Key</span>
-                </>
-              )}
-            </button>
-
-            {clerkKeyInput && (
-              <button
-                type="button"
-                onClick={() => {
-                  setClerkKeyInput('');
-                  setClerkPublishableKey('');
-                  window.dispatchEvent(new Event('clerk_key_updated'));
-                  showToast('Clerk Key removed', 'info');
-                }}
-                className="py-2 px-3 text-xs text-neutral-500 hover:text-red-500 transition-colors"
-              >
-                Clear Key
-              </button>
-            )}
+          <div className="p-3.5 rounded-2xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700/60 space-y-1">
+            <div className="text-neutral-400 text-[11px] font-mono">Creator Whitelist Protection</div>
+            <div className="font-bold text-neutral-900 dark:text-white flex items-center gap-1.5">
+              <Shield className="w-3.5 h-3.5 text-amber-500" />
+              <span>Restricted Owner Emails</span>
+            </div>
+            <p className="text-[11px] text-neutral-500 dark:text-neutral-400 pt-0.5 font-mono">
+              arjunjareda1355@gmail.com, arjunjareda2007@gmail.com
+            </p>
           </div>
-        </form>
+        </div>
       </div>
 
       {/* Export / Import Section */}

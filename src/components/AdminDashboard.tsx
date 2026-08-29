@@ -6,8 +6,6 @@ import {
 } from '@clerk/clerk-react';
 import { 
   isClerkKeyConfigured, 
-  getClerkPublishableKey, 
-  setClerkPublishableKey, 
   CLERK_APP_ID 
 } from '../clerkConfig';
 import { 
@@ -36,7 +34,6 @@ import {
   ArrowLeft, 
   AlertCircle, 
   LogIn, 
-  KeyRound, 
   Check, 
   ExternalLink,
   ShieldAlert
@@ -74,24 +71,9 @@ export const AdminDashboard: React.FC = () => {
   } = useStore();
 
   const [activeSection, setActiveSection] = useState<string>('overview');
-  const [showKeySetup, setShowKeySetup] = useState(false);
-  const [clerkKeyInput, setClerkKeyInput] = useState(getClerkPublishableKey());
-  const [keySaved, setKeySaved] = useState(false);
-
-  const handleSaveKey = (e: React.FormEvent) => {
-    e.preventDefault();
-    setClerkPublishableKey(clerkKeyInput.trim());
-    setKeySaved(true);
-    setTimeout(() => {
-      setKeySaved(false);
-      setShowKeySetup(false);
-    }, 1500);
-  };
 
   // Pure Clerk Authentication Gate
   if (!authUser || !isOwner) {
-    const isClerkConfigured = isClerkKeyConfigured();
-
     return (
       <div className="min-h-screen bg-neutral-950 text-white flex flex-col items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
         {/* Background Ambient Glow */}
@@ -111,15 +93,6 @@ export const AdminDashboard: React.FC = () => {
             </p>
           </div>
 
-          {/* Clerk Info Pill */}
-          <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-[11px] text-amber-300 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 shrink-0 text-amber-400" />
-              <span>Clerk Authentication Engine</span>
-            </div>
-            <span className="text-[10px] font-mono opacity-80">{CLERK_APP_ID.slice(0, 10)}...</span>
-          </div>
-
           {/* If signed in as non-owner */}
           {authUser && !isOwner && (
             <div className="p-4 bg-amber-950/40 border border-amber-800/60 rounded-2xl text-xs text-amber-300 space-y-3">
@@ -128,7 +101,7 @@ export const AdminDashboard: React.FC = () => {
                 <span>Non-Creator Account Detected</span>
               </div>
               <p className="text-[11px] text-neutral-300 leading-relaxed">
-                Currently signed in with Clerk as <strong className="text-white font-mono">{authUser.email || authUser.fullName}</strong>.
+                Currently signed in as <strong className="text-white font-mono">{authUser.email || authUser.fullName}</strong>.
                 Only authorized creator accounts (<span className="text-amber-400 font-mono font-bold">arjunjareda1355@gmail.com</span> or <span className="text-amber-400 font-mono font-bold">arjunjareda2007@gmail.com</span>) are permitted to modify discography, gallery, and site configuration.
               </p>
               <button
@@ -149,54 +122,8 @@ export const AdminDashboard: React.FC = () => {
             </div>
           )}
 
-          {/* Key Setup Form */}
-          {showKeySetup ? (
-            <form onSubmit={handleSaveKey} className="space-y-3.5 pt-1">
-              <div>
-                <label className="block text-xs font-bold text-neutral-300 mb-1.5">
-                  Clerk Publishable Key
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={clerkKeyInput}
-                  onChange={(e) => setClerkKeyInput(e.target.value)}
-                  placeholder="pk_test_xxxxxxxxxxxxxxxxxxxxxxxx"
-                  className="w-full px-3.5 py-2.5 bg-neutral-800 border border-neutral-700 rounded-xl text-xs font-mono text-white focus:outline-none focus:border-amber-500 transition-colors"
-                />
-                <span className="text-[10px] text-neutral-400 mt-1 block">
-                  Connected to Clerk App: <strong className="text-neutral-200">{CLERK_APP_ID}</strong>
-                </span>
-              </div>
-
-              <div className="flex gap-2">
-                <button
-                  type="submit"
-                  className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  {keySaved ? (
-                    <>
-                      <Check className="w-4 h-4 text-neutral-950" />
-                      <span>Key Saved & Clerk Active!</span>
-                    </>
-                  ) : (
-                    <>
-                      <KeyRound className="w-4 h-4" />
-                      <span>Save & Activate Clerk</span>
-                    </>
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowKeySetup(false)}
-                  className="py-2.5 px-3 rounded-xl bg-neutral-800 text-neutral-400 hover:text-white text-xs"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          ) : isClerkConfigured ? (
-            // Clerk Configured: Direct Clerk Modal Sign In
+          {/* Sign In Button */}
+          {!authUser && (
             <div className="space-y-4 pt-1">
               <SignInButton mode="modal">
                 <button
@@ -205,41 +132,9 @@ export const AdminDashboard: React.FC = () => {
                   className="w-full py-3.5 px-4 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-black text-xs rounded-2xl transition-all shadow-lg hover:scale-[1.01] active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <LogIn className="w-4 h-4" />
-                  <span>Sign In with Clerk as Creator</span>
+                  <span>Sign In as Creator</span>
                 </button>
               </SignInButton>
-
-              <div className="text-center">
-                <button
-                  type="button"
-                  onClick={() => {
-                    hapticLight();
-                    setShowKeySetup(true);
-                  }}
-                  className="text-[11px] text-neutral-400 hover:text-amber-400 inline-flex items-center gap-1 transition-colors"
-                >
-                  <KeyRound className="w-3 h-3" />
-                  <span>Clerk Publishable Key Settings</span>
-                </button>
-              </div>
-            </div>
-          ) : (
-            // Clerk Key Missing: Prompt to activate
-            <div className="space-y-4 text-center pt-2">
-              <p className="text-xs text-neutral-400">
-                Please enter your Clerk Publishable Key to connect this portal to your Clerk Application.
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  hapticLight();
-                  setShowKeySetup(true);
-                }}
-                className="w-full py-3 px-4 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <KeyRound className="w-4 h-4" />
-                <span>Enter Clerk Publishable Key</span>
-              </button>
             </div>
           )}
 

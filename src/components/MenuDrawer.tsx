@@ -312,42 +312,6 @@ export const MenuDrawer: React.FC = () => {
                 )}
               </div>
 
-              {/* Owner & Admin Portal */}
-              <button
-                id="menu-admin-access-btn"
-                type="button"
-                onClick={() => {
-                  hapticLight();
-                  setCurrentTab('admin');
-                  closeMenu();
-                }}
-                className={`w-full p-3 rounded-2xl border flex items-center justify-between group transition-all hover:scale-[1.01] active:scale-[0.98] text-left cursor-pointer ${
-                  isAdminLoggedIn 
-                    ? 'bg-emerald-500/10 border-emerald-500/30 hover:bg-emerald-500/20' 
-                    : 'bg-neutral-100 dark:bg-neutral-850 border-neutral-200 dark:border-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-800'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform shrink-0 ${
-                    isAdminLoggedIn ? 'bg-emerald-500 text-white' : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300'
-                  }`}>
-                    {isAdminLoggedIn ? <ShieldCheck className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-neutral-900 dark:text-white flex items-center gap-1.5">
-                      <span>Owner & Admin Portal</span>
-                      {isAdminLoggedIn && (
-                        <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-500 text-white font-mono font-bold">Logged In</span>
-                      )}
-                    </h4>
-                    <p className="text-[10px] text-neutral-500 dark:text-neutral-400">
-                      {isAdminLoggedIn ? 'Manage songs, gallery, lyrics, analytics' : 'Sign in to access artist content manager'}
-                    </p>
-                  </div>
-                </div>
-                <ChevronRight className="w-4 h-4 text-neutral-400 group-hover:text-neutral-700 dark:group-hover:text-neutral-200 group-hover:translate-x-0.5 transition-all" />
-              </button>
-
               {/* Install App PWA Button */}
               <button
                 id="menu-install-pwa-btn"
