@@ -1,17 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="192" height="192">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
-    <linearGradient id="abm-grad-192" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#f59e0b" />
-      <stop offset="50%" stop-color="#ea580c" />
-      <stop offset="100%" stop-color="#b45309" />
-    </linearGradient>
+    <style>
+      .bg { fill: #0a0a0a; }
+      .fg { fill: #f5f5f5; }
+      .serif-text {
+        font-family: 'Playfair Display', 'Didot', 'Bodoni MT', 'Times New Roman', serif;
+        font-weight: 700;
+      }
+    </style>
   </defs>
-  <rect width="512" height="512" rx="128" fill="#0a0a0a" />
-  <rect x="16" y="16" width="480" height="480" rx="112" fill="none" stroke="#f59e0b" stroke-opacity="0.3" stroke-width="8" />
-  <g transform="translate(256, 256)">
-    <circle r="180" fill="none" stroke="#f59e0b" stroke-opacity="0.2" stroke-width="4" />
-    <text x="0" y="45" font-family="'Syne', 'Plus Jakarta Sans', system-ui, sans-serif" font-size="160" font-weight="900" text-anchor="middle" fill="url(#abm-grad-192)" letter-spacing="4">
-      ABM
-    </text>
+  <rect width="512" height="512" rx="128" class="bg" />
+  
+  <!-- Stylized Elegant AM Monogram -->
+  <g transform="translate(256, 256)" text-anchor="middle" dominant-baseline="central">
+    <text x="-48" y="10" font-size="280" font-family="'Playfair Display', 'Outfit', Georgia, serif" font-weight="700" fill="#fafafa" letter-spacing="-15">A</text>
+    <text x="75" y="24" font-size="270" font-family="'Playfair Display', 'Outfit', Georgia, serif" font-weight="700" fill="#fafafa" letter-spacing="-10">M</text>
+    
+    <!-- Fine accent ligature stroke -->
+    <path d="M -15 25 Q 15 25 35 15" stroke="#f59e0b" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.8" />
   </g>
 </svg>

@@ -902,12 +902,12 @@ export const initialSocialLinks: SocialLink[] = [
 
 export const initialBranding: SiteBranding = {
   siteName: 'Arjun Bharti Mina',
-  shortName: 'ABM',
+  shortName: 'Arjun Bharti Mina',
   logoUrl: '',
-  faviconUrl: '',
+  faviconUrl: '/logo.png',
   siteDescription: 'Official digital universe, music library, lyrical vault, and multidisciplinary portfolio of independent artist Arjun Bharti Mina (ABM).',
   tagline: 'Music Artist • Civil Engineer • Lyricist • Creator',
-  browserTitle: 'Arjun Bharti Mina — Official Creator Hub & Archive',
+  browserTitle: 'Arjun Bharti Mina',
   footerText: 'Designed & Curated by Arjun Bharti Mina. Blending sound, engineering, and digital art.',
   copyrightText: '© 2026 Arjun Bharti Mina (ABM). All rights reserved.'
 };
@@ -956,10 +956,10 @@ export const initialAppearance: AppearanceConfig = {
 };
 
 export const initialSEO: SEOConfig = {
-  siteTitle: 'Arjun Bharti Mina | Official Music & Portfolio Hub',
+  siteTitle: 'Arjun Bharti Mina',
   metaDescription: 'Discover the music, lyrics, digital tools, books, and artistic journey of Arjun Bharti Mina (ABM) — Indian rapper, lyricist, civil engineer and creator.',
   keywords: 'Arjun Bharti Mina, ABM, Desi Hip Hop, Indian Rapper, SKIT Jaipur, Rutba, Hindi Rap, Civil Engineering, Lyrics, Jaipur Artist',
-  ogImageUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1600&auto=format&fit=crop',
+  ogImageUrl: '/logo.png',
   twitterHandle: '@ArjunMinaABM'
 };
 

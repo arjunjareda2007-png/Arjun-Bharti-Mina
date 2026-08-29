@@ -1,6 +1,6 @@
 {
-  "name": "Arjun Bharti Mina — Independent Artist & Creator Hub",
-  "short_name": "ABM Hub",
+  "name": "Arjun Bharti Mina",
+  "short_name": "Arjun Bharti Mina",
   "description": "Official music library, digital archive, and creative hub of Arjun Bharti Mina (ABM) — Indian artist, rapper, lyricist, civil engineer & digital creator.",
   "start_url": "/",
   "id": "/",
@@ -11,22 +11,16 @@
   "categories": ["music", "entertainment", "portfolio"],
   "icons": [
     {
-      "src": "/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/icon-192.svg",
-      "sizes": "192x192",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    },
-    {
-      "src": "/icon-512.svg",
+      "src": "/logo.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }
