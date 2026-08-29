@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ClerkProvider, useUser, useClerk } from '@clerk/clerk-react';
-import { CLERK_PUBLISHABLE_KEY, isClerkKeyConfigured, clerkAppearance } from '../clerkConfig';
+import { getClerkPublishableKey, isClerkKeyConfigured, clerkAppearance } from '../clerkConfig';
 import { useStore } from '../context/StoreContext';
 import { AuthUser } from '../types';
 
@@ -62,15 +62,35 @@ const ClerkSyncBridge: React.FC<{ children: React.ReactNode }> = ({ children }) 
 };
 
 export const ClerkProviderWrapper: React.FC<ClerkProviderWrapperProps> = ({ children }) => {
-  const isConfigured = isClerkKeyConfigured();
+  const [publishableKey, setPublishableKey] = useState<string>(getClerkPublishableKey());
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setPublishableKey(getClerkPublishableKey());
+    };
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('clerk_key_updated', handleStorageChange);
+    window.addEventListener('abm_clerk_key_updated', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('clerk_key_updated', handleStorageChange);
+      window.removeEventListener('abm_clerk_key_updated', handleStorageChange);
+    };
+  }, []);
+
+  const isConfigured = Boolean(
+    publishableKey && 
+    publishableKey.trim().length > 0 && 
+    (publishableKey.startsWith('pk_test_') || publishableKey.startsWith('pk_live_') || publishableKey.startsWith('pk_'))
+  );
 
   if (!isConfigured) {
-    // When Clerk key is not yet set in environment, render children with fallback store defaults
+    // When Clerk key is not yet set, render children with universal fallback authentication
     return <>{children}</>;
   }
 
   return (
-    <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY} appearance={clerkAppearance}>
+    <ClerkProvider key={publishableKey} publishableKey={publishableKey} appearance={clerkAppearance}>
       <ClerkSyncBridge>
         {children}
       </ClerkSyncBridge>

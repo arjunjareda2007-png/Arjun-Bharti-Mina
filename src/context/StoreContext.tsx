@@ -148,22 +148,18 @@ interface StoreContextType {
   openVideoPlayer: (video: VideoItem) => void;
   closeVideoPlayer: () => void;
 
-  // Authentication & Authorization (Universal Auth for Visitors & Owner via Clerk)
+  // Authentication & Authorization (100% Pure Clerk Authentication)
   authUser: AuthUser | null;
   isOwner: boolean;
   authLoading: boolean;
   authError: string | null;
   isAuthModalOpen: boolean;
-  authModalMode: 'login' | 'register' | 'forgot';
-  openAuthModal: (mode?: 'login' | 'register' | 'forgot') => void;
+  authModalMode: 'login' | 'register' | 'forgot' | 'clerk_config';
+  openAuthModal: (mode?: 'login' | 'register' | 'forgot' | 'clerk_config') => void;
   closeAuthModal: () => void;
-  loginWithGoogle: () => Promise<boolean>;
-  loginWithEmail: (email: string, pass: string) => Promise<boolean>;
-  registerWithEmail: (email: string, pass: string) => Promise<boolean>;
-  resetPassword: (email: string) => Promise<boolean>;
-  logout: () => Promise<void>;
   openSignIn: () => void;
   openSignUp: () => void;
+  logout: () => Promise<void>;
   setClerkSession: (session: {
     user: AuthUser | null;
     isLoading: boolean;
@@ -293,7 +289,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [authLoading, setAuthLoading] = useState<boolean>(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
-  const [authModalMode, setAuthModalMode] = useState<'login' | 'register' | 'forgot'>('login');
+  const [authModalMode, setAuthModalMode] = useState<'login' | 'register' | 'forgot' | 'clerk_config'>('login');
   const [clerkSignOutFn, setClerkSignOutFn] = useState<(() => Promise<void> | void) | null>(null);
   const [clerkOpenSignInFn, setClerkOpenSignInFn] = useState<(() => void) | null>(null);
   const [clerkOpenSignUpFn, setClerkOpenSignUpFn] = useState<(() => void) | null>(null);
@@ -317,6 +313,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     if (clerkOpenSignInFn) {
       clerkOpenSignInFn();
     } else {
+      setAuthModalMode('login');
       setIsAuthModalOpen(true);
     }
   }, [clerkOpenSignInFn]);
@@ -325,16 +322,17 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     if (clerkOpenSignUpFn) {
       clerkOpenSignUpFn();
     } else {
+      setAuthModalMode('register');
       setIsAuthModalOpen(true);
     }
   }, [clerkOpenSignUpFn]);
 
-  const openAuthModal = (mode: 'login' | 'register' | 'forgot' = 'login') => {
+  const openAuthModal = (mode: 'login' | 'register' | 'forgot' | 'clerk_config' = 'login') => {
     setAuthModalMode(mode);
     setAuthError(null);
     if (mode === 'register' && clerkOpenSignUpFn) {
       clerkOpenSignUpFn();
-    } else if (clerkOpenSignInFn) {
+    } else if (mode === 'login' && clerkOpenSignInFn) {
       clerkOpenSignInFn();
     } else {
       setIsAuthModalOpen(true);
@@ -346,74 +344,6 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setAuthError(null);
   };
 
-  const loginWithGoogle = async (): Promise<boolean> => {
-    if (clerkOpenSignInFn) {
-      clerkOpenSignInFn();
-      return true;
-    }
-    const demoOwner: AuthUser = {
-      id: 'creator_demo_abm',
-      email: 'creator@arjunbhartimina.com',
-      fullName: 'Arjun Bharti Mina',
-      firstName: 'Arjun',
-      lastName: 'Mina',
-      imageUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80',
-      username: 'arjunbhartimina',
-    };
-    setAuthUser(demoOwner);
-    setIsOwner(true);
-    showToast('Signed in to Creator Portal');
-    setIsAuthModalOpen(false);
-    return true;
-  };
-
-  const loginWithEmail = async (email: string, _pass: string): Promise<boolean> => {
-    if (clerkOpenSignInFn) {
-      clerkOpenSignInFn();
-      return true;
-    }
-    const cleanEmail = email.trim();
-    const demoUser: AuthUser = {
-      id: `user_${Date.now()}`,
-      email: cleanEmail,
-      fullName: cleanEmail.split('@')[0],
-      firstName: cleanEmail.split('@')[0],
-    };
-    setAuthUser(demoUser);
-    setIsOwner(isOwnerEmail(cleanEmail));
-    showToast(`Signed in as ${cleanEmail}`);
-    setIsAuthModalOpen(false);
-    return true;
-  };
-
-  const registerWithEmail = async (email: string, _pass: string): Promise<boolean> => {
-    if (clerkOpenSignUpFn) {
-      clerkOpenSignUpFn();
-      return true;
-    }
-    const cleanEmail = email.trim();
-    const demoUser: AuthUser = {
-      id: `user_${Date.now()}`,
-      email: cleanEmail,
-      fullName: cleanEmail.split('@')[0],
-      firstName: cleanEmail.split('@')[0],
-    };
-    setAuthUser(demoUser);
-    setIsOwner(isOwnerEmail(cleanEmail));
-    showToast('Account registered successfully with Clerk!');
-    setIsAuthModalOpen(false);
-    return true;
-  };
-
-  const resetPassword = async (_email: string): Promise<boolean> => {
-    if (clerkOpenSignInFn) {
-      clerkOpenSignInFn();
-      return true;
-    }
-    showToast('Password reset link sent to your email!', 'info');
-    return true;
-  };
-
   const logout = async () => {
     try {
       if (clerkSignOutFn) {
@@ -421,7 +351,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       }
       setAuthUser(null);
       setIsOwner(false);
-      showToast('Signed out successfully', 'info');
+      showToast('Signed out of Clerk session', 'info');
       if (currentTab === 'admin') {
         setCurrentTab('home');
       }
@@ -1637,13 +1567,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         authModalMode,
         openAuthModal,
         closeAuthModal,
-        loginWithGoogle,
-        loginWithEmail,
-        registerWithEmail,
-        resetPassword,
-        logout,
         openSignIn,
         openSignUp,
+        logout,
         setClerkSession,
 
         theme,

@@ -27,8 +27,14 @@ export const isOwnerEmail = (email?: string | null): boolean => {
   if (configuredOwner) {
     return email.trim().toLowerCase() === configuredOwner;
   }
-  // Default to allowing the authenticated project administrator
-  return true;
+  const normalized = email.trim().toLowerCase();
+  // Owner emails: Arjun's email, or any arjun email
+  return (
+    normalized === 'arjunjareda2007@gmail.com' ||
+    normalized.startsWith('arjun') ||
+    normalized.includes('arjunjareda') ||
+    normalized === 'creator@arjunbhartimina.com'
+  );
 };
 
 export {

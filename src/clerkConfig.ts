@@ -2,17 +2,47 @@ import { dark } from '@clerk/themes';
 
 // Clerk configuration for Arjun Bharti Mina (ABM) Hub
 // Linked Application ID: app_3IPHBCS80jcNmhUX13m2aAgm5uW
-
 export const CLERK_APP_ID = 'app_3IPHBCS80jcNmhUX13m2aAgm5uW';
+export const DEFAULT_CLERK_PUBLISHABLE_KEY = 'pk_test_cHJvZm91bmQtc3F1aXJyZWwtMTc0LmNsZXJrLmFjY291bnRzLmRldiQ';
+const LOCAL_STORAGE_KEY = 'abm_clerk_publishable_key';
 
-export const CLERK_PUBLISHABLE_KEY = (import.meta as any).env?.VITE_CLERK_PUBLISHABLE_KEY || '';
+export const getClerkPublishableKey = (): string => {
+  const envKey = (import.meta as any).env?.VITE_CLERK_PUBLISHABLE_KEY;
+  if (envKey && typeof envKey === 'string' && envKey.trim().length > 0) {
+    return envKey.trim();
+  }
+  try {
+    const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (stored && typeof stored === 'string' && stored.trim().length > 0) {
+      return stored.trim();
+    }
+  } catch {
+    // ignore
+  }
+  return DEFAULT_CLERK_PUBLISHABLE_KEY;
+};
+
+export const setClerkPublishableKey = (key: string): void => {
+  try {
+    if (!key || !key.trim()) {
+      localStorage.removeItem(LOCAL_STORAGE_KEY);
+    } else {
+      localStorage.setItem(LOCAL_STORAGE_KEY, key.trim());
+    }
+    // Dispatch custom event to notify listeners (e.g., ClerkProviderWrapper)
+    window.dispatchEvent(new CustomEvent('abm_clerk_key_updated', { detail: key ? key.trim() : '' }));
+  } catch (e) {
+    console.error('Failed to store Clerk key:', e);
+  }
+};
 
 export const isClerkKeyConfigured = (): boolean => {
+  const key = getClerkPublishableKey();
   return Boolean(
-    CLERK_PUBLISHABLE_KEY && 
-    typeof CLERK_PUBLISHABLE_KEY === 'string' && 
-    CLERK_PUBLISHABLE_KEY.trim().length > 0 &&
-    CLERK_PUBLISHABLE_KEY.startsWith('pk_')
+    key && 
+    typeof key === 'string' && 
+    key.trim().length > 0 &&
+    (key.startsWith('pk_test_') || key.startsWith('pk_live_') || key.startsWith('pk_'))
   );
 };
 

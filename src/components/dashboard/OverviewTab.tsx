@@ -61,7 +61,7 @@ export const OverviewTab: React.FC<{ onNavigateTab: (tab: string) => void }> = (
           <div className="flex items-center gap-2 shrink-0">
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-medium">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              Connected: {authUser?.email}
+              Connected: {authUser?.email || profile.email}
             </span>
           </div>
         </div>

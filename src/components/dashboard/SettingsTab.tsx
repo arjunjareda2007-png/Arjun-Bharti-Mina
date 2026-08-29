@@ -10,8 +10,17 @@ import {
   FileJson, 
   AlertTriangle,
   CheckCircle2,
-  Lock
+  Lock,
+  KeyRound,
+  Check,
+  Sparkles
 } from 'lucide-react';
+import { 
+  getClerkPublishableKey, 
+  setClerkPublishableKey, 
+  isClerkKeyConfigured, 
+  CLERK_APP_ID 
+} from '../../clerkConfig';
 
 export const SettingsTab: React.FC = () => {
   const { 
@@ -25,6 +34,8 @@ export const SettingsTab: React.FC = () => {
 
   const [importJsonText, setImportJsonText] = useState('');
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [clerkKeyInput, setClerkKeyInput] = useState(getClerkPublishableKey());
+  const [keySaved, setKeySaved] = useState(false);
 
   const handleExport = () => {
     const jsonString = exportWebsiteData();
@@ -61,6 +72,17 @@ export const SettingsTab: React.FC = () => {
     }
   };
 
+  const handleSaveClerkKey = (e: React.FormEvent) => {
+    e.preventDefault();
+    setClerkPublishableKey(clerkKeyInput.trim());
+    window.dispatchEvent(new Event('clerk_key_updated'));
+    setKeySaved(true);
+    showToast(clerkKeyInput.trim() ? 'Clerk Key saved successfully!' : 'Clerk Key cleared');
+    setTimeout(() => setKeySaved(false), 2500);
+  };
+
+  const isClerkActive = isClerkKeyConfigured();
+
   return (
     <div className="space-y-8 animate-fadeIn max-w-3xl">
       <div className="flex items-center justify-between pb-4 border-b border-neutral-200 dark:border-neutral-800">
@@ -86,7 +108,7 @@ export const SettingsTab: React.FC = () => {
           <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200 dark:border-neutral-700/60 space-y-1">
             <div className="text-[11px] text-neutral-500 font-semibold">Active Session</div>
             <div className="text-xs font-mono font-bold text-neutral-900 dark:text-white truncate">
-              {authUser?.email || 'Guest User'}
+              {authUser?.email || authUser?.fullName || 'Guest User'}
             </div>
             <div className="text-[10px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-medium pt-1">
               <ShieldCheck className="w-3.5 h-3.5" />
@@ -105,6 +127,77 @@ export const SettingsTab: React.FC = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Clerk Authentication Integration */}
+      <div className="p-6 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 flex items-center gap-2">
+            <KeyRound className="w-4 h-4 text-amber-500" />
+            <span>Clerk Authentication Setup</span>
+          </h3>
+          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+            isClerkActive 
+              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' 
+              : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
+          }`}>
+            {isClerkActive ? '● Clerk Live Active' : '○ Standalone / Local Mode'}
+          </span>
+        </div>
+
+        <p className="text-xs text-neutral-500 dark:text-neutral-400">
+          Clerk Application ID: <code className="text-neutral-800 dark:text-neutral-200 font-mono font-bold">{CLERK_APP_ID}</code>. 
+          Provide your Clerk Publishable Key (<code className="text-amber-500 font-mono">pk_test_...</code> or <code className="text-amber-500 font-mono">pk_live_...</code>) below or in <code className="text-neutral-700 dark:text-neutral-300 font-mono">VITE_CLERK_PUBLISHABLE_KEY</code>.
+        </p>
+
+        <form onSubmit={handleSaveClerkKey} className="space-y-3 pt-1">
+          <div>
+            <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+              Clerk Publishable Key
+            </label>
+            <input
+              type="text"
+              value={clerkKeyInput}
+              onChange={(e) => setClerkKeyInput(e.target.value)}
+              placeholder="pk_test_xxxxxxxxxxxxxxxxxxxxxxxx"
+              className="w-full px-3.5 py-2.5 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs font-mono text-neutral-900 dark:text-white focus:outline-none focus:border-amber-500"
+            />
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              type="submit"
+              className="py-2 px-4 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+            >
+              {keySaved ? (
+                <>
+                  <Check className="w-3.5 h-3.5" />
+                  <span>Saved!</span>
+                </>
+              ) : (
+                <>
+                  <KeyRound className="w-3.5 h-3.5" />
+                  <span>Save Publishable Key</span>
+                </>
+              )}
+            </button>
+
+            {clerkKeyInput && (
+              <button
+                type="button"
+                onClick={() => {
+                  setClerkKeyInput('');
+                  setClerkPublishableKey('');
+                  window.dispatchEvent(new Event('clerk_key_updated'));
+                  showToast('Clerk Key removed', 'info');
+                }}
+                className="py-2 px-3 text-xs text-neutral-500 hover:text-red-500 transition-colors"
+              >
+                Clear Key
+              </button>
+            )}
+          </div>
+        </form>
       </div>
 
       {/* Export / Import Section */}
@@ -178,32 +271,33 @@ export const SettingsTab: React.FC = () => {
         {showResetConfirm ? (
           <div className="p-4 bg-white dark:bg-neutral-900 rounded-2xl border border-red-300 dark:border-red-800 space-y-3">
             <p className="text-xs font-bold text-neutral-900 dark:text-white">
-              Are you absolute sure you want to restore defaults? All unexported edits will be replaced.
+              Are you absolutely sure you want to reset all content back to factory defaults?
             </p>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setShowResetConfirm(false)}
-                className="px-4 py-2 text-xs font-semibold text-neutral-600 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-800 rounded-xl"
-              >
-                Cancel
-              </button>
+            <div className="flex gap-2">
               <button
                 onClick={() => {
                   resetAllData();
                   setShowResetConfirm(false);
                 }}
-                className="px-4 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl"
+                className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-bold text-xs rounded-xl"
               >
                 Yes, Reset Everything
+              </button>
+              <button
+                onClick={() => setShowResetConfirm(false)}
+                className="px-4 py-2 bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 text-xs font-semibold rounded-xl"
+              >
+                Cancel
               </button>
             </div>
           </div>
         ) : (
           <button
             onClick={() => setShowResetConfirm(true)}
-            className="px-4 py-2 bg-red-600/10 hover:bg-red-600/20 text-red-600 dark:text-red-400 border border-red-600/20 rounded-xl text-xs font-bold transition-colors"
+            className="px-4 py-2.5 bg-red-600/10 hover:bg-red-600 text-red-600 hover:text-white border border-red-600/30 text-xs font-bold rounded-xl transition-all flex items-center gap-2"
           >
-            Reset to Master Default Templates
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>Reset Content to Factory Defaults</span>
           </button>
         )}
       </div>
