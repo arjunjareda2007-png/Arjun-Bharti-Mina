@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useStore } from '../../context/StoreContext';
-import { AppearanceConfig } from '../../types';
-import { Palette, Sun, Moon, Monitor, CheckCircle2, Sliders, Layers, Sparkles } from 'lucide-react';
+import { AppearanceConfig, ThemeMode } from '../../types';
+import { THEME_PRESETS } from '../../utils/themePresets';
+import { Palette, CheckCircle2, Sliders, Layers, Sparkles, Wand2 } from 'lucide-react';
 
 export const AppearanceTab: React.FC = () => {
-  const { appearance, updateAppearance } = useStore();
+  const { appearance, updateAppearance, theme, setTheme } = useStore();
   const [formData, setFormData] = useState<AppearanceConfig>(appearance);
 
   const colors: Array<{ id: AppearanceConfig['accentColor']; name: string; bgClass: string; hex: string }> = [
@@ -16,8 +17,9 @@ export const AppearanceTab: React.FC = () => {
     { id: 'orange', name: 'Sunset Orange', bgClass: 'bg-orange-500', hex: '#f97316' }
   ];
 
-  const handleThemeChange = (mode: 'dark' | 'light' | 'system') => {
+  const handleThemeChange = (mode: ThemeMode) => {
     setFormData(prev => ({ ...prev, themeMode: mode }));
+    setTheme(mode);
     updateAppearance({ themeMode: mode });
   };
 
@@ -42,68 +44,114 @@ export const AppearanceTab: React.FC = () => {
         <div>
           <h2 className="text-xl font-bold text-neutral-900 dark:text-white flex items-center gap-2">
             <Palette className="w-5 h-5 text-amber-500" />
-            <span>Theme, Colors & Layout Geometry</span>
+            <span>Theme, Aesthetics & Layout Geometry</span>
           </h2>
           <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
-            Real-time visual customization of dark/light modes, accent highlights, surface styles, and corner radius.
+            Choose from curated aesthetic theme modes, ambient atmospheres, accent highlights, and surface styling.
           </p>
         </div>
       </div>
 
-      {/* Theme Mode Selector */}
-      <div className="p-6 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl space-y-4 shadow-sm">
-        <h3 className="text-sm font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
-          Interface Color Mode
-        </h3>
+      {/* Aesthetic Theme Mode Selector */}
+      <div className="p-6 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl space-y-5 shadow-sm">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 flex items-center gap-2">
+              <Wand2 className="w-4 h-4 text-amber-500" />
+              <span>Aesthetic Theme Modes</span>
+            </h3>
+            <p className="text-xs text-neutral-400 mt-0.5">
+              Select a simple, cool atmospheric palette tailored for the portfolio and audio experience.
+            </p>
+          </div>
+          <span className="text-[11px] font-mono px-3 py-1 rounded-full bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 font-bold capitalize">
+            Active: {THEME_PRESETS.find(t => t.id === (formData.themeMode || theme))?.name || formData.themeMode}
+          </span>
+        </div>
 
-        <div className="grid grid-cols-3 gap-3">
-          <button
-            type="button"
-            onClick={() => handleThemeChange('dark')}
-            className={`p-4 rounded-2xl border text-left space-y-2 transition-all ${
-              formData.themeMode === 'dark'
-                ? 'bg-neutral-950 text-white border-amber-500 ring-2 ring-amber-500/20'
-                : 'bg-neutral-50 dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-400'
-            }`}
-          >
-            <Moon className="w-5 h-5 text-amber-500" />
-            <div>
-              <p className="font-bold text-xs">Dark Mode</p>
-              <p className="text-[11px] opacity-75">Studio dark aesthetic</p>
-            </div>
-          </button>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+          {THEME_PRESETS.map((preset) => {
+            const isSelected = (formData.themeMode || theme) === preset.id;
+            return (
+              <button
+                key={preset.id}
+                type="button"
+                onClick={() => handleThemeChange(preset.id)}
+                style={{
+                  backgroundColor: preset.isDark ? preset.bgHex : '#ffffff',
+                  borderColor: isSelected ? preset.accentHex : (preset.isDark ? preset.borderHex : '#e5e5e5')
+                }}
+                className={`p-4 rounded-2xl border-2 text-left space-y-3 transition-all relative overflow-hidden group cursor-pointer hover:scale-[1.01] active:scale-[0.98] ${
+                  isSelected
+                    ? 'ring-3 ring-amber-500/25 shadow-lg'
+                    : 'opacity-90 hover:opacity-100 shadow-xs'
+                }`}
+              >
+                {/* Header with Name, Tag & Check */}
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span 
+                        className="w-3 h-3 rounded-full shrink-0 shadow-xs"
+                        style={{ backgroundColor: preset.accentHex }}
+                      />
+                      <h4 
+                        className="font-bold text-xs font-display tracking-tight"
+                        style={{ color: preset.isDark ? '#f5f5f5' : '#171717' }}
+                      >
+                        {preset.name}
+                      </h4>
+                    </div>
+                    <p 
+                      className="text-[10px] font-mono mt-0.5"
+                      style={{ color: preset.isDark ? '#a3a3a3' : '#737373' }}
+                    >
+                      {preset.subtitle}
+                    </p>
+                  </div>
 
-          <button
-            type="button"
-            onClick={() => handleThemeChange('light')}
-            className={`p-4 rounded-2xl border text-left space-y-2 transition-all ${
-              formData.themeMode === 'light'
-                ? 'bg-white text-neutral-900 border-amber-500 ring-2 ring-amber-500/20 shadow-md'
-                : 'bg-neutral-50 dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-400'
-            }`}
-          >
-            <Sun className="w-5 h-5 text-amber-500" />
-            <div>
-              <p className="font-bold text-xs">Light Mode</p>
-              <p className="text-[11px] opacity-75">Clean paper aesthetic</p>
-            </div>
-          </button>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span 
+                      className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded-full ${preset.badgeBg} ${preset.badgeText}`}
+                    >
+                      {preset.tag}
+                    </span>
+                    {isSelected && (
+                      <CheckCircle2 
+                        className="w-4 h-4 shrink-0" 
+                        style={{ color: preset.accentHex }} 
+                      />
+                    )}
+                  </div>
+                </div>
 
-          <button
-            type="button"
-            onClick={() => handleThemeChange('system')}
-            className={`p-4 rounded-2xl border text-left space-y-2 transition-all ${
-              formData.themeMode === 'system'
-                ? 'bg-neutral-100 dark:bg-neutral-800 border-amber-500 ring-2 ring-amber-500/20'
-                : 'bg-neutral-50 dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-400'
-            }`}
-          >
-            <Monitor className="w-5 h-5 text-amber-500" />
-            <div>
-              <p className="font-bold text-xs">System Auto</p>
-              <p className="text-[11px] opacity-75">Matches device preferences</p>
-            </div>
-          </button>
+                {/* Description */}
+                <p 
+                  className="text-[11px] leading-relaxed line-clamp-2"
+                  style={{ color: preset.isDark ? '#9ca3af' : '#6b7280' }}
+                >
+                  {preset.desc}
+                </p>
+
+                {/* Mini Swatches Preview */}
+                <div 
+                  className="p-2 rounded-xl border flex items-center justify-between text-[10px] font-mono"
+                  style={{
+                    backgroundColor: preset.isDark ? preset.surfaceHex : '#f9fafb',
+                    borderColor: preset.isDark ? preset.borderHex : '#e5e7eb',
+                    color: preset.isDark ? '#d1d5db' : '#374151'
+                  }}
+                >
+                  <span className="text-[10px] opacity-80">Atmosphere Tone</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: preset.bgHex }} />
+                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: preset.surfaceHex }} />
+                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: preset.accentHex }} />
+                  </div>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -231,3 +279,4 @@ export const AppearanceTab: React.FC = () => {
     </div>
   );
 };
+

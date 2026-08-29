@@ -22,18 +22,11 @@ export const db = firebaseConfig.firestoreDatabaseId && firebaseConfig.firestore
 
 export const isOwnerEmail = (email?: string | null): boolean => {
   if (!email) return false;
-  const metaEnv = (import.meta as any)?.env?.VITE_OWNER_EMAIL;
-  const configuredOwner = (metaEnv || '').trim().toLowerCase();
-  if (configuredOwner) {
-    return email.trim().toLowerCase() === configuredOwner;
-  }
   const normalized = email.trim().toLowerCase();
-  // Owner emails: Arjun's email, or any arjun email
+  // Owner emails strictly restricted to designated accounts
   return (
-    normalized === 'arjunjareda2007@gmail.com' ||
-    normalized.startsWith('arjun') ||
-    normalized.includes('arjunjareda') ||
-    normalized === 'creator@arjunbhartimina.com'
+    normalized === 'arjunjareda1355@gmail.com' ||
+    normalized === 'arjunjareda2007@gmail.com'
   );
 };
 

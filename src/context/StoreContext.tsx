@@ -15,6 +15,7 @@ import {
   HomepageConfig,
   NavigationItem,
   AppearanceConfig,
+  ThemeMode,
   SEOConfig,
   YouTubeSettings,
   ActiveTab,
@@ -169,8 +170,8 @@ interface StoreContextType {
   }) => void;
 
   // Theme & Appearance
-  theme: 'dark' | 'light' | 'system';
-  setTheme: (theme: 'dark' | 'light' | 'system') => void;
+  theme: ThemeMode;
+  setTheme: (theme: ThemeMode) => void;
   updateAppearance: (config: Partial<AppearanceConfig>) => void;
 
   // Toast notifications
@@ -792,13 +793,22 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   }, []);
 
   // Theme & Appearance Dynamic Styling
-  const [theme, setThemeState] = useState<'dark' | 'light' | 'system'>(() => {
+  const [theme, setThemeState] = useState<ThemeMode>(() => {
     return appearance.themeMode || 'light';
   });
 
   const applyAppearanceStyles = useCallback((appConfig: AppearanceConfig) => {
-    const isDark = appConfig.themeMode === 'dark' || 
-      (appConfig.themeMode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    const darkThemes: ThemeMode[] = ['dark', 'midnight', 'emerald', 'amber', 'nordic', 'cyber', 'sunset'];
+    const currentMode = appConfig.themeMode || 'dark';
+    
+    let isDark = false;
+    if (currentMode === 'system') {
+      isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    } else if (currentMode === 'light') {
+      isDark = false;
+    } else {
+      isDark = darkThemes.includes(currentMode);
+    }
     
     if (isDark) {
       document.documentElement.classList.add('dark');
@@ -806,6 +816,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       document.documentElement.classList.remove('dark');
     }
 
+    document.documentElement.setAttribute('data-theme', currentMode);
     document.documentElement.setAttribute('data-accent', appConfig.accentColor || 'neutral');
     document.documentElement.setAttribute('data-radius', appConfig.borderRadius || 'md');
     document.documentElement.setAttribute('data-card-style', appConfig.cardStyle || 'minimal');
@@ -827,7 +838,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     document.documentElement.style.setProperty('--color-accent-glow', chosen.glow);
   }, []);
 
-  const setTheme = useCallback((newTheme: 'dark' | 'light' | 'system') => {
+  const setTheme = useCallback((newTheme: ThemeMode) => {
     setThemeState(newTheme);
     setAppearance(prev => {
       const updated = { ...prev, themeMode: newTheme };

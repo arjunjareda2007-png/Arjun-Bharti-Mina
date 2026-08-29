@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useStore } from '../context/StoreContext';
-import { ActiveTab } from '../types';
+import { ActiveTab, ThemeMode } from '../types';
+import { THEME_PRESETS } from '../utils/themePresets';
 import { hapticSelection, hapticLight, hapticMedium } from '../utils/haptics';
 import { ClerkDrawerAuthCard } from './ClerkAuthControls';
 import { 
@@ -14,8 +15,8 @@ import {
   BookOpen, 
   Share2, 
   Mail, 
-  Moon, 
-  Sun, 
+  Palette,
+  ChevronDown,
   ShieldCheck, 
   Lock, 
   Download, 
@@ -38,6 +39,8 @@ export const MenuDrawer: React.FC = () => {
     showToast, 
     openSearch 
   } = useStore();
+
+  const [showThemePicker, setShowThemePicker] = useState(false);
 
   const isAdminLoggedIn = isOwner || !!authUser;
 
@@ -238,30 +241,76 @@ export const MenuDrawer: React.FC = () => {
             </span>
 
             <div className="space-y-2">
-              {/* Appearance Theme Switcher */}
-              <button
-                id="menu-theme-toggle-btn"
-                type="button"
-                onClick={toggleTheme}
-                className="w-full p-3 rounded-2xl bg-neutral-100 dark:bg-neutral-850 hover:bg-neutral-200 dark:hover:bg-neutral-800 border border-neutral-200 dark:border-neutral-800 flex items-center justify-between group transition-all hover:scale-[1.01] active:scale-[0.98] text-left cursor-pointer"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-100 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform shrink-0">
-                    {theme === 'dark' ? <Moon className="w-4 h-4 text-indigo-400" /> : <Sun className="w-4 h-4 text-amber-500" />}
+              {/* Appearance Aesthetic Theme Switcher & Palette */}
+              <div className="rounded-2xl bg-neutral-100 dark:bg-neutral-850 border border-neutral-200 dark:border-neutral-800 overflow-hidden transition-all">
+                <button
+                  id="menu-theme-toggle-btn"
+                  type="button"
+                  onClick={() => {
+                    hapticLight();
+                    setShowThemePicker(!showThemePicker);
+                  }}
+                  className="w-full p-3 flex items-center justify-between group text-left cursor-pointer hover:bg-neutral-200/60 dark:hover:bg-neutral-800/60 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-neutral-200 dark:bg-neutral-700 text-amber-500 dark:text-amber-400 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform shrink-0">
+                      <Palette className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-neutral-900 dark:text-white flex items-center gap-1.5">
+                        <span>Aesthetic Themes</span>
+                        <span className="text-[10px] font-mono font-normal text-amber-600 dark:text-amber-400">9 Modes</span>
+                      </h4>
+                      <p className="text-[10px] text-neutral-500 dark:text-neutral-400 font-mono">
+                        Active: <span className="font-bold text-neutral-800 dark:text-neutral-200 capitalize">{THEME_PRESETS.find(p => p.id === theme)?.name || theme}</span>
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-neutral-900 dark:text-white">
-                      Appearance Theme
-                    </h4>
-                    <p className="text-[10px] text-neutral-500 dark:text-neutral-400 font-mono">
-                      Currently set to <span className="font-bold text-neutral-800 dark:text-neutral-200 capitalize">{theme} Mode</span>
-                    </p>
+                  <div className="flex items-center gap-1.5">
+                    <span className="px-2 py-0.5 rounded-lg text-[10px] font-bold font-mono bg-white dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 border border-neutral-200 dark:border-neutral-700">
+                      {THEME_PRESETS.find(p => p.id === theme)?.tag || 'Theme'}
+                    </span>
+                    <ChevronDown className={`w-4 h-4 text-neutral-400 transition-transform ${showThemePicker ? 'rotate-180' : ''}`} />
                   </div>
-                </div>
-                <span className="px-2.5 py-1 rounded-xl text-[11px] font-bold font-mono bg-white dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 border border-neutral-200 dark:border-neutral-700">
-                  {theme === 'dark' ? 'Dark' : 'Light'}
-                </span>
-              </button>
+                </button>
+
+                {showThemePicker && (
+                  <div className="p-3 pt-1 border-t border-neutral-200/80 dark:border-neutral-800/80 grid grid-cols-3 gap-2 animate-fadeIn">
+                    {THEME_PRESETS.map((preset) => {
+                      const isSelected = theme === preset.id;
+                      return (
+                        <button
+                          key={preset.id}
+                          type="button"
+                          onClick={() => {
+                            hapticLight();
+                            setTheme(preset.id);
+                            showToast(`Switched to ${preset.name}`, 'info');
+                          }}
+                          className={`p-2 rounded-xl text-left border transition-all cursor-pointer ${
+                            isSelected
+                              ? 'border-amber-500 ring-1 ring-amber-500 bg-white dark:bg-neutral-900 shadow-xs'
+                              : 'border-transparent hover:border-neutral-300 dark:hover:border-neutral-700 bg-neutral-200/50 dark:bg-neutral-800/50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <span 
+                              className="w-2.5 h-2.5 rounded-full shrink-0" 
+                              style={{ backgroundColor: preset.accentHex }} 
+                            />
+                            <span className="text-[10px] font-bold text-neutral-900 dark:text-white truncate">
+                              {preset.name}
+                            </span>
+                          </div>
+                          <p className="text-[9px] text-neutral-500 dark:text-neutral-400 font-mono truncate">
+                            {preset.subtitle}
+                          </p>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
 
               {/* Owner & Admin Portal */}
               <button

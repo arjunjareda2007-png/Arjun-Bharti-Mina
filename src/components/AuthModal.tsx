@@ -183,7 +183,7 @@ export const AuthModal: React.FC = () => {
                         <span>Verified Member Session</span>
                       </div>
                       <p className="opacity-90 leading-relaxed">
-                        Signed in via Clerk. To manage songs, lyrics, and creator portfolio settings, sign in with the designated creator email account (<span className="font-mono text-amber-500 font-bold">arjunjareda2007@gmail.com</span>).
+                        Signed in via Clerk. To manage songs, lyrics, and creator portfolio settings, sign in with an authorized creator email account (<span className="font-mono text-amber-500 font-bold">arjunjareda1355@gmail.com</span> or <span className="font-mono text-amber-500 font-bold">arjunjareda2007@gmail.com</span>).
                       </p>
                     </>
                   )}

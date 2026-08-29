@@ -129,7 +129,7 @@ export const AdminDashboard: React.FC = () => {
               </div>
               <p className="text-[11px] text-neutral-300 leading-relaxed">
                 Currently signed in with Clerk as <strong className="text-white font-mono">{authUser.email || authUser.fullName}</strong>.
-                Only the authorized creator account (<span className="text-amber-400 font-mono font-bold">arjunjareda2007@gmail.com</span>) is permitted to modify discography, gallery, and site configuration.
+                Only authorized creator accounts (<span className="text-amber-400 font-mono font-bold">arjunjareda1355@gmail.com</span> or <span className="text-amber-400 font-mono font-bold">arjunjareda2007@gmail.com</span>) are permitted to modify discography, gallery, and site configuration.
               </p>
               <button
                 type="button"

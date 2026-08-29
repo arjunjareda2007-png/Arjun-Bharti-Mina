@@ -304,8 +304,19 @@ export interface YouTubeSettings {
   playlistLinks: { title: string; url: string }[];
 }
 
+export type ThemeMode = 
+  | 'dark'
+  | 'light'
+  | 'midnight'
+  | 'emerald'
+  | 'amber'
+  | 'nordic'
+  | 'cyber'
+  | 'sunset'
+  | 'system';
+
 export interface AppearanceConfig {
-  themeMode: 'dark' | 'light' | 'system';
+  themeMode: ThemeMode;
   accentColor: 'neutral' | 'slate' | 'amber' | 'emerald' | 'sky' | 'rose' | 'violet' | 'orange';
   borderRadius: 'none' | 'sm' | 'md' | 'lg' | 'full';
   cardStyle: 'glass' | 'solid' | 'minimal';

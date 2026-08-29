@@ -9,8 +9,8 @@ service cloud.firestore {
     
     function isOwner() {
       return isAuthenticated() && (
-        request.auth.token.email == 'arjunjareda2007@gmail.com' ||
-        request.auth.token.email == 'arjunbhartimina@gmail.com'
+        request.auth.token.email == 'arjunjareda1355@gmail.com' ||
+        request.auth.token.email == 'arjunjareda2007@gmail.com'
       );
     }
 
