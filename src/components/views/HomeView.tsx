@@ -24,6 +24,7 @@ import { calculateAge } from '../../utils/helpers';
 import { hapticLight, hapticBeat, hapticSelection, hapticMedium } from '../../utils/haptics';
 import { CountUp } from '../motion/CountUp';
 import { TiltCard } from '../motion/TiltCard';
+import { YouTubeVideoShowcase } from '../YouTubeVideoShowcase';
 import { 
   CINEMATIC_EASE, 
   SMOOTH_EASE, 
@@ -638,90 +639,24 @@ export const HomeView: React.FC = () => {
         </div>
       </motion.section>
 
-      {/* 5. YOUTUBE & VISUAL STORIES */}
-      {featuredVideos[0] && (
+      {/* 5. YOUTUBE & VISUAL STORIES EMBEDDED SHOWCASE */}
+      {featuredVideos.length > 0 && (
         <motion.section 
           id="youtube-spotlight" 
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-40px" }}
           variants={sectionReveal}
-          className="p-6 sm:p-8 rounded-3xl bg-neutral-950 text-white border border-neutral-800 space-y-6"
+          className="space-y-4"
         >
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <span className="text-xs font-mono uppercase tracking-wider text-red-500 font-semibold block">
-                YouTube Channel Spotlight
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-display font-bold">
-                Visual Stories & Studio BTS
-              </h2>
-            </div>
-            <motion.a
-              href={youtube?.channelUrl || "https://youtube.com/@arjunbhartimina"}
-              target="_blank"
-              rel="noreferrer"
-              whileHover={{ scale: 1.04, y: -1 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => hapticLight()}
-              className="button-sheen px-4 py-2 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-semibold flex items-center gap-2 self-start transition-colors"
-            >
-              <span>Visit YouTube Channel</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </motion.a>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-            <motion.div 
-              whileHover={{ scale: 1.015 }}
-              whileTap={{ scale: 0.98 }}
-              className="lg:col-span-7 relative aspect-video rounded-2xl overflow-hidden cursor-pointer group shadow-xl bg-neutral-900 border border-neutral-800"
-              onClick={() => {
-                hapticBeat();
-                openVideoPlayer(featuredVideos[0]);
-              }}
-            >
-              <img 
-                src={featuredVideos[0].thumbnail} 
-                alt={featuredVideos[0].title} 
-                className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-500 opacity-80"
-              />
-              <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                <motion.div 
-                  whileHover={{ scale: 1.15 }}
-                  className="w-14 h-14 rounded-full bg-red-600 text-white flex items-center justify-center shadow-2xl transition-transform"
-                >
-                  <Play className="w-6 h-6 fill-current ml-1" />
-                </motion.div>
-              </div>
-              <span className="absolute bottom-3 right-3 px-2 py-0.5 rounded bg-black/80 text-[11px] font-mono text-white">
-                {featuredVideos[0].duration}
-              </span>
-            </motion.div>
-
-            <div className="lg:col-span-5 space-y-3">
-              <span className="text-xs font-mono uppercase text-neutral-400">
-                {featuredVideos[0].category} • {featuredVideos[0].date}
-              </span>
-              <h3 className="text-xl font-bold">{featuredVideos[0].title}</h3>
-              <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
-                {featuredVideos[0].description}
-              </p>
-              <div className="pt-2">
-                <motion.button
-                  whileHover={{ scale: 1.03, y: -1 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => {
-                    hapticMedium();
-                    openVideoPlayer(featuredVideos[0]);
-                  }}
-                  className="px-4 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-xs font-medium text-neutral-200 transition-colors cursor-pointer"
-                >
-                  Watch in Player
-                </motion.button>
-              </div>
-            </div>
-          </div>
+          <YouTubeVideoShowcase 
+            id="home-video-showcase"
+            initialVideoId={featuredVideos[0]?.id}
+            title="Visual Stories & YouTube Showcase"
+            subtitle="Stream official music videos, studio recording breakdowns, and live cyphers directly on site"
+            showPlaylist={true}
+            autoPlayOnSelect={true}
+          />
         </motion.section>
       )}
 
