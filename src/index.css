@@ -489,6 +489,22 @@
 .animate-wave-3 { animation: soundwave 1.3s ease-in-out infinite 0.4s; }
 .animate-wave-4 { animation: soundwave 0.8s ease-in-out infinite 0.15s; }
 
+/* Continuous Neon Light Border Animation */
+@keyframes neon-border-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-neon-spin {
+  animation: neon-border-spin 3.2s linear infinite;
+  will-change: transform;
+  transform-origin: center center;
+}
+
 /* Reduced Motion Accessibility */
 @media (prefers-reduced-motion: reduce) {
   *,

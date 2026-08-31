@@ -44,6 +44,7 @@ import { parseDurationToSeconds } from '../utils/helpers';
 import { isOwnerEmail } from '../firebase';
 import { AuthUser } from '../types';
 import { firestoreService } from '../services/firestoreService';
+import { getThemePreset, THEME_PRESETS } from '../utils/themePresets';
 
 interface NotificationToast {
   id: string;
@@ -922,9 +923,37 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       orange: { primary: '#ea580c', glow: 'rgba(234, 88, 12, 0.2)' },
     };
 
-    const chosen = accentMap[appConfig.accentColor] || accentMap.neutral;
-    document.documentElement.style.setProperty('--color-accent-primary', chosen.primary);
-    document.documentElement.style.setProperty('--color-accent-glow', chosen.glow);
+    const preset = getThemePreset(currentMode);
+    const themeAccentHex = preset?.accentHex || '#f59e0b';
+
+    const hexToRgb = (hex: string) => {
+      const clean = hex.replace('#', '');
+      if (clean.length === 3) {
+        const r = parseInt(clean[0] + clean[0], 16);
+        const g = parseInt(clean[1] + clean[1], 16);
+        const b = parseInt(clean[2] + clean[2], 16);
+        return `${r}, ${g}, ${b}`;
+      }
+      if (clean.length === 6) {
+        const r = parseInt(clean.substring(0, 2), 16);
+        const g = parseInt(clean.substring(2, 4), 16);
+        const b = parseInt(clean.substring(4, 6), 16);
+        return `${r}, ${g}, ${b}`;
+      }
+      return '245, 158, 11';
+    };
+
+    const primaryColor = (appConfig.accentColor && appConfig.accentColor !== 'neutral' && accentMap[appConfig.accentColor])
+      ? accentMap[appConfig.accentColor].primary
+      : themeAccentHex;
+
+    const rgb = hexToRgb(primaryColor);
+    const glow = `rgba(${rgb}, 0.35)`;
+    const soft = `rgba(${rgb}, 0.15)`;
+
+    document.documentElement.style.setProperty('--color-accent-primary', primaryColor);
+    document.documentElement.style.setProperty('--color-accent-glow', glow);
+    document.documentElement.style.setProperty('--color-accent-soft', soft);
   }, []);
 
   const setTheme = useCallback((newTheme: ThemeMode) => {

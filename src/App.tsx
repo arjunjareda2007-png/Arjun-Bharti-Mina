@@ -22,6 +22,7 @@ import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { CustomCursor } from './components/motion/CustomCursor';
 import { CINEMATIC_EASE } from './utils/motion';
+import { useScrollHaptics } from './utils/scrollHaptics';
 
 // Views
 import { HomeView } from './components/views/HomeView';
@@ -38,6 +39,9 @@ import { AdminDashboard } from './components/AdminDashboard';
 
 const MainLayout: React.FC = () => {
   const { currentTab, isCropperOpen, cropperOptions, closeCropper } = useStore();
+
+  // Smooth scrolling haptics across the entire app
+  useScrollHaptics(true);
 
   // Scroll to top on tab change
   useEffect(() => {

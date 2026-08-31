@@ -159,23 +159,23 @@ export const ClerkDrawerAuthCard: React.FC = () => {
   if (!isConfigured) {
     if (authUser) {
       return (
-        <div className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-3">
+        <div className="p-3 rounded-xl bg-neutral-100 dark:bg-neutral-850 border border-neutral-200 dark:border-neutral-800 space-y-2.5">
           <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-9 h-9 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400 flex items-center justify-center font-bold text-sm">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-500 flex items-center justify-center font-bold text-xs">
                 {(authUser.firstName?.[0] || authUser.fullName?.[0] || 'U').toUpperCase()}
               </div>
               <div className="min-w-0">
-                <div className="text-xs font-bold text-white truncate">
+                <div className="text-xs font-semibold text-neutral-900 dark:text-white truncate">
                   {authUser.fullName || authUser.email}
                 </div>
-                <div className="text-[10px] text-neutral-400 truncate flex items-center gap-1">
+                <div className="text-[10px] text-neutral-500 dark:text-neutral-400 truncate flex items-center gap-1">
                   {isOwner ? (
-                    <span className="text-amber-400 font-semibold flex items-center gap-0.5">
-                      <ShieldCheck className="w-3 h-3" /> Creator Owner
+                    <span className="text-amber-500 font-medium flex items-center gap-0.5">
+                      <ShieldCheck className="w-3 h-3" /> Creator
                     </span>
                   ) : (
-                    <span>Verified Member</span>
+                    <span>Member</span>
                   )}
                 </div>
               </div>
@@ -187,29 +187,29 @@ export const ClerkDrawerAuthCard: React.FC = () => {
                   closeMenu();
                   setCurrentTab('admin');
                 }}
-                className="px-2.5 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-bold shrink-0 cursor-pointer"
+                className="px-2.5 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-xs font-bold shrink-0 cursor-pointer"
               >
-                Dashboard
+                Admin
               </button>
             )}
           </div>
-          <div className="grid grid-cols-2 gap-2 pt-1 border-t border-neutral-800">
+          <div className="grid grid-cols-2 gap-2 pt-1 border-t border-neutral-200 dark:border-neutral-800">
             <button
               type="button"
               onClick={() => {
                 closeMenu();
                 openAuthModal('login');
               }}
-              className="py-1.5 px-3 rounded-lg bg-neutral-800 hover:bg-neutral-750 text-neutral-300 text-xs font-semibold"
+              className="py-1.5 px-3 rounded-lg bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-750 text-neutral-700 dark:text-neutral-300 text-xs font-medium border border-neutral-200 dark:border-neutral-700/60 text-center cursor-pointer"
             >
-              Account Details
+              Account
             </button>
             <button
               type="button"
               onClick={async () => {
                 await logout();
               }}
-              className="py-1.5 px-3 rounded-lg bg-neutral-800 hover:bg-red-500/20 hover:text-red-400 text-neutral-300 text-xs font-semibold"
+              className="py-1.5 px-3 rounded-lg bg-white dark:bg-neutral-800 hover:bg-red-500/10 hover:text-red-500 text-neutral-700 dark:text-neutral-300 text-xs font-medium border border-neutral-200 dark:border-neutral-700/60 text-center cursor-pointer"
             >
               Sign Out
             </button>
@@ -219,29 +219,17 @@ export const ClerkDrawerAuthCard: React.FC = () => {
     }
 
     return (
-      <div className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs font-bold text-neutral-200">
-            <Sparkles className="w-4 h-4 text-amber-500" />
-            <span>Member & Creator Access</span>
-          </div>
-          <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-neutral-800 text-neutral-400">
-            Clerk Auth
-          </span>
-        </div>
-        <p className="text-[11px] text-neutral-400 leading-relaxed">
-          Sign in or create your account to unlock creator features, discography management, and member tools.
-        </p>
-        <div className="grid grid-cols-2 gap-2 pt-1">
+      <div className="p-3 rounded-xl bg-neutral-100 dark:bg-neutral-850 border border-neutral-200 dark:border-neutral-800">
+        <div className="grid grid-cols-2 gap-2">
           <button
             type="button"
             onClick={() => {
               closeMenu();
               openAuthModal('login');
             }}
-            className="w-full py-2 px-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+            className="w-full py-2 px-3 rounded-xl bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-750 text-neutral-900 dark:text-white border border-neutral-200 dark:border-neutral-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
           >
-            <LogIn className="w-3.5 h-3.5 text-amber-400" />
+            <LogIn className="w-3.5 h-3.5 text-amber-500" />
             <span>Sign In</span>
           </button>
           <button
@@ -250,7 +238,7 @@ export const ClerkDrawerAuthCard: React.FC = () => {
               closeMenu();
               openAuthModal('register');
             }}
-            className="w-full py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 text-xs font-black flex items-center justify-center gap-1.5 transition-all shadow-sm cursor-pointer"
+            className="w-full py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-xs cursor-pointer"
           >
             <UserPlus className="w-3.5 h-3.5" />
             <span>Sign Up</span>
@@ -261,66 +249,54 @@ export const ClerkDrawerAuthCard: React.FC = () => {
   }
 
   return (
-    <div className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-3">
+    <div className="p-3 rounded-xl bg-neutral-100 dark:bg-neutral-850 border border-neutral-200 dark:border-neutral-800">
       <SignedOut>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-neutral-200 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              Member Access
-            </span>
-            <span className="text-[10px] text-neutral-500 font-mono">Powered by Clerk</span>
-          </div>
-          <p className="text-[11px] text-neutral-400">
-            Sign in to unlock creator tools, manage your content discography, and personalize settings.
-          </p>
-          <div className="grid grid-cols-2 gap-2 pt-1">
-            <SignInButton mode="modal">
-              <button
-                type="button"
-                onClick={() => {
-                  hapticLight();
-                  closeMenu();
-                }}
-                className="w-full py-2 px-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-              >
-                <LogIn className="w-3.5 h-3.5 text-amber-400" />
-                <span>Sign In</span>
-              </button>
-            </SignInButton>
+        <div className="grid grid-cols-2 gap-2">
+          <SignInButton mode="modal">
+            <button
+              type="button"
+              onClick={() => {
+                hapticLight();
+                closeMenu();
+              }}
+              className="w-full py-2 px-3 rounded-xl bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-750 text-neutral-900 dark:text-white border border-neutral-200 dark:border-neutral-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <LogIn className="w-3.5 h-3.5 text-amber-500" />
+              <span>Sign In</span>
+            </button>
+          </SignInButton>
 
-            <SignUpButton mode="modal">
-              <button
-                type="button"
-                onClick={() => {
-                  hapticMedium();
-                  closeMenu();
-                }}
-                className="w-full py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 text-xs font-black flex items-center justify-center gap-1.5 transition-all shadow-sm cursor-pointer"
-              >
-                <UserPlus className="w-3.5 h-3.5" />
-                <span>Sign Up</span>
-              </button>
-            </SignUpButton>
-          </div>
+          <SignUpButton mode="modal">
+            <button
+              type="button"
+              onClick={() => {
+                hapticMedium();
+                closeMenu();
+              }}
+              className="w-full py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+            >
+              <UserPlus className="w-3.5 h-3.5" />
+              <span>Sign Up</span>
+            </button>
+          </SignUpButton>
         </div>
       </SignedOut>
 
       <SignedIn>
         <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center gap-2.5 min-w-0">
             <UserButton afterSignOutUrl="/" userProfileMode="modal" />
             <div className="min-w-0">
-              <div className="text-xs font-bold text-white truncate">
-                {authUser?.fullName || authUser?.email || 'Authenticated User'}
+              <div className="text-xs font-semibold text-neutral-900 dark:text-white truncate">
+                {authUser?.fullName || authUser?.email || 'Account'}
               </div>
-              <div className="text-[10px] text-neutral-400 truncate flex items-center gap-1">
+              <div className="text-[10px] text-neutral-500 dark:text-neutral-400 truncate flex items-center gap-1">
                 {isOwner ? (
-                  <span className="text-amber-400 font-semibold flex items-center gap-0.5">
-                    <ShieldCheck className="w-3 h-3" /> Creator Owner
+                  <span className="text-amber-500 font-medium flex items-center gap-0.5">
+                    <ShieldCheck className="w-3 h-3" /> Creator
                   </span>
                 ) : (
-                  <span>Verified Member</span>
+                  <span>Member</span>
                 )}
               </div>
             </div>
@@ -332,9 +308,9 @@ export const ClerkDrawerAuthCard: React.FC = () => {
                 closeMenu();
                 setCurrentTab('admin');
               }}
-              className="px-2.5 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-bold shrink-0 cursor-pointer"
+              className="px-2.5 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-xs font-bold shrink-0 cursor-pointer"
             >
-              Dashboard
+              Admin
             </button>
           )}
         </div>

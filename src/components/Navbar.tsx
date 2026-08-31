@@ -5,6 +5,7 @@ import { ActiveTab } from '../types';
 import { hapticLight, hapticSelection, hapticMedium } from '../utils/haptics';
 import { ClerkNavAuthControls } from './ClerkAuthControls';
 import { CINEMATIC_EASE, SMOOTH_EASE } from '../utils/motion';
+import { getThemePreset } from '../utils/themePresets';
 import { 
   Search, 
   Menu, 
@@ -29,8 +30,12 @@ export const Navbar: React.FC = () => {
     isMenuOpen,
     toggleMenu,
     closeMenu,
-    branding
+    branding,
+    theme
   } = useStore();
+
+  const activePreset = getThemePreset(theme);
+  const themeAccentHex = activePreset?.accentHex || '#f59e0b';
 
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -73,7 +78,7 @@ export const Navbar: React.FC = () => {
       >
         <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3 sm:gap-6 transition-all duration-300 ${isScrolled ? 'h-14 sm:h-15' : 'h-16'}`}>
           
-          {/* High-Definition Crisp ABM Monogram Logo & Brand */}
+          {/* High-Definition Crisp ABM Monogram Logo & Brand with Moving Neon Light Border */}
           <div className="flex items-center gap-3 min-w-0 shrink-0">
             <motion.button 
               id="brand-logo-btn"
@@ -86,29 +91,53 @@ export const Navbar: React.FC = () => {
                 closeMenu();
               }}
               title={`${branding.siteName || 'Arjun Bharti Mina'} (${logoText})`}
-              className="flex items-center text-left group focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 rounded-2xl p-1 -ml-1 cursor-pointer"
+              className="flex items-center text-left group focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded-2xl p-0.5 cursor-pointer"
             >
-              {/* Crisp Stylized ABM Vector Monogram / Custom Logo */}
-              <div className="relative px-3 sm:px-3.5 py-1.5 h-10 sm:h-11 rounded-xl bg-white dark:bg-neutral-900 text-neutral-950 dark:text-white border-2 border-neutral-200 dark:border-neutral-800 shadow-sm flex items-center justify-center gap-2 group-hover:border-neutral-900 dark:group-hover:border-white group-hover:shadow-md transition-all duration-300 shrink-0">
-                {customLogoUrl ? (
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg overflow-hidden flex items-center justify-center shrink-0 bg-neutral-100 dark:bg-neutral-800">
-                    <img 
-                      src={customLogoUrl} 
-                      alt="Site Logo" 
-                      className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                ) : (
-                  <div className="w-6 h-6 rounded-md bg-neutral-950 dark:bg-white flex items-center justify-center shrink-0 group-hover:rotate-6 transition-transform duration-300">
-                    <svg viewBox="0 0 100 100" className="w-4 h-4">
-                      <polygon points="50,8 92,50 50,92 8,50" fill="none" stroke="currentColor" className="text-white dark:text-neutral-950" strokeWidth="7" />
-                      <circle cx="50" cy="50" r="15" fill="currentColor" className="text-rose-500" />
-                    </svg>
-                  </div>
-                )}
-                <span className="font-display font-black tracking-widest text-sm sm:text-base text-neutral-950 dark:text-white font-mono select-none">
-                  {logoText}
-                </span>
+              {/* Outer Container with Continuous Moving Neon Light Border */}
+              <div className="relative p-[1.5px] rounded-xl overflow-hidden shadow-xs group-hover:shadow-md transition-shadow duration-300">
+                {/* Moving Neon Light Line (Primary Vivid Beam) */}
+                <div 
+                  className="absolute -inset-[150%] animate-neon-spin pointer-events-none opacity-90 dark:opacity-100 transition-colors duration-300"
+                  style={{
+                    background: `conic-gradient(from 0deg, transparent 0deg, transparent 240deg, var(--color-accent-glow, ${themeAccentHex}40) 270deg, var(--color-accent-primary, ${themeAccentHex}) 310deg, #ffffff 345deg, #ffffff 352deg, var(--color-accent-primary, ${themeAccentHex}) 360deg)`,
+                  }}
+                  aria-hidden="true"
+                />
+
+                {/* Moving Neon Light Glow (Soft Outer Bloom) */}
+                <div 
+                  className="absolute -inset-[150%] animate-neon-spin pointer-events-none blur-[4px] opacity-70 dark:opacity-90 transition-colors duration-300"
+                  style={{
+                    background: `conic-gradient(from 0deg, transparent 0deg, transparent 250deg, var(--color-accent-glow, ${themeAccentHex}30) 280deg, var(--color-accent-primary, ${themeAccentHex}) 320deg, #ffffff 345deg, #ffffff 355deg, var(--color-accent-primary, ${themeAccentHex}) 360deg)`,
+                  }}
+                  aria-hidden="true"
+                />
+
+                {/* Base Border Track */}
+                <div className="absolute inset-0 rounded-xl bg-neutral-200/50 dark:bg-neutral-800/60 pointer-events-none" />
+
+                {/* Inner Logo Content Card */}
+                <div className="relative z-10 px-3 sm:px-3.5 py-1.5 h-10 sm:h-11 rounded-[10.5px] bg-white dark:bg-neutral-900 text-neutral-950 dark:text-white flex items-center justify-center gap-2 transition-colors duration-300 shrink-0">
+                  {customLogoUrl ? (
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg overflow-hidden flex items-center justify-center shrink-0 bg-neutral-100 dark:bg-neutral-800">
+                      <img 
+                        src={customLogoUrl} 
+                        alt="Site Logo" 
+                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-6 h-6 rounded-md bg-neutral-950 dark:bg-white flex items-center justify-center shrink-0 group-hover:rotate-6 transition-transform duration-300">
+                      <svg viewBox="0 0 100 100" className="w-4 h-4">
+                        <polygon points="50,8 92,50 50,92 8,50" fill="none" stroke="currentColor" className="text-white dark:text-neutral-950" strokeWidth="7" />
+                        <circle cx="50" cy="50" r="15" fill="currentColor" className="text-rose-500" />
+                      </svg>
+                    </div>
+                  )}
+                  <span className="font-display font-black tracking-widest text-sm sm:text-base text-neutral-950 dark:text-white font-mono select-none">
+                    {logoText}
+                  </span>
+                </div>
               </div>
             </motion.button>
           </div>

@@ -4,10 +4,14 @@ import { useStore } from '../context/StoreContext';
 import { ActiveTab } from '../types';
 import { hapticSelection, hapticMedium } from '../utils/haptics';
 import { SMOOTH_EASE } from '../utils/motion';
+import { getThemePreset } from '../utils/themePresets';
 import { Sparkles, Music2, FileText, BookOpen, LayoutGrid } from 'lucide-react';
 
 export const MobileBottomNav: React.FC = () => {
-  const { currentTab, setCurrentTab, isMenuOpen, toggleMenu, closeMenu } = useStore();
+  const { currentTab, setCurrentTab, isMenuOpen, toggleMenu, closeMenu, theme } = useStore();
+
+  const activePreset = getThemePreset(theme);
+  const themeAccentHex = activePreset?.accentHex || '#f59e0b';
 
   const mainTabs: { id: ActiveTab; label: string; icon: React.ReactNode }[] = [
     { id: 'home', label: 'Home', icon: <Sparkles className="w-5 h-5" /> },
@@ -42,24 +46,20 @@ export const MobileBottomNav: React.FC = () => {
               }}
               className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-colors duration-200 cursor-pointer select-none ${
                 isActive 
-                  ? 'text-amber-600 dark:text-amber-400 font-bold' 
+                  ? 'font-bold' 
                   : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
               }`}
+              style={{
+                color: isActive ? themeAccentHex : undefined
+              }}
             >
               <div className="relative">
                 <motion.div
-                  animate={{ scale: isActive ? 1.08 : 1 }}
+                  animate={{ scale: isActive ? 1.1 : 1 }}
                   transition={{ duration: 0.2 }}
                 >
                   {tab.icon}
                 </motion.div>
-                {isActive && (
-                  <motion.span 
-                    layoutId="mobileNavActiveDot"
-                    transition={{ type: 'spring', stiffness: 450, damping: 30 }}
-                    className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-amber-500 rounded-full shadow-xs shadow-amber-500" 
-                  />
-                )}
               </div>
               <span className={`text-[10px] tracking-tight mt-0.5 transition-all ${isActive ? 'font-bold scale-105' : 'font-medium'}`}>
                 {tab.label}
@@ -81,25 +81,21 @@ export const MobileBottomNav: React.FC = () => {
           }}
           className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-colors duration-200 cursor-pointer select-none ${
             isMenuOpen || isSecondaryTabActive
-              ? 'text-amber-600 dark:text-amber-400 font-bold' 
+              ? 'font-bold' 
               : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
           }`}
+          style={{
+            color: (isMenuOpen || isSecondaryTabActive) ? themeAccentHex : undefined
+          }}
           aria-label="Toggle Full Menu & Sections"
         >
           <div className="relative">
             <motion.div
-              animate={{ scale: isMenuOpen || isSecondaryTabActive ? 1.08 : 1 }}
+              animate={{ scale: isMenuOpen || isSecondaryTabActive ? 1.1 : 1 }}
               transition={{ duration: 0.2 }}
             >
               <LayoutGrid className="w-5 h-5" />
             </motion.div>
-            {(isMenuOpen || isSecondaryTabActive) && (
-              <motion.span 
-                layoutId="mobileNavActiveDot"
-                transition={{ type: 'spring', stiffness: 450, damping: 30 }}
-                className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-amber-500 rounded-full shadow-xs shadow-amber-500" 
-              />
-            )}
           </div>
           <span className={`text-[10px] tracking-tight mt-0.5 transition-all ${isMenuOpen || isSecondaryTabActive ? 'font-bold scale-105' : 'font-medium'}`}>
             {isMenuOpen ? 'Close' : 'Menu'}
@@ -109,3 +105,4 @@ export const MobileBottomNav: React.FC = () => {
     </nav>
   );
 };
+
