@@ -29,7 +29,7 @@ import { BookEditorialCard } from '../books/BookEditorialCard';
 import { BookGridCard } from '../books/BookGridCard';
 
 export const BooksView: React.FC = () => {
-  const { isOwner, authUser, books, openShare, setSelectedBookId, showToast, updateBook, addBook } = useStore();
+  const { isOwner, authUser, books, openShare, setSelectedBookId, openBookReader, showToast, updateBook, addBook } = useStore();
   const canManage = isOwner || !!authUser;
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -263,6 +263,7 @@ export const BooksView: React.FC = () => {
         activeBookId={activeEmbedBookId}
         onSelectBook={(id) => setActiveEmbedBookId(id)}
         onInspectBook={(id) => setSelectedBookId(id)}
+        onReadFullMode={(id) => openBookReader(id)}
         onDownloadSample={handleDownloadSample}
         onShareBook={handleShare}
       />

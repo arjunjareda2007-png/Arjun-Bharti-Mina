@@ -29,7 +29,7 @@ import {
 } from '../utils/googleBooksUtils';
 
 export const BookDetailModal: React.FC = () => {
-  const { books, selectedBookId, setSelectedBookId, openShare, showToast } = useStore();
+  const { books, selectedBookId, setSelectedBookId, openBookReader, openShare, showToast } = useStore();
   const [activeChapterIndex, setActiveChapterIndex] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<'overview' | 'reader' | 'details'>('overview');
   const [isIframeExpanded, setIsIframeExpanded] = useState<boolean>(false);
@@ -134,6 +134,18 @@ export const BookDetailModal: React.FC = () => {
 
           <div className="flex items-center gap-2">
             <button
+              type="button"
+              onClick={() => {
+                setSelectedBookId(null);
+                openBookReader(book.id);
+              }}
+              className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+              title="Open book in distraction-free full mode"
+            >
+              <Maximize2 className="w-3.5 h-3.5" />
+              <span>Read (Full Mode)</span>
+            </button>
+            <button
               onClick={handleShare}
               className="p-2 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-300 transition-colors cursor-pointer"
               title="Share Book"
@@ -173,7 +185,7 @@ export const BookDetailModal: React.FC = () => {
             }`}
           >
             <BookOpen className="w-3.5 h-3.5" />
-            <span>Google Play Reader Embed</span>
+            <span>Interactive Stream Embed</span>
           </button>
           <button
             type="button"
@@ -266,11 +278,14 @@ export const BookDetailModal: React.FC = () => {
                   <div className="flex flex-wrap items-center gap-3 pt-2">
                     <button
                       type="button"
-                      onClick={() => setActiveTab('reader')}
+                      onClick={() => {
+                        setSelectedBookId(null);
+                        openBookReader(book.id);
+                      }}
                       className="px-5 py-2.5 rounded-full bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs flex items-center gap-2 shadow-lg active:scale-95 transition-all cursor-pointer"
                     >
                       <BookOpen className="w-3.5 h-3.5" />
-                      <span>Live Embedded Reader</span>
+                      <span>Read in Full Mode</span>
                     </button>
 
                     {storeUrl && (
@@ -280,7 +295,7 @@ export const BookDetailModal: React.FC = () => {
                         rel="noreferrer"
                         className="px-5 py-2.5 rounded-full bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg hover:opacity-90 active:scale-95 transition-all"
                       >
-                        <span>Google Play Books Store</span>
+                        <span>Google Play Store</span>
                         <ExternalLink className="w-3.5 h-3.5" />
                       </a>
                     )}
@@ -291,7 +306,7 @@ export const BookDetailModal: React.FC = () => {
                       className="px-4 py-2.5 rounded-full border border-neutral-300 dark:border-neutral-700 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors flex items-center gap-2 cursor-pointer"
                     >
                       <Download className="w-3.5 h-3.5 text-amber-500" />
-                      <span>Free Sample Preview</span>
+                      <span>Download Sample (.txt)</span>
                     </button>
                   </div>
 
@@ -373,11 +388,14 @@ export const BookDetailModal: React.FC = () => {
                     <div className="pt-2 flex items-center gap-2">
                       <button
                         type="button"
-                        onClick={handleDownloadSample}
-                        className="px-3.5 py-1.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                        onClick={() => {
+                          setSelectedBookId(null);
+                          openBookReader(book.id);
+                        }}
+                        className="px-3.5 py-1.5 rounded-full bg-amber-500 text-neutral-950 text-xs font-bold flex items-center gap-1.5 hover:bg-amber-400 transition-colors cursor-pointer shadow-xs"
                       >
-                        <Download className="w-3 h-3" />
-                        <span>Download Chapter Excerpt</span>
+                        <BookOpen className="w-3 h-3" />
+                        <span>Read Chapter in Full Mode</span>
                       </button>
                     </div>
                   </div>
@@ -409,20 +427,23 @@ export const BookDetailModal: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => setIsIframeExpanded(!isIframeExpanded)}
-                    className="p-2 rounded-xl bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-50 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                    onClick={() => {
+                      setSelectedBookId(null);
+                      openBookReader(book.id);
+                    }}
+                    className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
                   >
-                    {isIframeExpanded ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
-                    <span>{isIframeExpanded ? 'Normal View' : 'Expand Height'}</span>
+                    <Maximize2 className="w-3.5 h-3.5" />
+                    <span>Launch Full Mode Reader</span>
                   </button>
 
                   <a
                     href={playReaderUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs flex items-center gap-1.5 transition-colors"
+                    className="px-3.5 py-2 rounded-xl bg-neutral-200 dark:bg-neutral-800 hover:bg-neutral-300 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-200 font-semibold text-xs flex items-center gap-1.5 transition-colors"
                   >
-                    <span>Full Google Web Reader</span>
+                    <span>Google Web Reader</span>
                     <ExternalLink className="w-3 h-3" />
                   </a>
                 </div>

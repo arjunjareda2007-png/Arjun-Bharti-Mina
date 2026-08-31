@@ -66,6 +66,9 @@ interface StoreContextType {
   setSelectedLyricId: (id: string | null) => void;
   selectedBookId: string | null;
   setSelectedBookId: (id: string | null) => void;
+  activeReadingBookId: string | null;
+  openBookReader: (bookId: string) => void;
+  closeBookReader: () => void;
 
   // Data Entities
   profile: UserProfile;
@@ -201,6 +204,7 @@ interface StoreContextType {
   deleteLyric: (id: string) => Promise<void>;
 
   addGalleryItem: (item: GalleryItem) => Promise<void>;
+  bulkAddGalleryItems: (items: GalleryItem[]) => Promise<void>;
   updateGalleryItem: (item: GalleryItem) => Promise<void>;
   deleteGalleryItem: (id: string) => Promise<void>;
 
@@ -283,6 +287,15 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [selectedLyricId, setSelectedLyricId] = useState<string | null>(null);
   const [selectedBookId, setSelectedBookId] = useState<string | null>(null);
+  const [activeReadingBookId, setActiveReadingBookId] = useState<string | null>(null);
+
+  const openBookReader = useCallback((bookId: string) => {
+    setActiveReadingBookId(bookId);
+  }, []);
+
+  const closeBookReader = useCallback(() => {
+    setActiveReadingBookId(null);
+  }, []);
 
   // Toast
   const [toast, setToast] = useState<NotificationToast | null>(null);
@@ -1388,6 +1401,15 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     showToast(`Image "${item.title}" added to gallery`);
   };
 
+  const bulkAddGalleryItems = async (items: GalleryItem[]) => {
+    if (!items || items.length === 0) return;
+    setGallery(prev => [...items, ...prev]);
+    for (const item of items) {
+      await firestoreService.saveDocument('gallery', item.id, item);
+    }
+    showToast(`Successfully added ${items.length} images to gallery!`);
+  };
+
   const updateGalleryItem = async (item: GalleryItem) => {
     setGallery(prev => prev.map(g => g.id === item.id ? item : g));
     await firestoreService.saveDocument('gallery', item.id, item);
@@ -1691,6 +1713,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         setSelectedLyricId,
         selectedBookId,
         setSelectedBookId,
+        activeReadingBookId,
+        openBookReader,
+        closeBookReader,
 
         profile,
         songs,
@@ -1812,6 +1837,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         deleteLyric,
 
         addGalleryItem,
+        bulkAddGalleryItems,
         updateGalleryItem,
         deleteGalleryItem,
 

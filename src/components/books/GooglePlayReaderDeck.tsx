@@ -30,6 +30,7 @@ interface GooglePlayReaderDeckProps {
   activeBookId: string;
   onSelectBook: (bookId: string) => void;
   onInspectBook: (bookId: string) => void;
+  onReadFullMode?: (bookId: string) => void;
   onDownloadSample: (book: BookItem) => void;
   onShareBook: (book: BookItem) => void;
 }
@@ -39,6 +40,7 @@ export const GooglePlayReaderDeck: React.FC<GooglePlayReaderDeckProps> = ({
   activeBookId,
   onSelectBook,
   onInspectBook,
+  onReadFullMode,
   onDownloadSample,
   onShareBook
 }) => {
@@ -234,25 +236,31 @@ export const GooglePlayReaderDeck: React.FC<GooglePlayReaderDeckProps> = ({
         {/* Reader Deck Bottom Actions */}
         <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
           <div className="flex flex-wrap items-center gap-2.5">
+            {onReadFullMode && (
+              <button
+                type="button"
+                onClick={() => {
+                  hapticSelection();
+                  onReadFullMode(activeBook.id);
+                }}
+                className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs flex items-center gap-2 cursor-pointer transition-all shadow-md active:scale-95"
+              >
+                <BookOpen className="w-3.5 h-3.5" />
+                <span>Read in Full Mode</span>
+              </button>
+            )}
+
             <button
               type="button"
-              onClick={() => onInspectBook(activeBook.id)}
+              onClick={() => {
+                hapticSelection();
+                onInspectBook(activeBook.id);
+              }}
               className="px-4 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-bold text-xs flex items-center gap-2 cursor-pointer transition-colors border border-neutral-700/60"
             >
               <Eye className="w-3.5 h-3.5 text-amber-400" />
-              <span>Full Book Synopsis & Chapters</span>
+              <span>Synopsis & Chapters</span>
             </button>
-
-            <a
-              href={readerUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="px-4 py-2.5 rounded-xl bg-neutral-850 hover:bg-neutral-800 text-neutral-200 hover:text-white font-semibold text-xs flex items-center gap-2 cursor-pointer transition-colors border border-neutral-700/60"
-            >
-              <BookOpen className="w-3.5 h-3.5 text-blue-400" />
-              <span>Open Web Reader</span>
-              <ExternalLink className="w-3 h-3" />
-            </a>
 
             <button
               type="button"
@@ -260,7 +268,7 @@ export const GooglePlayReaderDeck: React.FC<GooglePlayReaderDeckProps> = ({
               className="px-4 py-2.5 rounded-xl bg-neutral-850 hover:bg-neutral-800 text-neutral-300 hover:text-white font-medium text-xs flex items-center gap-1.5 cursor-pointer transition-colors border border-neutral-700/60"
             >
               <Download className="w-3.5 h-3.5 text-amber-400" />
-              <span>Download Excerpt (.txt)</span>
+              <span>Sample Excerpt (.txt)</span>
             </button>
           </div>
 

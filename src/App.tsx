@@ -15,6 +15,7 @@ import { SongDetailModal } from './components/SongDetailModal';
 import { ProjectDetailModal } from './components/ProjectDetailModal';
 import { LyricDetailModal } from './components/LyricDetailModal';
 import { BookDetailModal } from './components/BookDetailModal';
+import { BookFullReadModeModal } from './components/books/BookFullReadModeModal';
 import { AuthModal } from './components/AuthModal';
 import { ToastContainer } from './components/ToastContainer';
 import { ImageCropperModal } from './components/ImageCropperModal';
@@ -123,6 +124,7 @@ const MainLayout: React.FC = () => {
         <ProjectDetailModal />
         <LyricDetailModal />
         <BookDetailModal />
+        <BookFullReadModeModal />
         <LightboxModal />
         <ShareModal />
         <AuthModal />
