@@ -673,7 +673,7 @@ export const HomeView: React.FC = () => {
           <div className="flex items-end justify-between">
             <div>
               <span className="text-xs font-mono uppercase tracking-wider text-neutral-500 dark:text-neutral-400 font-semibold block">
-                Publications & Literature
+                Authored Books
               </span>
               <h2 className="text-2xl sm:text-3xl font-display font-bold text-neutral-950 dark:text-white">
                 Books by Arjun Bharti Mina

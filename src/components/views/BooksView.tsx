@@ -29,7 +29,8 @@ import { BookEditorialCard } from '../books/BookEditorialCard';
 import { BookGridCard } from '../books/BookGridCard';
 
 export const BooksView: React.FC = () => {
-  const { books, openShare, setSelectedBookId, showToast, updateBook, addBook } = useStore();
+  const { isOwner, authUser, books, openShare, setSelectedBookId, showToast, updateBook, addBook } = useStore();
+  const canManage = isOwner || !!authUser;
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [viewMode, setViewMode] = useState<'showcase' | 'grid'>('showcase');
@@ -183,82 +184,64 @@ export const BooksView: React.FC = () => {
   return (
     <div id="books-view" className="space-y-10 max-w-6xl mx-auto pb-16 px-4 sm:px-6">
       
-      {/* 1. HERO & EDITORIAL HEADER */}
+      {/* 1. HERO & HEADER */}
       <motion.div 
         initial="hidden"
         animate="visible"
         variants={sectionReveal}
-        className="space-y-4 border-b border-neutral-200 dark:border-neutral-800 pb-8"
+        className="space-y-3 border-b border-neutral-200 dark:border-neutral-800 pb-6"
       >
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="px-3 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-xs">
-            <BookMarked className="w-3.5 h-3.5" />
-            <span>Literature & Publications</span>
-          </span>
-          <span className="px-3 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-xs font-mono font-bold flex items-center gap-1.5 shadow-xs">
-            <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
-              <path d="M3.609 1.814L13.792 12 3.61 22.186a2.38 2.38 0 0 1-.61-.755L3 21.43V2.57l.001-.001c.14-.306.353-.574.608-.755zm1.536-1.537l9.36 5.405-2.713 2.713-6.647-8.118zm0 23.446l6.647-8.118 2.713 2.713-9.36 5.405zm14.887-10.74l-4.134 2.387-2.92-2.92 2.92-2.92 4.134 2.387c.808.467.808 1.599 0 2.066z"/>
-            </svg>
-            <span>Google Play Books Verified</span>
-          </span>
-          <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-mono font-bold flex items-center gap-1.5 shadow-xs">
-            <Globe className="w-3.5 h-3.5" />
-            <span>Live Interactive Web Reader</span>
-          </span>
-          <span className="text-xs font-mono text-neutral-500 dark:text-neutral-400 ml-auto hidden sm:inline-block">
-            {books.length} Published Books
-          </span>
-        </div>
-
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-          <div className="space-y-2">
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-display font-extrabold text-neutral-950 dark:text-white tracking-tight leading-[1.1]">
-              Authored Books & Primers
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-5">
+          <div className="space-y-1.5">
+            <h1 className="text-3xl sm:text-5xl font-display font-extrabold text-neutral-950 dark:text-white tracking-tight">
+              Books
             </h1>
             <p className="text-sm sm:text-base text-neutral-600 dark:text-neutral-400 max-w-2xl leading-relaxed">
-              Explore official guidebooks, engineering reference primers, and poetic blueprints authored by Arjun Bharti Mina — complete with live Google Play Books reader embeds, ISBN catalog specs, and chapter excerpts.
+              Authored works, guidebooks, and blueprints by Arjun Bharti Mina with interactive reading mode and sample previews.
             </p>
           </div>
 
-          {/* Action Toolbar */}
-          <div className="flex flex-wrap items-center gap-2.5">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.96 }}
-              type="button"
-              onClick={handleSyncAllFromGoogleBooks}
-              disabled={isSyncingAll}
-              className="px-3.5 py-2.5 rounded-2xl bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-200 text-xs font-bold flex items-center gap-1.5 border border-neutral-300 dark:border-neutral-700 transition-colors shadow-xs cursor-pointer disabled:opacity-50"
-              title="Sync live metadata and ratings for all books via Google Books API"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${isSyncingAll ? 'animate-spin text-amber-500' : ''}`} />
-              <span>{isSyncingAll ? 'Syncing...' : 'Sync Catalog'}</span>
-            </motion.button>
+          {/* Owner-Only Management Actions */}
+          {canManage && (
+            <div className="flex flex-wrap items-center gap-2.5">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.96 }}
+                type="button"
+                onClick={handleSyncAllFromGoogleBooks}
+                disabled={isSyncingAll}
+                className="px-3.5 py-2.5 rounded-2xl bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-200 text-xs font-bold flex items-center gap-1.5 border border-neutral-300 dark:border-neutral-700 transition-colors shadow-xs cursor-pointer disabled:opacity-50"
+                title="Sync live metadata from Google Play Books"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isSyncingAll ? 'animate-spin text-amber-500' : ''}`} />
+                <span>{isSyncingAll ? 'Syncing...' : 'Sync Catalog'}</span>
+              </motion.button>
 
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.96 }}
-              type="button"
-              onClick={() => {
-                hapticLight();
-                setShowLiveInspector(!showLiveInspector);
-              }}
-              className={`px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 border transition-all shadow-sm cursor-pointer ${
-                showLiveInspector
-                  ? 'bg-amber-500 text-neutral-950 border-amber-500 font-extrabold'
-                  : 'bg-white dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 border-neutral-300 dark:border-neutral-700 hover:border-amber-500'
-              }`}
-            >
-              <LinkIcon className="w-3.5 h-3.5" />
-              <span>{showLiveInspector ? 'Hide Link Fetcher' : 'Fetch Book from Link'}</span>
-            </motion.button>
-          </div>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.96 }}
+                type="button"
+                onClick={() => {
+                  hapticLight();
+                  setShowLiveInspector(!showLiveInspector);
+                }}
+                className={`px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 border transition-all shadow-sm cursor-pointer ${
+                  showLiveInspector
+                    ? 'bg-amber-500 text-neutral-950 border-amber-500 font-extrabold'
+                    : 'bg-white dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 border-neutral-300 dark:border-neutral-700 hover:border-amber-500'
+                }`}
+              >
+                <LinkIcon className="w-3.5 h-3.5" />
+                <span>{showLiveInspector ? 'Close Link Tool' : 'Fetch from Google Play Link'}</span>
+              </motion.button>
+            </div>
+          )}
         </div>
       </motion.div>
 
-      {/* 2. GOOGLE PLAY BOOKS LINK & DETAILS FETCHER DRAWER */}
+      {/* 2. GOOGLE PLAY BOOKS LINK & DETAILS FETCHER DRAWER (OWNER ONLY) */}
       <AnimatePresence>
-        {showLiveInspector && (
+        {canManage && showLiveInspector && (
           <motion.div 
             initial={{ opacity: 0, height: 0, y: -10 }}
             animate={{ opacity: 1, height: 'auto', y: 0 }}

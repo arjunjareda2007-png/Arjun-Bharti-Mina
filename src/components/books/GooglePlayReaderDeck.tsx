@@ -74,17 +74,13 @@ export const GooglePlayReaderDeck: React.FC<GooglePlayReaderDeckProps> = ({
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* Header Bar */}
-      <div className="p-5 sm:p-7 border-b border-neutral-800/80 relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-neutral-900/50 backdrop-blur-sm">
+      <div className="p-5 sm:p-6 border-b border-neutral-800/80 relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-neutral-900/50 backdrop-blur-sm">
         <div className="flex items-start sm:items-center gap-3.5">
           <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/20 border border-amber-500/30 text-amber-400 flex items-center justify-center font-bold shadow-inner shrink-0">
             <BookOpen className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-400 bg-amber-400/10 px-2.5 py-0.5 rounded-full border border-amber-400/20 flex items-center gap-1">
-                <Sparkles className="w-3 h-3" />
-                <span>Google Play Books Live Deck</span>
-              </span>
               {activeBook.rating && (
                 <span className="text-[10px] font-mono text-yellow-400 flex items-center gap-1 bg-yellow-500/10 px-2 py-0.5 rounded-md border border-yellow-500/20">
                   <Star className="w-3 h-3 fill-current" />
@@ -95,11 +91,11 @@ export const GooglePlayReaderDeck: React.FC<GooglePlayReaderDeckProps> = ({
                 ID: {volumeId}
               </span>
             </div>
-            <h2 className="text-lg sm:text-2xl font-display font-extrabold text-white mt-1">
+            <h2 className="text-lg sm:text-2xl font-display font-extrabold text-white mt-0.5">
               {activeBook.title}
             </h2>
             {activeBook.subtitle && (
-              <p className="text-xs text-amber-300/80 font-medium line-clamp-1">
+              <p className="text-xs text-amber-300/80 font-medium line-clamp-1 mt-0.5">
                 {activeBook.subtitle}
               </p>
             )}
