@@ -4,6 +4,9 @@
  */
 
 export type HapticPattern = 
+  | 'micro'
+  | 'tick'
+  | 'detent'
   | 'selection'
   | 'light'
   | 'medium'
@@ -12,18 +15,23 @@ export type HapticPattern =
   | 'warning'
   | 'error'
   | 'beat'
+  | 'boundary'
   | 'double';
 
 const HAPTIC_PATTERNS: Record<HapticPattern, number | number[]> = {
-  selection: 8,
-  light: 15,
-  medium: 30,
-  heavy: 55,
-  success: [12, 40, 20],
-  warning: [25, 50, 25],
-  error: [40, 50, 40, 50, 40],
-  beat: [18, 30, 24],
-  double: [15, 60, 15]
+  micro: 3,
+  tick: 4,
+  detent: 5,
+  selection: 6,
+  light: 12,
+  medium: 25,
+  heavy: 45,
+  boundary: 8,
+  success: [8, 30, 15],
+  warning: [20, 40, 20],
+  error: [30, 40, 30, 40, 30],
+  beat: [12, 25, 18],
+  double: [10, 50, 10]
 };
 
 export const triggerHaptic = (pattern: HapticPattern = 'light') => {
@@ -37,6 +45,9 @@ export const triggerHaptic = (pattern: HapticPattern = 'light') => {
   }
 };
 
+export const hapticTick = () => triggerHaptic('tick');
+export const hapticDetent = () => triggerHaptic('detent');
+export const hapticBoundary = () => triggerHaptic('boundary');
 export const hapticSelection = () => triggerHaptic('selection');
 export const hapticLight = () => triggerHaptic('light');
 export const hapticMedium = () => triggerHaptic('medium');

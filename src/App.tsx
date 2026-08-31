@@ -19,6 +19,7 @@ import { AuthModal } from './components/AuthModal';
 import { ToastContainer } from './components/ToastContainer';
 import { ImageCropperModal } from './components/ImageCropperModal';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
+import { ScrollToTopButton } from './components/ScrollToTopButton';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { CustomCursor } from './components/motion/CustomCursor';
 import { CINEMATIC_EASE } from './utils/motion';
@@ -141,6 +142,9 @@ const MainLayout: React.FC = () => {
             outputHeight={cropperOptions.outputHeight}
           />
         )}
+
+        {/* Back to Top Quick Action */}
+        <ScrollToTopButton />
 
         {/* Mobile Persistent Navigation */}
         <MobileBottomNav />
