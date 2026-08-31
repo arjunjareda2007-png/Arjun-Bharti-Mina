@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useStore } from '../context/StoreContext';
-import { ActiveTab, ThemeMode } from '../types';
+import { ActiveTab } from '../types';
 import { THEME_PRESETS } from '../utils/themePresets';
-import { hapticSelection, hapticLight, hapticMedium } from '../utils/haptics';
+import { hapticSelection, hapticLight } from '../utils/haptics';
 import { ClerkDrawerAuthCard } from './ClerkAuthControls';
 import { 
   Sparkles, 
@@ -17,13 +17,8 @@ import {
   Mail, 
   Palette,
   ChevronDown,
-  ShieldCheck, 
-  Lock, 
-  Download, 
   X, 
-  ChevronRight,
-  Search,
-  ExternalLink
+  Search
 } from 'lucide-react';
 
 export const MenuDrawer: React.FC = () => {
@@ -34,15 +29,11 @@ export const MenuDrawer: React.FC = () => {
     setCurrentTab, 
     theme, 
     setTheme, 
-    isOwner, 
-    authUser, 
     showToast, 
     openSearch 
   } = useStore();
 
   const [showThemePicker, setShowThemePicker] = useState(false);
-
-  const isAdminLoggedIn = isOwner || !!authUser;
 
   // Close drawer on Escape key
   React.useEffect(() => {
@@ -69,28 +60,6 @@ export const MenuDrawer: React.FC = () => {
   if (!isMenuOpen) {
     return null;
   }
-
-  const handlePwaInstall = () => {
-    hapticLight();
-    const promptEvent = (window as any).deferredPwaPrompt;
-    if (promptEvent) {
-      promptEvent.prompt();
-      promptEvent.userChoice.then((choice: any) => {
-        if (choice.outcome === 'accepted') {
-          showToast('App installed successfully!', 'success');
-        }
-      });
-    } else {
-      showToast('Install via Chrome: Click Chrome menu (⋮) -> "Install App" or "Add to Home screen"', 'info');
-    }
-  };
-
-  const toggleTheme = () => {
-    hapticLight();
-    const next = theme === 'dark' ? 'light' : 'dark';
-    setTheme(next);
-    showToast(`Switched to ${next === 'dark' ? 'Dark' : 'Light'} mode`, 'info');
-  };
 
   const allSections: { id: ActiveTab; label: string; desc: string; icon: React.ReactNode; badge?: string }[] = [
     { id: 'home', label: 'Home', desc: 'Featured hero, releases, milestones & updates', icon: <Sparkles className="w-5 h-5" /> },
@@ -311,23 +280,6 @@ export const MenuDrawer: React.FC = () => {
                   </div>
                 )}
               </div>
-
-              {/* Install App PWA Button */}
-              <button
-                id="menu-install-pwa-btn"
-                type="button"
-                onClick={() => {
-                  handlePwaInstall();
-                  closeMenu();
-                }}
-                className="w-full p-2.5 rounded-2xl bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-900/90 flex items-center justify-between text-xs font-semibold transition-all hover:scale-[1.01] active:scale-[0.98] cursor-pointer"
-              >
-                <div className="flex items-center gap-2.5">
-                  <Download className="w-4 h-4 text-amber-500" />
-                  <span>Install Web App (PWA)</span>
-                </div>
-                <span className="text-[10px] font-mono text-neutral-400">Add to Phone</span>
-              </button>
             </div>
           </div>
 
