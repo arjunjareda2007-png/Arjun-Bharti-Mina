@@ -432,3 +432,16 @@ export interface AuthUser {
   username?: string | null;
 }
 
+export interface FeaturedIcon {
+  id: string;
+  title: string;
+  redirectUrl: string;
+  iconImage: string;
+  subtitle?: string;
+  badge?: string;
+  displayOrder: number;
+  openInNewTab?: boolean;
+  visible: boolean;
+  category?: string;
+}
+

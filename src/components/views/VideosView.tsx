@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../../context/StoreContext';
 import { VideoItem } from '../../types';
 import { YouTubeVideoShowcase } from '../YouTubeVideoShowcase';
@@ -16,7 +17,8 @@ import {
   Youtube
 } from 'lucide-react';
 import { extractYouTubeId, getYouTubeThumbnail } from '../../utils/youtubeUtils';
-import { hapticBeat, hapticLight } from '../../utils/haptics';
+import { hapticBeat, hapticLight, hapticSelection } from '../../utils/haptics';
+import { CINEMATIC_EASE, slideInLeft, popIn, fadeInUp } from '../../utils/motion';
 
 export const VideosView: React.FC = () => {
   const { videos, openVideoPlayer, profile, youtube, openShare } = useStore();
@@ -51,17 +53,29 @@ export const VideosView: React.FC = () => {
     <div id="videos-view" className="space-y-10 max-w-7xl mx-auto">
       
       {/* 1. Flagship Embedded YouTube Video Showcase */}
-      <YouTubeVideoShowcase 
-        id="videos-page-showcase"
-        initialVideoId={activeShowcaseVideoId}
-        title="Official Music Videos & Studio Cyphers"
-        subtitle="Experience high-definition visuals, 808 breakdowns, and acoustic sessions directly on site"
-        showPlaylist={true}
-        autoPlayOnSelect={true}
-      />
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={slideInLeft}
+      >
+        <YouTubeVideoShowcase 
+          id="videos-page-showcase"
+          initialVideoId={activeShowcaseVideoId}
+          title="Official Music Videos & Studio Cyphers"
+          subtitle="Experience high-definition visuals, 808 breakdowns, and acoustic sessions directly on site"
+          showPlaylist={true}
+          autoPlayOnSelect={true}
+        />
+      </motion.div>
 
       {/* 2. YouTube Channel Banner & Stats */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-neutral-950 text-white border border-neutral-800 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl">
+      <motion.div 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={popIn}
+        className="p-6 sm:p-8 rounded-3xl bg-neutral-950 text-white border border-neutral-800 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl"
+      >
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 border-red-600 flex-shrink-0 bg-neutral-900 shadow-md">
             <img 
@@ -90,7 +104,9 @@ export const VideosView: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3 self-start md:self-center flex-shrink-0">
-          <a
+          <motion.a
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             href={`${channelUrl}?sub_confirmation=1`}
             target="_blank"
             rel="noreferrer"
@@ -99,29 +115,37 @@ export const VideosView: React.FC = () => {
             <Youtube className="w-4 h-4 fill-current" />
             <span>Visit YouTube Channel</span>
             <ExternalLink className="w-3.5 h-3.5" />
-          </a>
+          </motion.a>
         </div>
-      </div>
+      </motion.div>
 
       {/* 3. Filter Bar & Search */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <motion.div 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={fadeInUp}
+        className="flex flex-col md:flex-row md:items-center justify-between gap-4"
+      >
         {/* Category Tabs */}
         <div className="flex items-center gap-1.5 overflow-x-auto py-1">
           {categories.map((cat) => (
-            <button
+            <motion.button
               key={cat}
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
               onClick={() => {
-                hapticLight();
+                hapticSelection();
                 setSelectedCat(cat);
               }}
               className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                 selectedCat === cat
-                  ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 font-bold shadow-sm'
+                  ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 font-bold shadow-xs'
                   : 'bg-neutral-100 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-800'
               }`}
             >
               {cat}
-            </button>
+            </motion.button>
           ))}
         </div>
 
@@ -133,10 +157,10 @@ export const VideosView: React.FC = () => {
             placeholder="Search visual releases..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-xs text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-none focus:border-red-500 transition-colors"
+            className="w-full pl-9 pr-4 py-2 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-xs text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-none focus:border-red-500 transition-colors shadow-xs"
           />
         </div>
-      </div>
+      </motion.div>
 
       {/* 4. Videos Grid */}
       {filteredVideos.length === 0 ? (
@@ -147,127 +171,155 @@ export const VideosView: React.FC = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredVideos.map((video) => {
-            const vidId = video.youtubeEmbedId || extractYouTubeId(video.youtubeUrl) || 'fJ9rUzIMcZQ';
-            const thumb = video.thumbnail || getYouTubeThumbnail(vidId, 'maxres');
+          <AnimatePresence mode="popLayout">
+            {filteredVideos.map((video, idx) => {
+              const vidId = video.youtubeEmbedId || extractYouTubeId(video.youtubeUrl) || 'fJ9rUzIMcZQ';
+              const thumb = video.thumbnail || getYouTubeThumbnail(vidId, 'maxres');
 
-            return (
-              <div
-                key={video.id}
-                className="group rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 hover:border-red-500/50 shadow-sm hover:shadow-2xl transition-all overflow-hidden flex flex-col justify-between"
-              >
-                {/* Video Thumbnail */}
-                <div 
-                  className="relative aspect-video w-full bg-neutral-950 overflow-hidden cursor-pointer"
-                  onClick={() => handlePlayOnSite(video)}
+              return (
+                <motion.div
+                  key={video.id}
+                  initial={{ opacity: 0, y: 20, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.45, delay: (idx % 6) * 0.06, ease: CINEMATIC_EASE }}
+                  whileHover={{ y: -4 }}
+                  className="group rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 hover:border-red-500/50 shadow-xs hover:shadow-2xl transition-all overflow-hidden flex flex-col justify-between"
                 >
-                  <img 
-                    src={thumb} 
-                    alt={video.title} 
-                    referrerPolicy="no-referrer"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = getYouTubeThumbnail(vidId, 'hq');
-                    }}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
-                  />
-                  <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                    <div className="w-12 h-12 rounded-full bg-red-600 text-white flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform">
-                      <Play className="w-5 h-5 fill-current ml-0.5" />
+                  {/* Video Thumbnail */}
+                  <div 
+                    className="relative aspect-video w-full bg-neutral-950 overflow-hidden cursor-pointer"
+                    onClick={() => handlePlayOnSite(video)}
+                  >
+                    <img 
+                      src={thumb} 
+                      alt={video.title} 
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = getYouTubeThumbnail(vidId, 'hq');
+                      }}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-90"
+                    />
+                    <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                      <motion.div 
+                        whileHover={{ scale: 1.15 }}
+                        className="w-12 h-12 rounded-full bg-red-600 text-white flex items-center justify-center shadow-2xl transition-transform"
+                      >
+                        <Play className="w-5 h-5 fill-current ml-0.5" />
+                      </motion.div>
                     </div>
-                  </div>
-                  <span className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded bg-black/80 text-[10px] font-mono text-white">
-                    {video.duration}
-                  </span>
-                  <span className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded bg-black/60 backdrop-blur-sm text-[10px] font-mono text-white">
-                    {video.category}
-                  </span>
-                  {video.featured && (
-                    <span className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded bg-amber-500 text-neutral-950 text-[9px] font-mono font-bold uppercase">
-                      Featured
+                    <span className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded bg-black/80 text-[10px] font-mono text-white">
+                      {video.duration}
                     </span>
-                  )}
-                </div>
-
-                {/* Video Metadata & Actions */}
-                <div className="p-5 space-y-3 flex-1 flex flex-col justify-between">
-                  <div>
-                    <h3 
-                      onClick={() => handlePlayOnSite(video)}
-                      className="text-sm sm:text-base font-bold text-neutral-900 dark:text-neutral-100 group-hover:text-red-500 transition-colors line-clamp-2 cursor-pointer"
-                    >
-                      {video.title}
-                    </h3>
-                    <p className="text-xs text-neutral-500 line-clamp-2 mt-1 leading-relaxed">
-                      {video.description}
-                    </p>
+                    <span className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded bg-black/60 backdrop-blur-sm text-[10px] font-mono text-white">
+                      {video.category}
+                    </span>
+                    {video.featured && (
+                      <span 
+                        className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded text-[9px] font-mono font-bold uppercase text-neutral-950"
+                        style={{ backgroundColor: 'var(--color-accent-primary, #f59e0b)' }}
+                      >
+                        Featured
+                      </span>
+                    )}
                   </div>
 
-                  {/* Action Buttons */}
-                  <div className="space-y-2.5 pt-2 border-t border-neutral-100 dark:border-neutral-800/80">
-                    <div className="flex items-center justify-between text-xs font-mono text-neutral-400">
-                      <span>{video.date}</span>
-                      {video.viewsCount && (
-                        <span className="text-amber-500 font-semibold">{video.viewsCount} views</span>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
+                  {/* Video Metadata & Actions */}
+                  <div className="p-5 space-y-3 flex-1 flex flex-col justify-between">
+                    <div>
+                      <h3 
                         onClick={() => handlePlayOnSite(video)}
-                        className="flex-1 py-1.5 px-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+                        className="text-sm sm:text-base font-bold text-neutral-900 dark:text-neutral-100 group-hover:text-red-500 transition-colors line-clamp-2 cursor-pointer"
                       >
-                        <Play className="w-3.5 h-3.5 fill-current" />
-                        <span>Embed on Site</span>
-                      </button>
+                        {video.title}
+                      </h3>
+                      <p className="text-xs text-neutral-500 line-clamp-2 mt-1 leading-relaxed">
+                        {video.description}
+                      </p>
+                    </div>
 
-                      <button
-                        type="button"
-                        onClick={() => openVideoPlayer(video)}
-                        className="p-1.5 rounded-xl border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-300 transition-colors cursor-pointer"
-                        title="Watch in Popup Modal"
-                      >
-                        <Tv className="w-4 h-4 text-blue-500" />
-                      </button>
+                    {/* Action Buttons */}
+                    <div className="space-y-2.5 pt-2 border-t border-neutral-100 dark:border-neutral-800/80">
+                      <div className="flex items-center justify-between text-xs font-mono text-neutral-400">
+                        <span>{video.date}</span>
+                        {video.viewsCount && (
+                          <span 
+                            className="font-semibold"
+                            style={{ color: 'var(--color-accent-primary, #f59e0b)' }}
+                          >
+                            {video.viewsCount} views
+                          </span>
+                        )}
+                      </div>
 
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openShare({
-                            type: 'video',
-                            title: `${video.title} — Arjun Bharti Mina`,
-                            text: `${video.description} Category: ${video.category}.`,
-                            url: video.youtubeUrl || `https://www.youtube.com/watch?v=${vidId}`,
-                            imageUrl: thumb,
-                            downloadFilename: `${video.title.toLowerCase().replace(/[^a-z0-9]/g, '_')}_thumb.jpg`
-                          });
-                        }}
-                        className="p-1.5 rounded-xl border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-300 transition-colors cursor-pointer"
-                        title="Share Video"
-                      >
-                        <Share2 className="w-4 h-4 text-amber-500" />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          type="button"
+                          onClick={() => handlePlayOnSite(video)}
+                          className="flex-1 py-1.5 px-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                        >
+                          <Play className="w-3.5 h-3.5 fill-current" />
+                          <span>Embed on Site</span>
+                        </motion.button>
 
-                      <a
-                        href={video.youtubeUrl || `https://www.youtube.com/watch?v=${vidId}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="p-1.5 rounded-xl border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-300 transition-colors"
-                        title="Open in YouTube"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                      </a>
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          type="button"
+                          onClick={() => openVideoPlayer(video)}
+                          className="p-1.5 rounded-xl border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-300 transition-colors cursor-pointer"
+                          title="Watch in Popup Modal"
+                        >
+                          <Tv className="w-4 h-4 text-blue-500" />
+                        </motion.button>
+
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            hapticSelection();
+                            openShare({
+                              type: 'video',
+                              title: `${video.title} — Arjun Bharti Mina`,
+                              text: `${video.description} Category: ${video.category}.`,
+                              url: video.youtubeUrl || `https://www.youtube.com/watch?v=${vidId}`,
+                              imageUrl: thumb,
+                              downloadFilename: `${video.title.toLowerCase().replace(/[^a-z0-9]/g, '_')}_thumb.jpg`
+                            });
+                          }}
+                          className="p-1.5 rounded-xl border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-300 transition-colors cursor-pointer"
+                          title="Share Video"
+                        >
+                          <Share2 className="w-4 h-4 text-amber-500" />
+                        </motion.button>
+
+                        <motion.a
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          href={video.youtubeUrl || `https://www.youtube.com/watch?v=${vidId}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="p-1.5 rounded-xl border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-300 transition-colors"
+                          title="Open in YouTube"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </motion.a>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            );
-          })}
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
         </div>
       )}
 
     </div>
   );
 };
+
 

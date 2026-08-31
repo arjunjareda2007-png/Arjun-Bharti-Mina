@@ -317,6 +317,22 @@ export const HomepageTab: React.FC = () => {
 
       {/* Section Ordering & Visibility Controls */}
       <div className="p-6 rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-amber-500" />
+            <span>Featured Icons & Platforms Strip</span>
+          </h3>
+          <span className="text-[11px] font-mono font-bold text-amber-600 dark:text-amber-400">
+            Auto-Scroll Enabled (&gt; 4 icons)
+          </span>
+        </div>
+        <p className="text-xs text-neutral-500 dark:text-neutral-400">
+          The horizontal strip fitted below the "Let's Collaborate & Create" section features custom icons, redirect links, and auto-scrolls horizontally in a smooth loop. You can configure icons, URLs, and logos in the dedicated Featured Icons Strip tab in the Creator Hub.
+        </p>
+      </div>
+
+      {/* Section Ordering & Visibility Controls */}
+      <div className="p-6 rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 space-y-4">
         <h3 className="text-sm font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 flex items-center gap-2">
           <MoveVertical className="w-4 h-4 text-amber-500" />
           <span>Homepage Sections Order & Visibility</span>

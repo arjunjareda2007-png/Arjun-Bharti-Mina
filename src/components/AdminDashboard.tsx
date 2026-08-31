@@ -51,6 +51,7 @@ import { AnalyticsTab } from './dashboard/AnalyticsTab';
 import { AppearanceTab } from './dashboard/AppearanceTab';
 import { BrandingTab } from './dashboard/BrandingTab';
 import { HomepageTab } from './dashboard/HomepageTab';
+import { FeaturedIconsTab } from './dashboard/FeaturedIconsTab';
 import { MediaLibraryTab } from './dashboard/MediaLibraryTab';
 import { NavigationTab } from './dashboard/NavigationTab';
 import { SEOTab } from './dashboard/SEOTab';
@@ -170,6 +171,7 @@ export const AdminDashboard: React.FC = () => {
     { id: 'appearance', label: 'Appearance & Layout', icon: Palette },
     { id: 'branding', label: 'Brand & Themes', icon: Sparkles },
     { id: 'homepage', label: 'Homepage Builder', icon: Layout },
+    { id: 'featured-icons', label: 'Featured Icons Strip', icon: Sparkles },
     { id: 'media', label: 'Media Library', icon: FolderOpen },
     { id: 'navigation', label: 'Navigation Menu', icon: Compass },
     { id: 'seo', label: 'SEO & Metadata', icon: Search },
@@ -286,6 +288,7 @@ export const AdminDashboard: React.FC = () => {
         {activeSection === 'appearance' && <AppearanceTab />}
         {activeSection === 'branding' && <BrandingTab />}
         {activeSection === 'homepage' && <HomepageTab />}
+        {activeSection === 'featured-icons' && <FeaturedIconsTab />}
         {activeSection === 'media' && <MediaLibraryTab />}
         {activeSection === 'navigation' && <NavigationTab />}
         {activeSection === 'seo' && <SEOTab />}

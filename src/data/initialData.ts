@@ -8,6 +8,7 @@ import {
   BookItem, 
   TimelineItem, 
   SocialLink,
+  FeaturedIcon,
   SiteBranding,
   HomepageConfig,
   NavigationItem,
@@ -1062,4 +1063,103 @@ export const initialAnalytics: SiteAnalytics = {
   browsers: { Chrome: 1 },
   interactionEvents: []
 };
+
+export const initialFeaturedIcons: FeaturedIcon[] = [
+  {
+    id: 'feat-spotify',
+    title: 'Spotify',
+    redirectUrl: 'https://open.spotify.com/artist/arjunbhartimina',
+    iconImage: 'https://cdn.simpleicons.org/spotify/1DB954',
+    subtitle: 'Stream Vault',
+    badge: 'Music',
+    category: 'Streaming',
+    displayOrder: 1,
+    openInNewTab: true,
+    visible: true
+  },
+  {
+    id: 'feat-apple-music',
+    title: 'Apple Music',
+    redirectUrl: 'https://music.apple.com/artist/arjun-bharti-mina',
+    iconImage: 'https://cdn.simpleicons.org/applemusic/FA243C',
+    subtitle: 'Spatial Audio',
+    badge: 'Lossless',
+    category: 'Streaming',
+    displayOrder: 2,
+    openInNewTab: true,
+    visible: true
+  },
+  {
+    id: 'feat-youtube',
+    title: 'YouTube',
+    redirectUrl: 'https://youtube.com/@arjunbhartimina',
+    iconImage: 'https://cdn.simpleicons.org/youtube/FF0000',
+    subtitle: 'Official Channel',
+    badge: 'Videos',
+    category: 'Visuals',
+    displayOrder: 3,
+    openInNewTab: true,
+    visible: true
+  },
+  {
+    id: 'feat-jiosaavn',
+    title: 'JioSaavn',
+    redirectUrl: 'https://jiosaavn.com/artist/arjun-bharti-mina',
+    iconImage: 'https://cdn.simpleicons.org/jiosaavn/2BC5B4',
+    subtitle: 'Desi Grooves',
+    badge: 'Verified',
+    category: 'Streaming',
+    displayOrder: 4,
+    openInNewTab: true,
+    visible: true
+  },
+  {
+    id: 'feat-google-play-books',
+    title: 'Play Books',
+    redirectUrl: 'https://play.google.com/store/books/author?id=Arjun+Bharti+Mina',
+    iconImage: 'https://cdn.simpleicons.org/googleplay/0086F8',
+    subtitle: 'Published Books',
+    badge: 'Author',
+    category: 'Literature',
+    displayOrder: 5,
+    openInNewTab: true,
+    visible: true
+  },
+  {
+    id: 'feat-instagram',
+    title: 'Instagram',
+    redirectUrl: 'https://instagram.com/arjunbhartimina',
+    iconImage: 'https://cdn.simpleicons.org/instagram/E4405F',
+    subtitle: 'Stories & Drops',
+    badge: 'Social',
+    category: 'Community',
+    displayOrder: 6,
+    openInNewTab: true,
+    visible: true
+  },
+  {
+    id: 'feat-github',
+    title: 'GitHub',
+    redirectUrl: 'https://github.com/arjunbhartimina',
+    iconImage: 'https://cdn.simpleicons.org/github/FFFFFF',
+    subtitle: 'Code Projects',
+    badge: 'Dev',
+    category: 'Tech',
+    displayOrder: 7,
+    openInNewTab: true,
+    visible: true
+  },
+  {
+    id: 'feat-amazon-music',
+    title: 'Amazon Music',
+    redirectUrl: 'https://music.amazon.in/artists/B0EXAMPLE/arjun-bharti-mina',
+    iconImage: 'https://cdn.simpleicons.org/amazon/FF9900',
+    subtitle: 'HD Streaming',
+    badge: 'HD',
+    category: 'Streaming',
+    displayOrder: 8,
+    openInNewTab: true,
+    visible: true
+  }
+];
 

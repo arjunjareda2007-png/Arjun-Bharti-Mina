@@ -25,6 +25,7 @@ import { hapticLight, hapticBeat, hapticSelection, hapticMedium } from '../../ut
 import { CountUp } from '../motion/CountUp';
 import { TiltCard } from '../motion/TiltCard';
 import { YouTubeVideoShowcase } from '../YouTubeVideoShowcase';
+import { FeaturedIconsStrip } from '../FeaturedIconsStrip';
 import { 
   CINEMATIC_EASE, 
   SMOOTH_EASE, 
@@ -775,6 +776,9 @@ export const HomeView: React.FC = () => {
           </motion.button>
         </div>
       </motion.section>
+
+      {/* 8. FEATURED PLATFORMS & PORTALS STRIP */}
+      <FeaturedIconsStrip />
 
     </div>
   );

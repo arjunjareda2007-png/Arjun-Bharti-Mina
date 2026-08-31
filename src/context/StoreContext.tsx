@@ -9,6 +9,7 @@ import {
   BookItem, 
   TimelineItem, 
   SocialLink, 
+  FeaturedIcon,
   ContactMessage, 
   SiteAnalytics,
   SiteBranding,
@@ -31,6 +32,7 @@ import {
   initialBooks, 
   initialTimeline, 
   initialSocialLinks,
+  initialFeaturedIcons,
   initialBranding,
   initialHomepage,
   initialNavigation,
@@ -75,6 +77,7 @@ interface StoreContextType {
   books: BookItem[];
   timeline: TimelineItem[];
   socialLinks: SocialLink[];
+  featuredIcons: FeaturedIcon[];
   messages: ContactMessage[];
   analytics: SiteAnalytics;
 
@@ -220,6 +223,12 @@ interface StoreContextType {
   addSocialLink: (link: SocialLink) => Promise<void>;
   updateSocialLink: (link: SocialLink) => Promise<void>;
   deleteSocialLink: (id: string) => Promise<void>;
+
+  addFeaturedIcon: (icon: FeaturedIcon) => Promise<void>;
+  updateFeaturedIcon: (icon: FeaturedIcon) => Promise<void>;
+  deleteFeaturedIcon: (id: string) => Promise<void>;
+  reorderFeaturedIcons: (icons: FeaturedIcon[]) => Promise<void>;
+  toggleFeaturedIconVisibility: (id: string) => Promise<void>;
 
   submitContactMessage: (msg: Omit<ContactMessage, 'id' | 'date' | 'read' | 'replied'>) => Promise<void>;
   markMessageRead: (id: string) => Promise<void>;
@@ -458,6 +467,11 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     return saved ? JSON.parse(saved) : initialSocialLinks;
   });
 
+  const [featuredIcons, setFeaturedIcons] = useState<FeaturedIcon[]>(() => {
+    const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}featuredIcons`);
+    return saved ? JSON.parse(saved) : initialFeaturedIcons;
+  });
+
   const [messages, setMessages] = useState<ContactMessage[]>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}messages`);
     return saved ? JSON.parse(saved) : [
@@ -639,6 +653,12 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           setSocialLinks(firestoreSocial);
           localStorage.setItem(`${STORAGE_KEY_PREFIX}socialLinks`, JSON.stringify(firestoreSocial));
         }
+
+        const firestoreIcons = await firestoreService.fetchCollection<FeaturedIcon>('featuredIcons');
+        if (firestoreIcons && firestoreIcons.length > 0) {
+          setFeaturedIcons(firestoreIcons.sort((a, b) => a.displayOrder - b.displayOrder));
+          localStorage.setItem(`${STORAGE_KEY_PREFIX}featuredIcons`, JSON.stringify(firestoreIcons));
+        }
       } catch (err) {
         console.warn('Initial Firestore hydration notice:', err);
       }
@@ -706,6 +726,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   useEffect(() => {
     localStorage.setItem(`${STORAGE_KEY_PREFIX}socialLinks`, JSON.stringify(socialLinks));
   }, [socialLinks]);
+
+  useEffect(() => {
+    localStorage.setItem(`${STORAGE_KEY_PREFIX}featuredIcons`, JSON.stringify(featuredIcons));
+  }, [featuredIcons]);
 
   useEffect(() => {
     localStorage.setItem(`${STORAGE_KEY_PREFIX}messages`, JSON.stringify(messages));
@@ -1466,6 +1490,48 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     showToast('Social link deleted', 'info');
   };
 
+  const addFeaturedIcon = async (icon: FeaturedIcon) => {
+    setFeaturedIcons(prev => {
+      const updated = [...prev, icon].sort((a, b) => a.displayOrder - b.displayOrder);
+      return updated;
+    });
+    await firestoreService.saveDocument('featuredIcons', icon.id, icon);
+    showToast(`Featured icon "${icon.title}" added`);
+  };
+
+  const updateFeaturedIcon = async (icon: FeaturedIcon) => {
+    setFeaturedIcons(prev => {
+      const updated = prev.map(item => item.id === icon.id ? icon : item).sort((a, b) => a.displayOrder - b.displayOrder);
+      return updated;
+    });
+    await firestoreService.saveDocument('featuredIcons', icon.id, icon);
+    showToast(`Featured icon "${icon.title}" updated`);
+  };
+
+  const deleteFeaturedIcon = async (id: string) => {
+    setFeaturedIcons(prev => prev.filter(item => item.id !== id));
+    await firestoreService.deleteDocument('featuredIcons', id);
+    showToast('Featured icon removed', 'info');
+  };
+
+  const reorderFeaturedIcons = async (orderedIcons: FeaturedIcon[]) => {
+    const updated = orderedIcons.map((item, idx) => ({ ...item, displayOrder: idx + 1 }));
+    setFeaturedIcons(updated);
+    for (const icon of updated) {
+      await firestoreService.saveDocument('featuredIcons', icon.id, icon);
+    }
+    showToast('Featured icons reordered');
+  };
+
+  const toggleFeaturedIconVisibility = async (id: string) => {
+    const item = featuredIcons.find(i => i.id === id);
+    if (!item) return;
+    const updated = { ...item, visible: !item.visible };
+    setFeaturedIcons(prev => prev.map(i => i.id === id ? updated : i));
+    await firestoreService.saveDocument('featuredIcons', id, updated);
+    showToast(`Icon "${item.title}" ${updated.visible ? 'enabled' : 'hidden'}`);
+  };
+
   const submitContactMessage = async (msg: Omit<ContactMessage, 'id' | 'date' | 'read' | 'replied'>) => {
     const newMessage: ContactMessage = {
       ...msg,
@@ -1554,7 +1620,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       projects,
       books,
       timeline,
-      socialLinks
+      socialLinks,
+      featuredIcons
     };
     return JSON.stringify(backup, null, 2);
   };
@@ -1578,6 +1645,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       if (data.books) setBooks(data.books);
       if (data.timeline) setTimeline(data.timeline);
       if (data.socialLinks) setSocialLinks(data.socialLinks);
+      if (data.featuredIcons) setFeaturedIcons(data.featuredIcons);
       showToast('Website content imported successfully!');
       return true;
     } catch (err) {
@@ -1603,6 +1671,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setBooks(initialBooks);
     setTimeline(initialTimeline);
     setSocialLinks(initialSocialLinks);
+    setFeaturedIcons(initialFeaturedIcons);
     setMessages([]);
     setAnalytics(initialAnalytics);
     localStorage.clear();
@@ -1632,6 +1701,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         books,
         timeline,
         socialLinks,
+        featuredIcons,
         messages,
         analytics,
 
@@ -1764,6 +1834,12 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         addSocialLink,
         updateSocialLink,
         deleteSocialLink,
+
+        addFeaturedIcon,
+        updateFeaturedIcon,
+        deleteFeaturedIcon,
+        reorderFeaturedIcons,
+        toggleFeaturedIconVisibility,
 
         submitContactMessage,
         markMessageRead,
