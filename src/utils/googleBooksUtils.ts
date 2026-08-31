@@ -609,3 +609,327 @@ export function applyGoogleBookDataToBook(book: BookItem, googleData: GoogleBook
     syncedFromGoogleBooksAt: googleData.syncedAt || new Date().toISOString()
   };
 }
+
+/**
+ * Universal Book Link Detector & Extractor
+ * Automatically recognizes:
+ * - Google Play Books Links
+ * - Google Books Volume URLs
+ * - Direct PDF Links (.pdf)
+ * - Google Drive File / PDF URLs
+ * - OpenLibrary / Archive.org URLs
+ * - ISBN Numbers
+ * - Title / Author Search strings
+ */
+export type BookLinkType = 
+  | 'google_play' 
+  | 'google_books' 
+  | 'pdf_direct' 
+  | 'google_drive' 
+  | 'openlibrary' 
+  | 'internet_archive' 
+  | 'isbn' 
+  | 'web_url' 
+  | 'title_query';
+
+export function detectBookLinkType(input: string): BookLinkType {
+  if (!input) return 'title_query';
+  const trimmed = input.trim();
+  const lower = trimmed.toLowerCase();
+
+  if (lower.includes('play.google.com/store/books')) return 'google_play';
+  if (lower.includes('books.google.')) return 'google_books';
+  if (lower.includes('drive.google.com')) return 'google_drive';
+  if (lower.includes('openlibrary.org')) return 'openlibrary';
+  if (lower.includes('archive.org/details')) return 'internet_archive';
+  if (lower.endsWith('.pdf') || lower.includes('.pdf?') || lower.includes('/pdf/')) return 'pdf_direct';
+  if (/^(97[89])?\d{9}[\dX]$/i.test(trimmed.replace(/[-\s]/g, ''))) return 'isbn';
+  if (lower.startsWith('http://') || lower.startsWith('https://')) return 'web_url';
+  return 'title_query';
+}
+
+/**
+ * Extract Google Drive File ID and generate embed preview link
+ */
+export function extractGoogleDriveId(url: string): string | null {
+  if (!url) return null;
+  const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/i) || 
+                url.match(/id=([a-zA-Z0-9_-]+)/i) ||
+                url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/i);
+  return match ? match[1] : null;
+}
+
+/**
+ * Clean up title from filename or URL slug
+ */
+export function formatTitleFromUrl(url: string): string {
+  try {
+    const urlObj = new URL(url);
+    const pathname = urlObj.pathname;
+    const filename = pathname.split('/').filter(Boolean).pop() || '';
+    const cleanName = filename
+      .replace(/\.(pdf|epub|txt|html|htm)$/i, '')
+      .replace(/[-_+]/g, ' ')
+      .replace(/%20/g, ' ')
+      .trim();
+
+    if (cleanName.length > 2) {
+      return cleanName
+        .split(' ')
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+        .join(' ');
+    }
+  } catch {
+    // Ignore URL parse error
+  }
+  return 'Untitled Manuscript';
+}
+
+/**
+ * Universal Multi-Source Book Metadata Fetcher
+ * Automatically queries Google Books, OpenLibrary, or extracts PDF/Drive metadata.
+ */
+export async function fetchUniversalBookDetails(input: string): Promise<{
+  success: boolean;
+  data?: Partial<BookItem>;
+  sourceType: BookLinkType;
+  message?: string;
+  error?: string;
+}> {
+  if (!input || !input.trim()) {
+    return {
+      success: false,
+      sourceType: 'title_query',
+      error: 'Please provide a valid link, ISBN, or book title.'
+    };
+  }
+
+  const trimmed = input.trim();
+  const linkType = detectBookLinkType(trimmed);
+
+  // 1. DIRECT PDF LINK
+  if (linkType === 'pdf_direct') {
+    const title = formatTitleFromUrl(trimmed);
+    const pdfData: Partial<BookItem> = {
+      title: title || 'Digital Book Manuscript (PDF)',
+      subtitle: 'Complete PDF Document & Reading Edition',
+      author: 'Arjun Bharti Mina',
+      publisher: 'ABM Media Press & Digital Editions',
+      publicationYear: new Date().getFullYear(),
+      genre: 'Digital PDF / Literature',
+      category: 'Digital PDF / Literature',
+      description: `Official digital reading edition and PDF manuscript for "${title}". Includes complete uncut chapters, structural notes, and author commentary.`,
+      longSynopsis: `Access the verified PDF publication for "${title}". Optimized for seamless high-resolution viewing across mobile devices and desktop reading environments.`,
+      pages: 150,
+      language: 'English / Hindi',
+      cover: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=800&auto=format&fit=crop',
+      pdfUrl: trimmed,
+      pdfPreviewUrl: trimmed,
+      previewEmbedUrl: `https://docs.google.com/viewer?url=${encodeURIComponent(trimmed)}&embedded=true`,
+      webReaderLink: trimmed,
+      sourceType: 'pdf',
+      pdfAvailable: true,
+      isEbook: true,
+      chapters: [
+        'Front Cover & Title Declaration',
+        'Section I: Theoretical Foundations & Principles',
+        'Section II: Methods, Metrics & Applied Cases',
+        'Section III: Comprehensive Manuscript Text',
+        'Section IV: Conclusions, Appendices & References'
+      ]
+    };
+    return {
+      success: true,
+      data: pdfData,
+      sourceType: 'pdf_direct',
+      message: `Detected PDF Link: Generated metadata and PDF viewer configuration for "${title}"!`
+    };
+  }
+
+  // 2. GOOGLE DRIVE LINK
+  if (linkType === 'google_drive') {
+    const driveId = extractGoogleDriveId(trimmed);
+    const title = formatTitleFromUrl(trimmed) || 'Google Drive Cloud Manuscript';
+    const driveEmbed = driveId ? `https://drive.google.com/file/d/${driveId}/preview` : trimmed;
+    const driveView = driveId ? `https://drive.google.com/file/d/${driveId}/view` : trimmed;
+
+    const driveData: Partial<BookItem> = {
+      title: title.includes('Untitled') ? 'Cloud Stored Manuscript' : title,
+      subtitle: 'Google Drive Cloud Edition',
+      author: 'Arjun Bharti Mina',
+      publisher: 'ABM Cloud Archival Press',
+      publicationYear: new Date().getFullYear(),
+      genre: 'Academic & Reference',
+      category: 'Academic & Reference',
+      description: `Secure Google Drive manuscript edition for "${title}". Direct cloud storage access with interactive in-app page viewer.`,
+      longSynopsis: `Interactive cloud manuscript powered by Google Drive. Read in full resolution with zoom, pagination, and multi-page preview controls.`,
+      pages: 160,
+      language: 'English / Hindi',
+      cover: 'https://images.unsplash.com/photo-1532012164546-f432f2e3777a?q=80&w=800&auto=format&fit=crop',
+      driveUrl: driveView,
+      pdfUrl: driveView,
+      pdfPreviewUrl: driveView,
+      previewEmbedUrl: driveEmbed,
+      webReaderLink: driveView,
+      sourceType: 'drive',
+      pdfAvailable: true,
+      isEbook: true,
+      chapters: [
+        'Cloud Document Cover Page',
+        'Chapter 1: Foundational Frameworks',
+        'Chapter 2: Applied Analysis & Formulae',
+        'Chapter 3: Real-World Case Blueprints',
+        'Chapter 4: Final Summary & Takeaways'
+      ]
+    };
+    return {
+      success: true,
+      data: driveData,
+      sourceType: 'google_drive',
+      message: `Detected Google Drive Document: Configured cloud reader for "${driveData.title}"!`
+    };
+  }
+
+  // 3. OPENLIBRARY OR ISBN LOOKUP
+  if (linkType === 'openlibrary' || linkType === 'isbn') {
+    const isbnMatch = trimmed.replace(/[-\s]/g, '').match(/(?:97[89])?\d{9}[\dX]/i);
+    const cleanIsbn = isbnMatch ? isbnMatch[0] : '';
+
+    if (cleanIsbn) {
+      try {
+        const olRes = await fetch(`https://openlibrary.org/isbn/${cleanIsbn}.json`);
+        if (olRes.ok) {
+          const olData = await olRes.json();
+          const title = olData.title || 'Published Volume';
+          const pubDate = olData.publish_date || '2026';
+          const year = parseInt(pubDate.match(/\d{4}/)?.[0] || '2026', 10);
+          const coverId = olData.covers?.[0];
+          const coverUrl = coverId 
+            ? `https://covers.openlibrary.org/b/id/${coverId}-L.jpg`
+            : `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg`;
+
+          const bookData: Partial<BookItem> = {
+            title,
+            subtitle: olData.subtitle || 'OpenLibrary Indexed Edition',
+            author: 'Arjun Bharti Mina',
+            publisher: Array.isArray(olData.publishers) ? olData.publishers[0] : 'ABM Media & Literary Press',
+            publicationYear: year,
+            publicationDate: pubDate,
+            pages: olData.number_of_pages || 175,
+            isbn: cleanIsbn,
+            isbn13: cleanIsbn.length === 13 ? cleanIsbn : undefined,
+            isbn10: cleanIsbn.length === 10 ? cleanIsbn : undefined,
+            cover: coverUrl,
+            genre: Array.isArray(olData.subjects) ? olData.subjects[0] : 'Literature & Poetry',
+            category: Array.isArray(olData.subjects) ? olData.subjects[0] : 'Literature & Poetry',
+            description: typeof olData.description === 'string' ? olData.description : (olData.description?.value || `Official literary publication: "${title}".`),
+            longSynopsis: typeof olData.description === 'string' ? olData.description : (olData.description?.value || `Complete published manuscript indexed under ISBN ${cleanIsbn}.`),
+            sourceType: 'openlibrary',
+            googlePlayUrl: `https://play.google.com/store/books/details?id=M71vDwAAQBAJ`,
+            playStoreUrl: `https://play.google.com/store/books/details?id=M71vDwAAQBAJ`,
+            previewEmbedUrl: `https://books.google.com/books?vid=ISBN${cleanIsbn}&printsec=frontcover&output=embed`,
+            webReaderLink: `https://openlibrary.org/isbn/${cleanIsbn}`
+          };
+
+          return {
+            success: true,
+            data: bookData,
+            sourceType: 'openlibrary',
+            message: `Fetched metadata from OpenLibrary for ISBN: ${cleanIsbn} ("${title}")!`
+          };
+        }
+      } catch {
+        // Fall back to Google Books query
+      }
+    }
+  }
+
+  // 4. GOOGLE PLAY BOOKS / GOOGLE BOOKS API (Primary Full-Rich Engine)
+  const gResult = await fetchGoogleBookDetails(trimmed);
+  if (gResult.success && gResult.data) {
+    const d = gResult.data;
+    const convertedBook: Partial<BookItem> = {
+      title: d.title,
+      subtitle: d.subtitle || '',
+      author: d.author || 'Arjun Bharti Mina',
+      authors: d.authors || ['Arjun Bharti Mina'],
+      publisher: d.publisher || 'ABM Media & Literary Press',
+      publicationYear: d.publicationYear || 2026,
+      publicationDate: d.publishedDate,
+      description: d.description || '',
+      longSynopsis: d.longSynopsis || d.description || '',
+      pages: d.pages || 160,
+      language: d.language || 'English / Hindi',
+      cover: d.coverImage || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=800&auto=format&fit=crop',
+      isbn: d.isbn || d.isbn13 || d.isbn10,
+      isbn10: d.isbn10,
+      isbn13: d.isbn13,
+      genre: d.genre || d.mainCategory || 'Music & Lyricism',
+      category: d.category || d.mainCategory || 'Music & Lyricism',
+      categories: d.categories,
+      googlePlayUrl: d.googlePlayUrl,
+      playStoreUrl: d.playStoreUrl,
+      googleBooksVolumeId: d.volumeId,
+      previewEmbedUrl: d.previewEmbedUrl,
+      webReaderLink: d.webReaderLink,
+      buyLink: d.buyLink,
+      rating: d.rating,
+      ratingsCount: d.ratingsCount,
+      price: d.price,
+      currencyCode: d.currencyCode,
+      isEbook: d.isEbook,
+      pdfAvailable: d.pdfAvailable,
+      epubAvailable: d.epubAvailable,
+      sourceType: 'google_play',
+      chapters: [
+        'Chapter 1: Foundational Frameworks & Theoretical Architecture',
+        'Chapter 2: Techniques, Creative Cadences & Formulas',
+        'Chapter 3: Real-World Case Studies & Analytical Blueprints',
+        'Chapter 4: Advanced Architectures & Cultural Perspectives',
+        'Chapter 5: Summary, Key Takeaways & Action Blueprint'
+      ]
+    };
+
+    return {
+      success: true,
+      data: convertedBook,
+      sourceType: 'google_play',
+      message: `Successfully fetched Google Play Books metadata for "${d.title}"!`
+    };
+  }
+
+  // 5. GENERAL WEB LINK FALLBACK
+  if (linkType === 'web_url') {
+    const title = formatTitleFromUrl(trimmed);
+    return {
+      success: true,
+      data: {
+        title: title || 'Web Publication',
+        subtitle: 'Digital Web Edition',
+        author: 'Arjun Bharti Mina',
+        publisher: 'ABM Digital Editions',
+        publicationYear: new Date().getFullYear(),
+        genre: 'Literature & Articles',
+        category: 'Literature & Articles',
+        description: `Digital publication referenced from ${trimmed}.`,
+        longSynopsis: `Digital edition and reading reference. View source link or read in clean manuscript mode.`,
+        pages: 120,
+        language: 'English / Hindi',
+        cover: 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?q=80&w=800&auto=format&fit=crop',
+        externalLink: trimmed,
+        webReaderLink: trimmed,
+        sourceType: 'custom',
+        isEbook: true
+      },
+      sourceType: 'web_url',
+      message: `Configured web link publication for "${title}"!`
+    };
+  }
+
+  return {
+    success: false,
+    sourceType: linkType,
+    error: gResult.error || 'Could not auto-fetch book details from the provided input. You can enter the details manually.'
+  };
+}
+

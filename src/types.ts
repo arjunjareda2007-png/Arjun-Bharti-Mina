@@ -222,6 +222,10 @@ export interface BookItem {
   ratingsCount?: number;
   amazonUrl?: string;
   pdfPreviewUrl?: string;
+  pdfUrl?: string;
+  driveUrl?: string;
+  sourceType?: 'google_play' | 'pdf' | 'drive' | 'openlibrary' | 'custom' | string;
+  externalLink?: string;
   sampleUrl?: string;
   infoLink?: string;
   canonicalVolumeLink?: string;
