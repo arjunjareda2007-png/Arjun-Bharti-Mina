@@ -170,19 +170,16 @@ export const BookEditorialCard: React.FC<BookEditorialCardProps> = ({
             className="px-4 py-2.5 rounded-full bg-neutral-950 text-white dark:bg-amber-500 dark:text-neutral-950 font-bold text-xs flex items-center gap-2 shadow-md hover:opacity-90 active:scale-95 transition-all cursor-pointer"
           >
             <BookOpen className="w-3.5 h-3.5" />
-            <span>Stream in Google Reader</span>
+            <span>Read in Full Mode</span>
           </button>
 
           <button
             type="button"
-            onClick={() => {
-              hapticSelection();
-              onInspect(book.id);
-            }}
+            onClick={() => onDownloadSample(book)}
             className="px-4 py-2.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 hover:bg-neutral-200 dark:hover:bg-neutral-700 font-bold text-xs flex items-center gap-2 border border-neutral-300 dark:border-neutral-700 transition-colors cursor-pointer"
           >
-            <Eye className="w-3.5 h-3.5 text-amber-500" />
-            <span>Overview & Specs</span>
+            <Download className="w-3.5 h-3.5 text-amber-500" />
+            <span>Download Preview (PDF)</span>
           </button>
 
           {storeUrl && (
@@ -190,20 +187,23 @@ export const BookEditorialCard: React.FC<BookEditorialCardProps> = ({
               href={storeUrl}
               target="_blank"
               rel="noreferrer"
-              className="px-4 py-2.5 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 font-semibold text-xs flex items-center gap-1.5 transition-colors"
+              className="px-3.5 py-2.5 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 font-semibold text-xs flex items-center gap-1.5 transition-colors"
             >
-              <span>Google Play Books</span>
-              <ExternalLink className="w-3.5 h-3.5" />
+              <span>Google Play</span>
+              <ExternalLink className="w-3 h-3" />
             </a>
           )}
 
           <button
             type="button"
-            onClick={() => onDownloadSample(book)}
+            onClick={() => {
+              hapticSelection();
+              onInspect(book.id);
+            }}
             className="p-2.5 rounded-full border border-neutral-300 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
-            title="Download sample preview (.txt)"
+            title="Book Overview & Table of Contents"
           >
-            <Download className="w-3.5 h-3.5" />
+            <Eye className="w-3.5 h-3.5" />
           </button>
 
           <button

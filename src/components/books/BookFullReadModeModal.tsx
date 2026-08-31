@@ -27,6 +27,7 @@ import {
   getGooglePlayReaderUrl,
   DEFAULT_FALLBACK_VOLUME_ID 
 } from '../../utils/googleBooksUtils';
+import { downloadBookPreviewPdf } from '../../utils/bookPdfGenerator';
 import { motion, AnimatePresence } from 'motion/react';
 import { hapticLight, hapticSelection, hapticSuccess } from '../../utils/haptics';
 
@@ -93,6 +94,8 @@ export const BookFullReadModeModal: React.FC = () => {
         'Chapter 5: Summary, Key Takeaways & Action Blueprint'
       ];
 
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState<boolean>(false);
+
   const toggleFullscreen = () => {
     hapticLight();
     if (!document.fullscreenElement) {
@@ -102,22 +105,14 @@ export const BookFullReadModeModal: React.FC = () => {
     }
   };
 
-  const handleDownloadSample = () => {
+  const handleDownloadSample = async () => {
     hapticLight();
-    showToast(`Downloading book preview for "${book.title}"...`, 'info');
-    const sampleText = `=========================================================\n${book.title.toUpperCase()}\nSubtitle: ${book.subtitle || 'N/A'}\nAuthor: ${book.author || 'Arjun Bharti Mina'}\nPublisher: ${book.publisher || 'ABM Media & Literary Press'}\nPublication Year: ${book.publicationYear}\nISBN: ${book.isbn || 'N/A'}\nPages: ${book.pages}\nLanguage: ${book.language || 'English / Hindi'}\n=========================================================\n\nSYNOPSIS:\n${book.longSynopsis || book.description}\n\nCHAPTER HIGHLIGHTS:\n${chapters.map((c, i) => `${i + 1}. ${c}`).join('\n')}\n\nRead more or purchase the complete volume on Google Play Books:\n${storeUrl}\n\n© ${book.publicationYear} Arjun Bharti Mina. All rights reserved.`;
-
-    const blob = new Blob([sampleText], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${book.title.toLowerCase().replace(/[^a-z0-9]/g, '_')}_preview.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    hapticSuccess();
-    showToast('Book sample downloaded successfully!', 'success');
+    setIsDownloadingPdf(true);
+    try {
+      await downloadBookPreviewPdf(book, (msg, type) => showToast(msg, type));
+    } finally {
+      setIsDownloadingPdf(false);
+    }
   };
 
   const handleShare = () => {
@@ -310,14 +305,15 @@ export const BookFullReadModeModal: React.FC = () => {
             </a>
           )}
 
-          {/* Download sample text */}
+          {/* Download sample PDF */}
           <button
             type="button"
             onClick={handleDownloadSample}
-            className="p-2 rounded-xl hover:bg-current/10 transition-colors cursor-pointer"
-            title="Download Book Preview (.txt)"
+            disabled={isDownloadingPdf}
+            className="p-2 rounded-xl hover:bg-current/10 transition-colors cursor-pointer disabled:opacity-50"
+            title="Download Book Preview (PDF)"
           >
-            <Download className="w-4 h-4" />
+            <Download className={`w-4 h-4 ${isDownloadingPdf ? 'animate-bounce text-amber-500' : ''}`} />
           </button>
 
           {/* Share */}

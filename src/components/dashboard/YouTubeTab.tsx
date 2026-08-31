@@ -28,11 +28,22 @@ import {
 import { hapticBeat, hapticLight, hapticSuccess } from '../../utils/haptics';
 
 export const YouTubeTab: React.FC = () => {
-  const { youtube, updateYouTube, videos, updateVideo, songs, updateSong, showToast } = useStore();
+  const { 
+    youtube, 
+    updateYouTube, 
+    videos, 
+    updateVideo, 
+    syncVideosFromChannel, 
+    songs, 
+    updateSong, 
+    openVideoPlayer,
+    showToast 
+  } = useStore();
   const [formData, setFormData] = useState<YouTubeSettings>(youtube);
   const [isSaving, setIsSaving] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [lastSyncResult, setLastSyncResult] = useState<{ count: number; timestamp: string } | null>(null);
 
   const handleChange = (field: keyof YouTubeSettings, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -52,7 +63,7 @@ export const YouTubeTab: React.FC = () => {
     setFormData(prev => ({ ...prev, featuredVideoId: extracted }));
   };
 
-  // 1. Live Channel Sync Action
+  // 1. Live Channel Sync Action - Fetches all channel videos automatically
   const handleLiveSync = async () => {
     setIsSyncing(true);
     hapticBeat();
@@ -60,8 +71,19 @@ export const YouTubeTab: React.FC = () => {
       const result = await syncYouTubeChannelData(formData);
       setFormData(result.settings);
       await updateYouTube(result.settings);
+      
+      // Automatically save and sync all fetched videos into video catalog & Firestore
+      if (result.videos && result.videos.length > 0) {
+        await syncVideosFromChannel(result.videos);
+      }
+      
+      setLastSyncResult({
+        count: result.videos?.length || 0,
+        timestamp: new Date().toLocaleTimeString()
+      });
+
       hapticSuccess();
-      showToast(result.message, 'success');
+      showToast(`Live Sync: Successfully fetched ${result.videos?.length || 0} videos from ${formData.channelHandle || '@arjunbhartimina'}!`, 'success');
     } catch (err) {
       showToast('Live sync completed with current channel configuration.', 'info');
     } finally {
@@ -357,6 +379,96 @@ export const YouTubeTab: React.FC = () => {
             allowFullScreen
           />
         </div>
+      </div>
+
+      {/* Synced Channel Videos Section */}
+      <div className="p-6 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 flex items-center gap-1.5">
+              <Video className="w-3.5 h-3.5 text-red-500" />
+              <span>Channel Video Catalog ({videos.length} Synced)</span>
+            </h3>
+            <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">
+              All videos automatically synchronized from {formData.channelHandle || '@arjunbhartimina'}.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleLiveSync}
+            disabled={isSyncing}
+            className="px-3 py-1.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-200 font-semibold text-xs flex items-center gap-1.5 transition-colors cursor-pointer w-fit"
+          >
+            <RefreshCw className={`w-3 h-3 text-red-500 ${isSyncing ? 'animate-spin' : ''}`} />
+            <span>{isSyncing ? 'Fetching...' : 'Re-fetch Channel Videos'}</span>
+          </button>
+        </div>
+
+        {videos.length === 0 ? (
+          <div className="p-8 text-center bg-neutral-50 dark:bg-neutral-950 rounded-2xl border border-dashed border-neutral-300 dark:border-neutral-800 space-y-3">
+            <Youtube className="w-8 h-8 text-neutral-400 mx-auto" />
+            <p className="text-xs text-neutral-600 dark:text-neutral-400">
+              No videos currently synced. Click <strong className="text-red-500">Live Sync Channel</strong> to fetch all videos automatically.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {videos.map((vid) => (
+              <div 
+                key={vid.id}
+                className="group p-3 rounded-2xl bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 hover:border-red-500/30 transition-all flex flex-col justify-between"
+              >
+                <div className="space-y-2">
+                  <div className="relative aspect-video rounded-xl overflow-hidden bg-black">
+                    <img 
+                      src={vid.thumbnail} 
+                      alt={vid.title} 
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-md bg-black/75 text-[10px] font-mono text-white font-bold backdrop-blur-xs">
+                      {vid.category}
+                    </div>
+                    <div className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-black/80 text-[10px] font-mono text-white">
+                      {vid.duration}
+                    </div>
+                  </div>
+
+                  <h4 className="text-xs font-bold text-neutral-900 dark:text-white line-clamp-2 leading-tight">
+                    {vid.title}
+                  </h4>
+                </div>
+
+                <div className="mt-3 pt-2 border-t border-neutral-200 dark:border-neutral-800/80 flex items-center justify-between">
+                  <span className="text-[10px] font-mono text-neutral-400">
+                    {vid.viewsCount || 'Official'}
+                  </span>
+
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => openVideoPlayer(vid)}
+                      className="p-1.5 rounded-lg bg-neutral-200 dark:bg-neutral-800 hover:bg-red-600 hover:text-white text-neutral-700 dark:text-neutral-300 transition-colors cursor-pointer"
+                      title="Play video"
+                    >
+                      <Play className="w-3 h-3" />
+                    </button>
+                    <a
+                      href={vid.youtubeUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="p-1.5 rounded-lg bg-neutral-200 dark:bg-neutral-800 hover:bg-neutral-300 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 transition-colors"
+                      title="Open on YouTube"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </form>
   );

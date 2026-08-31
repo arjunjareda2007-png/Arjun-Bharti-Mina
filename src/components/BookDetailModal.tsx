@@ -27,6 +27,7 @@ import {
   getGooglePlayReaderUrl,
   DEFAULT_FALLBACK_VOLUME_ID
 } from '../utils/googleBooksUtils';
+import { downloadBookPreviewPdf } from '../utils/bookPdfGenerator';
 
 export const BookDetailModal: React.FC = () => {
   const { books, selectedBookId, setSelectedBookId, openBookReader, openShare, showToast } = useStore();
@@ -34,6 +35,7 @@ export const BookDetailModal: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'reader' | 'details'>('overview');
   const [isIframeExpanded, setIsIframeExpanded] = useState<boolean>(false);
   const [iframeError, setIframeError] = useState<boolean>(false);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState<boolean>(false);
 
   const book = books.find((b) => b.id === selectedBookId);
 
@@ -85,19 +87,13 @@ export const BookDetailModal: React.FC = () => {
     });
   };
 
-  const handleDownloadSample = () => {
-    showToast(`Downloading free sample preview for "${book.title}"...`, 'info');
-    const dummyText = `BOOK PREVIEW: ${book.title}\nSubtitle: ${book.subtitle || ''}\nAuthor: ${book.author || 'Arjun Bharti Mina'}\nPublisher: ${book.publisher || 'ABM Media Press'}\nISBN: ${book.isbn || 'N/A'}\nYear: ${book.publicationYear}\n\nSYNOPSIS:\n${book.longSynopsis || book.description}\n\nCHAPTERS OUTLINE:\n${chapters.map((c, i) => `${i + 1}. ${c}`).join('\n')}\n\nPublished on Google Play Books: ${storeUrl}\n© ${book.publicationYear} Arjun Bharti Mina. All rights reserved.`;
-    const blob = new Blob([dummyText], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${book.title.toLowerCase().replace(/[^a-z0-9]/g, '_')}_preview.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    showToast('Book sample downloaded successfully!', 'success');
+  const handleDownloadSample = async () => {
+    setIsDownloadingPdf(true);
+    try {
+      await downloadBookPreviewPdf(book, (msg, type) => showToast(msg, type));
+    } finally {
+      setIsDownloadingPdf(false);
+    }
   };
 
   return (
@@ -303,10 +299,11 @@ export const BookDetailModal: React.FC = () => {
                     <button
                       type="button"
                       onClick={handleDownloadSample}
-                      className="px-4 py-2.5 rounded-full border border-neutral-300 dark:border-neutral-700 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors flex items-center gap-2 cursor-pointer"
+                      disabled={isDownloadingPdf}
+                      className="px-4 py-2.5 rounded-full border border-neutral-300 dark:border-neutral-700 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-60"
                     >
-                      <Download className="w-3.5 h-3.5 text-amber-500" />
-                      <span>Download Sample (.txt)</span>
+                      <Download className={`w-3.5 h-3.5 text-amber-500 ${isDownloadingPdf ? 'animate-bounce' : ''}`} />
+                      <span>{isDownloadingPdf ? 'Generating PDF...' : 'Download Preview (PDF)'}</span>
                     </button>
                   </div>
 

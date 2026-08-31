@@ -209,6 +209,8 @@ interface StoreContextType {
   deleteGalleryItem: (id: string) => Promise<void>;
 
   addVideo: (video: VideoItem) => Promise<void>;
+  bulkAddVideos: (videos: VideoItem[]) => Promise<void>;
+  syncVideosFromChannel: (fetchedVideos: VideoItem[]) => Promise<void>;
   updateVideo: (video: VideoItem) => Promise<void>;
   deleteVideo: (id: string) => Promise<void>;
 
@@ -1428,6 +1430,56 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     showToast(`Video "${video.title}" added`);
   };
 
+  const bulkAddVideos = async (items: VideoItem[]) => {
+    if (!items || items.length === 0) return;
+    setVideos(prev => {
+      const existingIds = new Set(prev.map(v => v.id));
+      const newItems = items.filter(it => !existingIds.has(it.id));
+      return [...newItems, ...prev];
+    });
+    for (const item of items) {
+      await firestoreService.saveDocument('videos', item.id, item);
+    }
+    showToast(`Successfully added ${items.length} videos!`);
+  };
+
+  const syncVideosFromChannel = async (fetchedVideos: VideoItem[]) => {
+    if (!fetchedVideos || fetchedVideos.length === 0) return;
+    setVideos(prev => {
+      // Merge by youtubeEmbedId or id
+      const map = new Map<string, VideoItem>();
+      // Put existing videos in map
+      prev.forEach(v => {
+        const key = v.youtubeEmbedId || v.id;
+        map.set(key, v);
+      });
+      // Merge/overwrite with fetched live channel videos
+      fetchedVideos.forEach(v => {
+        const key = v.youtubeEmbedId || v.id;
+        const existing = map.get(key);
+        if (existing) {
+          map.set(key, {
+            ...existing,
+            ...v,
+            title: v.title || existing.title,
+            thumbnail: v.thumbnail || existing.thumbnail,
+            youtubeUrl: v.youtubeUrl || existing.youtubeUrl,
+            category: existing.category || v.category
+          });
+        } else {
+          map.set(key, v);
+        }
+      });
+      const merged = Array.from(map.values());
+      localStorage.setItem(`${STORAGE_KEY_PREFIX}videos`, JSON.stringify(merged));
+      return merged;
+    });
+
+    for (const item of fetchedVideos) {
+      await firestoreService.saveDocument('videos', item.id, item);
+    }
+  };
+
   const updateVideo = async (video: VideoItem) => {
     setVideos(prev => prev.map(v => v.id === video.id ? video : v));
     await firestoreService.saveDocument('videos', video.id, video);
@@ -1842,6 +1894,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         deleteGalleryItem,
 
         addVideo,
+        bulkAddVideos,
+        syncVideosFromChannel,
         updateVideo,
         deleteVideo,
 

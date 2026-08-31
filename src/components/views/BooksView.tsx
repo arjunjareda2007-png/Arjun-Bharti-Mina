@@ -19,6 +19,7 @@ import {
   GoogleBookParsedData,
   getGooglePlayStoreUrl
 } from '../../utils/googleBooksUtils';
+import { downloadBookPreviewPdf } from '../../utils/bookPdfGenerator';
 import { BookItem } from '../../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { CINEMATIC_EASE, sectionReveal } from '../../utils/motion';
@@ -147,28 +148,9 @@ export const BooksView: React.FC = () => {
     showToast(`Successfully refreshed ${updatedCount} book(s) with live Google Play metadata!`, 'success');
   };
 
-  const handleDownloadSample = (book: BookItem) => {
+  const handleDownloadSample = async (book: BookItem) => {
     hapticLight();
-    showToast(`Generating sample preview for "${book.title}"...`, 'info');
-    const chapters = book.chaptersSummary || book.chapters || [
-      'Chapter 1: Foundations & Core Principles',
-      'Chapter 2: Techniques, Cadences & Formulas',
-      'Chapter 3: Real-World Case Studies & Creative Workflows'
-    ];
-    const storeUrl = book.playStoreUrl || book.googlePlayUrl || getGooglePlayStoreUrl(book.googleBooksVolumeId || '');
-    const sampleText = `=========================================================\n${book.title.toUpperCase()}\nSubtitle: ${book.subtitle || 'N/A'}\nAuthor: ${book.author || 'Arjun Bharti Mina'}\nPublisher: ${book.publisher || 'ABM Media & Literary Press'}\nPublication Year: ${book.publicationYear}\nISBN: ${book.isbn || 'N/A'}\nPages: ${book.pages}\nLanguage: ${book.language || 'English / Hindi'}\n=========================================================\n\nSYNOPSIS:\n${book.longSynopsis || book.description}\n\nCHAPTER HIGHLIGHTS:\n${chapters.map((c, i) => `${i + 1}. ${c}`).join('\n')}\n\nRead more or purchase the complete volume on Google Play Books:\n${storeUrl}\n\n© ${book.publicationYear} Arjun Bharti Mina. All rights reserved.`;
-    
-    const blob = new Blob([sampleText], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${book.title.toLowerCase().replace(/[^a-z0-9]/g, '_')}_preview.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    hapticSuccess();
-    showToast('Book sample downloaded successfully!', 'success');
+    await downloadBookPreviewPdf(book, (msg, type) => showToast(msg, type));
   };
 
   const handleShare = (book: BookItem) => {
