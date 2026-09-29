@@ -88,7 +88,7 @@ export const initialProfile: UserProfile = {
   profileImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1000&auto=format&fit=crop',
   heroImage: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1600&auto=format&fit=crop',
   email: 'contact@arjunbhartimina.com',
-  website: 'https://cai.foldedpage.in',
+  website: 'https://abm.foldedpage.in',
   whatsappNumber: '+91 98000 00000',
   featuredQuote: 'Art is the blueprint of the soul, and rhythm is its foundation.',
   isVerified: true,
@@ -1030,8 +1030,8 @@ export const initialAppearance: AppearanceConfig = {
 export const initialSEO: SEOConfig = {
   siteTitle: 'Arjun Bharti Mina (ABM) – Music, Lyrics, Books & Portfolio',
   metaDescription: 'Official website, music discography, lyrics archive, books, and creative portfolio of independent artist & civil engineer Arjun Bharti Mina (ABM).',
-  keywords: 'Arjun Bharti Mina, ABM, Arjun Mina, cai.foldedpage.in, Desi Hip Hop, Indian Rapper, SKIT Jaipur, Rutba, Hindi Rap, Civil Engineering, Lyrics, Jaipur Artist',
-  ogImageUrl: 'https://cai.foldedpage.in/og-image.jpg',
+  keywords: 'Arjun Bharti Mina, ABM, Arjun Mina, abm.foldedpage.in, Desi Hip Hop, Indian Rapper, SKIT Jaipur, Rutba, Hindi Rap, Civil Engineering, Lyrics, Jaipur Artist',
+  ogImageUrl: 'https://abm.foldedpage.in/og-image.jpg',
   twitterHandle: '@ArjunMinaABM'
 };
 

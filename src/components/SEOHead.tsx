@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { useStore } from '../context/StoreContext';
 import { ActiveTab } from '../types';
 
-const CANONICAL_BASE_URL = 'https://cai.foldedpage.in';
+const CANONICAL_BASE_URL = 'https://abm.foldedpage.in';
 
 const VALID_PUBLIC_TABS: ActiveTab[] = [
   'home',
@@ -26,7 +26,7 @@ const TAB_SEO_META: Record<
     description:
       'Official website, music discography, lyrics archive, books, and creative portfolio of independent artist & civil engineer Arjun Bharti Mina (ABM).',
     keywords:
-      'Arjun Bharti Mina, ABM, Arjun Mina, cai.foldedpage.in, Desi Hip Hop, Indian Rapper, Lyricist, Civil Engineer, SKIT Jaipur, Rutba, Jaipur Artist',
+      'Arjun Bharti Mina, ABM, Arjun Mina, abm.foldedpage.in, Desi Hip Hop, Indian Rapper, Lyricist, Civil Engineer, SKIT Jaipur, Rutba, Jaipur Artist',
   },
   about: {
     title: 'About Arjun Bharti Mina (ABM) – Biography, Education & Journey',
