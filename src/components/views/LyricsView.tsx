@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../../context/StoreContext';
-import { Search, FileText, Copy, Check, Play, ArrowRight, Music2, Share2, Sparkles } from 'lucide-react';
+import { Search, FileText, Copy, Check, Play, Pause, ArrowRight, Music2, Share2, Sparkles, FileAudio } from 'lucide-react';
 import { 
   CINEMATIC_EASE, 
   slideInLeft, 
@@ -12,7 +12,18 @@ import {
 import { hapticLight, hapticSelection, hapticSuccess } from '../../utils/haptics';
 
 export const LyricsView: React.FC = () => {
-  const { lyrics, songs, playSong, setSelectedLyricId, openShare, setCurrentTab, setSelectedSongId } = useStore();
+  const { 
+    lyrics, 
+    songs, 
+    playSong, 
+    pauseSong, 
+    isPlaying, 
+    currentSong, 
+    setSelectedLyricId, 
+    openShare, 
+    setCurrentTab, 
+    setSelectedSongId 
+  } = useStore();
   
   const [search, setSearch] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -151,13 +162,29 @@ export const LyricsView: React.FC = () => {
                         onClick={(e) => {
                           e.stopPropagation();
                           hapticLight();
-                          playSong(matchedSong);
+                          if (isPlaying && currentSong?.id === matchedSong.id) {
+                            pauseSong();
+                          } else {
+                            playSong(matchedSong);
+                          }
                         }}
-                        className="px-3.5 py-1.5 rounded-full text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-transform"
-                        style={{ backgroundColor: 'var(--color-accent-primary, #f59e0b)' }}
+                        className={`px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer ${
+                          isPlaying && currentSong?.id === matchedSong.id
+                            ? 'bg-amber-500 text-neutral-950 font-bold ring-2 ring-amber-400/50'
+                            : 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 hover:opacity-90'
+                        }`}
                       >
-                        <Play className="w-3.5 h-3.5 fill-current" />
-                        <span>Play Song</span>
+                        {isPlaying && currentSong?.id === matchedSong.id ? (
+                          <>
+                            <Pause className="w-3.5 h-3.5" />
+                            <span>Pause</span>
+                          </>
+                        ) : (
+                          <>
+                            <Play className="w-3.5 h-3.5 fill-current" />
+                            <span>Play Song</span>
+                          </>
+                        )}
                       </motion.button>
                     )}
                   </div>

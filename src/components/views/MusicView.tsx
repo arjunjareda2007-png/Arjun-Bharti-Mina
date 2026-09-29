@@ -271,6 +271,69 @@ export const MusicView: React.FC = () => {
         </div>
       )}
 
+      {/* 2.5. OFFICIAL SPOTIFY EMBEDDED PLAYLIST & MINIPLAYER HUB */}
+      <section 
+        id="spotify-curated-playlist-section"
+        aria-label="Official Spotify Curated Playlist"
+        className="relative rounded-3xl bg-neutral-950 text-white border border-[#1DB954]/40 p-4 sm:p-6 shadow-2xl overflow-hidden ring-1 ring-white/10"
+      >
+        {/* Ambient Glow */}
+        <div className="absolute top-0 right-0 w-80 h-80 bg-[#1DB954]/10 rounded-full blur-3xl pointer-events-none -z-0" />
+
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-neutral-800">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#1DB954] text-neutral-950 flex items-center justify-center font-bold shadow-lg shadow-[#1DB954]/25 shrink-0">
+              <Radio className="w-5 h-5 animate-pulse" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-mono uppercase font-bold text-[#1DB954] flex items-center gap-1.5">
+                  <span>Spotify Official Playlist</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#1DB954] animate-ping" />
+                </span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#1DB954]/20 text-[#1ed760] font-mono border border-[#1DB954]/40 font-semibold">
+                  MINIPLAYER READY
+                </span>
+              </div>
+              <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">
+                Curated Hip-Hop & Rap Playlist Stream
+              </h3>
+              <p className="text-xs text-neutral-400 mt-0.5">
+                Stream the official playlist continuously or pop it into the floating miniplayer while browsing other pages.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap sm:shrink-0">
+            <a
+              href="https://open.spotify.com/playlist/37i9dQZF1DWX7nMmBhSzhN"
+              target="_blank"
+              rel="noreferrer"
+              className="px-3.5 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-300 hover:text-white font-medium text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <span>Open on Spotify</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          </div>
+        </div>
+
+        {/* Embedded Playlist Iframe as requested by user */}
+        <div className="relative z-10 mt-4 rounded-2xl overflow-hidden bg-neutral-900 border border-neutral-800 shadow-inner">
+          <iframe 
+            style={{ borderRadius: '12px' }} 
+            src="https://open.spotify.com/embed/playlist/37i9dQZF1DWX7nMmBhSzhN?utm_source=generator" 
+            width="100%" 
+            height="352" 
+            frameBorder="0" 
+            allowFullScreen={true} 
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+            loading="lazy"
+            title="Spotify Embedded Playlist"
+            className="w-full block"
+          />
+        </div>
+      </section>
+
       {/* 3. Filter & Search Bar */}
       <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-900/60 border border-neutral-200 dark:border-neutral-800">
         

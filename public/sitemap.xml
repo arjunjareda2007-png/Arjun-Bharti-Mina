@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml"
+  xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+>
+  <!-- Primary Homepage -->
+  <url>
+    <loc>https://cai.foldedpage.in/</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://cai.foldedpage.in/logo.png</image:loc>
+      <image:title>Arjun Bharti Mina (ABM) Official Logo</image:title>
+      <image:caption>Official emblem and portrait of Indian music artist, rapper, lyricist, and civil engineer Arjun Bharti Mina (ABM).</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://cai.foldedpage.in/og-image.jpg</image:loc>
+      <image:title>Arjun Bharti Mina – Independent Music Artist &amp; Creative Technologist</image:title>
+      <image:caption>Official website, music discography, lyrics archive, books, and creative portfolio of Arjun Bharti Mina.</image:caption>
+    </image:image>
+  </url>
+
+  <!-- Music Discography & Audio Vault -->
+  <url>
+    <loc>https://cai.foldedpage.in/?section=music</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Official Lyrics Archive -->
+  <url>
+    <loc>https://cai.foldedpage.in/?section=lyrics</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- About & Biography -->
+  <url>
+    <loc>https://cai.foldedpage.in/?section=about</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- Published Books & Literature -->
+  <url>
+    <loc>https://cai.foldedpage.in/?section=books</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- Engineering & Digital Projects -->
+  <url>
+    <loc>https://cai.foldedpage.in/?section=projects</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Official Music Videos & Visuals -->
+  <url>
+    <loc>https://cai.foldedpage.in/?section=videos</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Photography & Visual Archive -->
+  <url>
+    <loc>https://cai.foldedpage.in/?section=gallery</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.75</priority>
+  </url>
+
+  <!-- Social Hub & Streaming Links -->
+  <url>
+    <loc>https://cai.foldedpage.in/?section=social</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Contact & Collaborations -->
+  <url>
+    <loc>https://cai.foldedpage.in/?section=contact</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+</urlset>

@@ -31,6 +31,19 @@ export const DEFAULT_SPOTIFY_ARTIST_ID = 'arjunbhartimina';
 export const DEFAULT_FALLBACK_TRACK_ID = '6rqhFgbbKwnb9MLmUQDhG6';
 
 /**
+ * Featured Official Spotify Embedded Playlist for Miniplayer & Music Hub
+ */
+export const FEATURED_SPOTIFY_PLAYLIST = {
+  id: '37i9dQZF1DWX7nMmBhSzhN',
+  embedUrl: 'https://open.spotify.com/embed/playlist/37i9dQZF1DWX7nMmBhSzhN?utm_source=generator',
+  webUrl: 'https://open.spotify.com/playlist/37i9dQZF1DWX7nMmBhSzhN',
+  uri: 'spotify:playlist:37i9dQZF1DWX7nMmBhSzhN',
+  title: 'Spotify Official Playlist',
+  subtitle: 'Curated Hip-Hop & Rap Hits',
+  description: 'Official Spotify playlist embedded miniplayer stream'
+};
+
+/**
  * Parse any Spotify URL, URI, or ID into structured Spotify details
  */
 export function parseSpotifyUrl(urlOrUri?: string): SpotifyDetails | null {

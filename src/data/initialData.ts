@@ -88,7 +88,7 @@ export const initialProfile: UserProfile = {
   profileImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1000&auto=format&fit=crop',
   heroImage: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1600&auto=format&fit=crop',
   email: 'contact@arjunbhartimina.com',
-  website: 'https://arjunbhartimina.com',
+  website: 'https://cai.foldedpage.in',
   whatsappNumber: '+91 98000 00000',
   featuredQuote: 'Art is the blueprint of the soul, and rhythm is its foundation.',
   isVerified: true,
@@ -176,6 +176,9 @@ Still rising.`,
       wynk: 'https://wynk.in/u/arjunbhartimina'
     },
     youtubeEmbedId: 'dQw4w9WgXcQ',
+    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+    audioFileName: 'rutba_master_mix.mp3',
+    audioFileSize: '4.6 MB',
     audioToneSequence: [261.63, 329.63, 392.00, 523.25, 493.88, 440.00, 392.00, 329.63],
     featured: true,
     playCount: 14250
@@ -235,6 +238,9 @@ ABM.`,
       appleMusic: 'https://music.apple.com/artist/arjun-bharti-mina'
     },
     youtubeEmbedId: 'M7lc1UVf-VE',
+    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
+    audioFileName: 'jaipur_to_delhi_drill_master.mp3',
+    audioFileSize: '3.9 MB',
     audioToneSequence: [220.00, 246.94, 261.63, 293.66, 329.63, 293.66, 261.63, 220.00],
     featured: true,
     playCount: 9820
@@ -289,6 +295,9 @@ Kitne pahaad paar kiye, soch ke muskurata hoon.`,
       jiosaavn: 'https://jiosaavn.com/artist/arjun-bharti-mina'
     },
     youtubeEmbedId: '5qap5aO4i9A',
+    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
+    audioFileName: 'khwabeeda_lofi_mix.mp3',
+    audioFileSize: '5.2 MB',
     audioToneSequence: [329.63, 392.00, 440.00, 493.88, 523.25, 493.88, 440.00, 392.00],
     featured: true,
     playCount: 16800
@@ -330,6 +339,9 @@ Dono ko jodd diya, set my ultimate goals!`,
       appleMusic: 'https://music.apple.com/artist/arjun-bharti-mina'
     },
     youtubeEmbedId: 'L_LUpnjgPso',
+    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3',
+    audioFileName: 'aasman_ki_ore_acoustic.mp3',
+    audioFileSize: '4.1 MB',
     audioToneSequence: [392.00, 440.00, 493.88, 587.33, 523.25, 493.88, 440.00, 392.00],
     featured: false,
     playCount: 7420
@@ -365,6 +377,9 @@ ABM on the verse!`,
       youtube: 'https://youtube.com/@arjunbhartimina'
     },
     youtubeEmbedId: 'kJQP7kiw5Fk',
+    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3',
+    audioFileName: 'desi_flow_raw_cypher.mp3',
+    audioFileSize: '3.6 MB',
     audioToneSequence: [196.00, 220.00, 246.94, 293.66, 261.63, 246.94, 220.00, 196.00],
     featured: false,
     playCount: 11200
@@ -1013,10 +1028,10 @@ export const initialAppearance: AppearanceConfig = {
 };
 
 export const initialSEO: SEOConfig = {
-  siteTitle: 'Arjun Bharti Mina',
-  metaDescription: 'Discover the music, lyrics, digital tools, books, and artistic journey of Arjun Bharti Mina (ABM) — Indian rapper, lyricist, civil engineer and creator.',
-  keywords: 'Arjun Bharti Mina, ABM, Desi Hip Hop, Indian Rapper, SKIT Jaipur, Rutba, Hindi Rap, Civil Engineering, Lyrics, Jaipur Artist',
-  ogImageUrl: '/logo.png',
+  siteTitle: 'Arjun Bharti Mina (ABM) – Music, Lyrics, Books & Portfolio',
+  metaDescription: 'Official website, music discography, lyrics archive, books, and creative portfolio of independent artist & civil engineer Arjun Bharti Mina (ABM).',
+  keywords: 'Arjun Bharti Mina, ABM, Arjun Mina, cai.foldedpage.in, Desi Hip Hop, Indian Rapper, SKIT Jaipur, Rutba, Hindi Rap, Civil Engineering, Lyrics, Jaipur Artist',
+  ogImageUrl: 'https://cai.foldedpage.in/og-image.jpg',
   twitterHandle: '@ArjunMinaABM'
 };
 

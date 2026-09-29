@@ -18,7 +18,8 @@ import {
   Palette,
   ChevronDown,
   X, 
-  Search
+  Search,
+  Radio
 } from 'lucide-react';
 
 export const MenuDrawer: React.FC = () => {
@@ -30,7 +31,7 @@ export const MenuDrawer: React.FC = () => {
     theme, 
     setTheme, 
     showToast, 
-    openSearch 
+    openSearch
   } = useStore();
 
   const [showThemePicker, setShowThemePicker] = useState(false);

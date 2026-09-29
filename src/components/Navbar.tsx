@@ -19,7 +19,8 @@ import {
   User, 
   Mail, 
   Share2,
-  Sparkles
+  Sparkles,
+  Radio
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {

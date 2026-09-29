@@ -21,7 +21,9 @@ import { ToastContainer } from './components/ToastContainer';
 import { ImageCropperModal } from './components/ImageCropperModal';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { ScrollToTopButton } from './components/ScrollToTopButton';
+import { AudioMiniplayer } from './components/AudioMiniplayer';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { SEOHead } from './components/SEOHead';
 import { CustomCursor } from './components/motion/CustomCursor';
 import { CINEMATIC_EASE } from './utils/motion';
 import { useScrollHaptics } from './utils/scrollHaptics';
@@ -53,6 +55,7 @@ const MainLayout: React.FC = () => {
   if (currentTab === 'admin') {
     return (
       <ErrorBoundary fallbackTitle="Admin Dashboard Refreshed">
+        <SEOHead />
         <div className="min-h-screen bg-neutral-950 font-sans selection:bg-amber-500 selection:text-neutral-950">
           <AdminDashboard />
           <FullscreenPlayerModal />
@@ -79,6 +82,7 @@ const MainLayout: React.FC = () => {
 
   return (
     <ErrorBoundary fallbackTitle="Website View Refreshed">
+      <SEOHead />
       <div className="min-h-screen flex flex-col bg-white dark:bg-neutral-950 text-neutral-950 dark:text-neutral-50 transition-colors duration-300 font-sans selection:bg-neutral-900 selection:text-white dark:selection:bg-white dark:selection:text-neutral-950 overflow-x-hidden">
         {/* Subtle Desktop Custom Cursor */}
         <CustomCursor />
@@ -147,6 +151,9 @@ const MainLayout: React.FC = () => {
 
         {/* Back to Top Quick Action */}
         <ScrollToTopButton />
+
+        {/* Global Audio Miniplayer for Owner Uploaded Tracks */}
+        <AudioMiniplayer />
 
         {/* Mobile Persistent Navigation */}
         <MobileBottomNav />

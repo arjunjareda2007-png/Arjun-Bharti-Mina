@@ -1,10 +1,36 @@
 import React, { useState } from 'react';
 import { useStore } from '../context/StoreContext';
-import { X, Copy, Check, Share2, Play, Music2, BookOpen, FileText, FileCode, Download, Sparkles } from 'lucide-react';
-import { generateLyricsPDF, generateLyricsWordDoc, downloadTextFile } from '../utils/shareUtils';
+import { 
+  X, 
+  Copy, 
+  Check, 
+  Share2, 
+  Play, 
+  Pause, 
+  Music2, 
+  FileAudio, 
+  FileText, 
+  FileCode, 
+  Sparkles,
+  Volume2 
+} from 'lucide-react';
+import { generateLyricsPDF, generateLyricsWordDoc } from '../utils/shareUtils';
 
 export const LyricDetailModal: React.FC = () => {
-  const { selectedLyricId, setSelectedLyricId, lyrics, songs, playSong, openShare, setCurrentTab, setSelectedSongId, showToast } = useStore();
+  const { 
+    selectedLyricId, 
+    setSelectedLyricId, 
+    lyrics, 
+    songs, 
+    playSong, 
+    pauseSong, 
+    isPlaying, 
+    currentSong, 
+    openShare, 
+    setCurrentTab, 
+    setSelectedSongId, 
+    showToast 
+  } = useStore();
   const [copied, setCopied] = useState(false);
 
   if (!selectedLyricId) return null;
@@ -12,6 +38,7 @@ export const LyricDetailModal: React.FC = () => {
   if (!lyricItem) return null;
 
   const matchedSong = songs.find(s => s.id === lyricItem.songId || s.title.toLowerCase() === lyricItem.title.split('—')[0].trim().toLowerCase());
+  const isThisPlaying = isPlaying && currentSong?.id === matchedSong?.id;
 
   const handleCopy = () => {
     const full = `${lyricItem.title}\nWritten by ${lyricItem.artist} (${lyricItem.year})\nGenre: ${lyricItem.genre}\n\n${lyricItem.lyrics}\n\nOfficial Archive: ${window.location.origin}/#lyrics?id=${lyricItem.id}`;
@@ -44,6 +71,15 @@ export const LyricDetailModal: React.FC = () => {
   const handleExportWord = () => {
     generateLyricsWordDoc(lyricItem);
     showToast('Lyrics Word document (.doc) downloaded!', 'success');
+  };
+
+  const handleToggleSongPlayback = () => {
+    if (!matchedSong) return;
+    if (isThisPlaying) {
+      pauseSong();
+    } else {
+      playSong(matchedSong);
+    }
   };
 
   return (
@@ -124,20 +160,88 @@ export const LyricDetailModal: React.FC = () => {
 
               {matchedSong && (
                 <button
-                  onClick={() => {
-                    playSong(matchedSong);
-                    setCurrentTab('music');
-                    setSelectedSongId(matchedSong.id);
-                    setSelectedLyricId(null);
-                  }}
-                  className="px-3.5 py-1.5 rounded-full bg-amber-500 hover:bg-amber-400 text-neutral-950 text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm"
+                  onClick={handleToggleSongPlayback}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer ${
+                    isThisPlaying
+                      ? 'bg-amber-500 text-neutral-950'
+                      : 'bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-neutral-950'
+                  }`}
                 >
-                  <Play className="w-3.5 h-3.5 fill-current" />
-                  <span>Play Song</span>
+                  {isThisPlaying ? (
+                    <>
+                      <Pause className="w-3.5 h-3.5" />
+                      <span>Pause Audio</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-3.5 h-3.5 fill-current" />
+                      <span>Play Song</span>
+                    </>
+                  )}
                 </button>
               )}
             </div>
           </div>
+
+          {/* Linked Song Audio Deck Banner */}
+          {matchedSong && (
+            <div className="p-4 rounded-2xl bg-neutral-100/90 dark:bg-neutral-800/80 border border-neutral-200 dark:border-neutral-700 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+              <div className="flex items-center gap-3.5 min-w-0">
+                <img
+                  src={matchedSong.cover}
+                  alt={matchedSong.title}
+                  className="w-14 h-14 rounded-2xl object-cover border border-neutral-200 dark:border-neutral-700 shrink-0 shadow-xs"
+                />
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <span className="text-[10px] font-mono uppercase font-bold tracking-wider text-amber-500">
+                      Linked Song Audio
+                    </span>
+                    {matchedSong.audioUrl ? (
+                      <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-mono font-medium">
+                        Master Audio File
+                      </span>
+                    ) : (
+                      <span className="text-[9px] px-1.5 py-0.2 rounded bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300 font-mono font-medium">
+                        Synth Audio
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="text-sm font-bold text-neutral-900 dark:text-white truncate">
+                    {matchedSong.title}
+                  </h3>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 font-mono truncate">
+                    {matchedSong.audioFileName ? matchedSong.audioFileName : `${matchedSong.artist} • ${matchedSong.duration}`}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={handleToggleSongPlayback}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow-sm transition-all cursor-pointer ${
+                    isThisPlaying
+                      ? 'bg-amber-500 text-neutral-950 ring-2 ring-amber-400/50'
+                      : 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 hover:opacity-90'
+                  }`}
+                  title={isThisPlaying ? 'Pause audio' : 'Play audio in miniplayer while reading lyrics'}
+                >
+                  {isThisPlaying ? (
+                    <>
+                      <Pause className="w-4 h-4" />
+                      <span>Pause Audio</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-4 h-4 fill-current" />
+                      <span>Listen Along</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Meaning / Context */}
           {lyricItem.meaning && (

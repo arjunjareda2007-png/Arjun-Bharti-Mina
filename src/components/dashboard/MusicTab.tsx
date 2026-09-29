@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '../../context/StoreContext';
 import { Song } from '../../types';
 import { DeleteConfirmModal } from '../DeleteConfirmModal';
@@ -12,6 +12,7 @@ import {
   Eye, 
   EyeOff, 
   Play, 
+  Pause,
   Sparkles,
   ExternalLink,
   Save,
@@ -20,7 +21,10 @@ import {
   Square,
   RefreshCw,
   CheckCircle2,
-  Video
+  Video,
+  UploadCloud,
+  FileAudio,
+  Volume2
 } from 'lucide-react';
 import { 
   extractYouTubeId, 
@@ -86,6 +90,107 @@ export const MusicTab: React.FC = () => {
   const [fetchingMeta, setFetchingMeta] = useState(false);
   const [fetchedSuccess, setFetchedSuccess] = useState(false);
   const [syncToVideos, setSyncToVideos] = useState(true);
+  const [isUploadingAudio, setIsUploadingAudio] = useState(false);
+  const [audioPreviewPlaying, setAudioPreviewPlaying] = useState(false);
+  const audioPreviewRef = useRef<HTMLAudioElement | null>(null);
+
+  // Clean up audio preview player on unmount or modal close
+  useEffect(() => {
+    return () => {
+      if (audioPreviewRef.current) {
+        audioPreviewRef.current.pause();
+        audioPreviewRef.current = null;
+      }
+    };
+  }, []);
+
+  const handleAudioFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editingSong) return;
+
+    if (file.size > 50 * 1024 * 1024) {
+      showToast('Audio file size exceeds 50MB limit', 'error');
+      return;
+    }
+
+    setIsUploadingAudio(true);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      const sizeStr = `${(file.size / (1024 * 1024)).toFixed(1)} MB`;
+
+      // Read track duration directly from the audio file
+      try {
+        const tempAudio = new Audio(dataUrl);
+        tempAudio.addEventListener('loadedmetadata', () => {
+          const totalSecs = Math.round(tempAudio.duration);
+          const mins = Math.floor(totalSecs / 60);
+          const secs = totalSecs % 60;
+          const durFormatted = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+
+          setEditingSong(prev => prev ? {
+            ...prev,
+            audioUrl: dataUrl,
+            audioFileName: file.name,
+            audioFileSize: sizeStr,
+            duration: prev.duration && prev.duration !== '3:24' ? prev.duration : durFormatted
+          } : null);
+          setIsUploadingAudio(false);
+          showToast(`Audio file "${file.name}" uploaded successfully!`, 'success');
+        });
+
+        tempAudio.addEventListener('error', () => {
+          setEditingSong(prev => prev ? {
+            ...prev,
+            audioUrl: dataUrl,
+            audioFileName: file.name,
+            audioFileSize: sizeStr
+          } : null);
+          setIsUploadingAudio(false);
+          showToast(`Audio file "${file.name}" attached!`, 'success');
+        });
+      } catch {
+        setEditingSong(prev => prev ? {
+          ...prev,
+          audioUrl: dataUrl,
+          audioFileName: file.name,
+          audioFileSize: sizeStr
+        } : null);
+        setIsUploadingAudio(false);
+        showToast(`Audio file attached!`, 'success');
+      }
+    };
+
+    reader.onerror = () => {
+      setIsUploadingAudio(false);
+      showToast('Error reading audio file', 'error');
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+  const toggleAudioPreview = () => {
+    if (!editingSong?.audioUrl) return;
+
+    if (!audioPreviewRef.current) {
+      audioPreviewRef.current = new Audio(editingSong.audioUrl);
+      audioPreviewRef.current.addEventListener('ended', () => {
+        setAudioPreviewPlaying(false);
+      });
+    }
+
+    if (audioPreviewPlaying) {
+      audioPreviewRef.current.pause();
+      setAudioPreviewPlaying(false);
+    } else {
+      audioPreviewRef.current.play().then(() => {
+        setAudioPreviewPlaying(true);
+      }).catch((err) => {
+        console.warn('Could not play preview audio', err);
+        showToast('Playback preview error', 'error');
+      });
+    }
+  };
 
   // Filtered list
   const filteredSongs = songs.filter(song => {
@@ -395,6 +500,17 @@ export const MusicTab: React.FC = () => {
                             <p className="text-neutral-500 dark:text-neutral-400 text-[11px] truncate">
                               {song.genre} • {song.artist}
                             </p>
+                            {song.audioUrl ? (
+                              <div className="inline-flex items-center gap-1 text-[10px] text-emerald-600 dark:text-emerald-400 font-mono mt-0.5 font-medium">
+                                <FileAudio className="w-3 h-3" />
+                                <span className="truncate max-w-[150px]">{song.audioFileName || 'Master Audio'}</span>
+                              </div>
+                            ) : (
+                              <div className="inline-flex items-center gap-1 text-[10px] text-neutral-400 font-mono mt-0.5">
+                                <Music className="w-3 h-3" />
+                                <span>Synth fallback</span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </td>
@@ -524,6 +640,109 @@ export const MusicTab: React.FC = () => {
             </div>
 
             <form onSubmit={handleSaveModal} className="space-y-4">
+              {/* Owner Song Audio File Upload Section */}
+              <div className="p-4 rounded-2xl bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/30 space-y-3">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center gap-2">
+                    <FileAudio className="w-4 h-4 text-amber-500" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                      Song Audio File (Owner Upload)
+                    </span>
+                  </div>
+                  {editingSong.audioUrl && (
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-semibold border border-emerald-500/30 flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" />
+                      Audio File Attached
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-neutral-500 dark:text-neutral-400 leading-relaxed">
+                  Upload the official song audio file (.mp3, .wav, .m4a, .ogg). This audio file is played in the new Audio Miniplayer and linked with official lyrics.
+                </p>
+
+                {/* File input dropzone & preview */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+                  <label className="flex-1 cursor-pointer flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-dashed border-neutral-300 dark:border-neutral-700 hover:border-amber-500 rounded-xl bg-white dark:bg-neutral-900 transition-colors text-xs font-medium text-neutral-700 dark:text-neutral-300 shadow-2xs">
+                    <UploadCloud className="w-4 h-4 text-amber-500 shrink-0" />
+                    <span className="truncate font-semibold">
+                      {isUploadingAudio 
+                        ? 'Reading Audio File...' 
+                        : (editingSong.audioFileName ? `Replace: ${editingSong.audioFileName}` : 'Choose Audio File (.mp3, .wav, .m4a)')}
+                    </span>
+                    <input
+                      type="file"
+                      accept="audio/*,.mp3,.wav,.m4a,.ogg,.aac,.flac"
+                      onChange={handleAudioFileUpload}
+                      className="hidden"
+                    />
+                  </label>
+
+                  {editingSong.audioUrl && (
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={toggleAudioPreview}
+                        className="px-3.5 py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white border border-neutral-700 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                        title="Test audio playback"
+                      >
+                        {audioPreviewPlaying ? <Pause className="w-3.5 h-3.5 text-amber-400" /> : <Play className="w-3.5 h-3.5 fill-current text-amber-400" />}
+                        <span>{audioPreviewPlaying ? 'Pause Test' : 'Test Audio'}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (audioPreviewRef.current) {
+                            audioPreviewRef.current.pause();
+                          }
+                          setAudioPreviewPlaying(false);
+                          setEditingSong(prev => prev ? { 
+                            ...prev, 
+                            audioUrl: undefined, 
+                            audioFileName: undefined, 
+                            audioFileSize: undefined 
+                          } : null);
+                          showToast('Audio file detached from track', 'info');
+                        }}
+                        className="p-2.5 rounded-xl text-neutral-400 hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer border border-transparent hover:border-red-500/20"
+                        title="Remove audio file"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {editingSong.audioFileName && (
+                  <div className="flex items-center gap-2 text-[11px] font-mono text-neutral-600 dark:text-neutral-300 bg-white/70 dark:bg-neutral-900/70 p-2 rounded-xl border border-neutral-200 dark:border-neutral-800">
+                    <Volume2 className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                    <span className="font-semibold truncate flex-1">{editingSong.audioFileName}</span>
+                    {editingSong.audioFileSize && <span className="text-neutral-400">({editingSong.audioFileSize})</span>}
+                    {editingSong.duration && <span className="text-amber-500 font-bold">{editingSong.duration}</span>}
+                  </div>
+                )}
+
+                {/* Direct audio URL alternative */}
+                <div className="pt-1 border-t border-amber-500/15">
+                  <label className="block text-[10px] uppercase font-bold text-neutral-400 dark:text-neutral-500 mb-1">
+                    Or direct audio web URL:
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://example.com/audio/my_track.mp3"
+                    value={editingSong.audioUrl?.startsWith('data:') ? '' : (editingSong.audioUrl || '')}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setEditingSong(prev => prev ? {
+                        ...prev,
+                        audioUrl: val || undefined,
+                        audioFileName: val ? val.split('/').pop()?.split('?')[0] : undefined
+                      } : null);
+                    }}
+                    className="w-full px-3 py-1.5 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg text-xs font-mono"
+                  />
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 mb-1">

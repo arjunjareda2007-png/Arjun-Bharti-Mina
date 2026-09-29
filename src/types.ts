@@ -113,6 +113,9 @@ export interface Song {
   streamingLinks: StreamingLinks;
   youtubeEmbedId?: string;
   audioPreviewUrl?: string; // Web audio synth or sample URL
+  audioUrl?: string; // Uploaded audio file (data URL, blob URL, or direct audio link)
+  audioFileName?: string; // Name of uploaded audio file (e.g. "rutba_master_mix.mp3")
+  audioFileSize?: string; // Formatted file size (e.g. "4.8 MB")
   audioToneSequence?: number[]; // Frequencies for browser audio synthesis
   featured: boolean;
   published?: boolean;

@@ -41,7 +41,7 @@ import {
   initialYouTube,
   initialAnalytics
 } from '../data/initialData';
-import { audioSynth } from '../utils/audioSynth';
+import { audioEngine } from '../utils/audioEngine';
 import { parseDurationToSeconds } from '../utils/helpers';
 import { isOwnerEmail } from '../firebase';
 import { AuthUser } from '../types';
@@ -846,9 +846,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     });
   }, [currentTab]);
 
-  // Sync browser title with branding
+  // Sync browser title with branding when customized
   useEffect(() => {
-    if (branding.browserTitle) {
+    if (branding.browserTitle && branding.browserTitle !== 'Arjun Bharti Mina') {
       document.title = branding.browserTitle;
     }
   }, [branding.browserTitle]);
@@ -1153,21 +1153,22 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     // Update playCount in songs list
     setSongs(prev => prev.map(s => s.id === song.id ? { ...s, playCount: s.playCount + 1 } : s));
 
-    if (playerMode === 'custom') {
-      audioSynth.play(
-        song.audioToneSequence || [261.63, 329.63, 392.00, 523.25],
-        dur,
-        (time) => {
-          setPlaybackTime(time);
-        },
-        () => {
-          nextSong();
+    // Start playback through unified audioEngine (uploaded audio file or synth fallback)
+    audioEngine.play(
+      song,
+      (time, dur) => {
+        setPlaybackTime(time);
+        if (dur && !isNaN(dur) && dur > 0) {
+          setDuration(Math.round(dur));
         }
-      );
-    }
+      },
+      () => {
+        nextSong();
+      }
+    );
   };
 
-  // Continuous playback timer for audio and visualizer sync
+  // Continuous playback timer for audio and visualizer sync when active
   useEffect(() => {
     let timer: any = null;
     if (isPlaying && currentSong) {
@@ -1198,7 +1199,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       timeout = setTimeout(() => {
         setIsPlaying(false);
         setSleepTimerMinutes(null);
-        audioSynth.pause();
+        audioEngine.pause();
         showToast('Sleep timer reached: Playback paused', 'info');
       }, sleepTimerMinutes * 60 * 1000);
     }
@@ -1209,13 +1210,13 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const pauseSong = () => {
     setIsPlaying(false);
-    audioSynth.pause();
+    audioEngine.pause();
   };
 
   const resumeSong = () => {
     if (currentSong) {
       setIsPlaying(true);
-      audioSynth.resume();
+      audioEngine.resume();
     }
   };
 
@@ -1223,7 +1224,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setIsPlaying(false);
     setCurrentSong(null);
     setPlaybackTime(0);
-    audioSynth.pause();
+    audioEngine.stop();
   }, []);
 
   const togglePlay = () => {
@@ -1241,7 +1242,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const seekSong = (time: number) => {
     const clamped = Math.max(0, Math.min(time, duration || 300));
     setPlaybackTime(clamped);
-    audioSynth.seek(clamped);
+    audioEngine.seek(clamped);
   };
 
   const prevSong = () => {
@@ -1254,16 +1255,16 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const changeVolume = (val: number) => {
     setVolumeState(val);
     if (isMuted && val > 0) setIsMuted(false);
-    audioSynth.setVolume(val);
+    audioEngine.setVolume(val);
   };
 
   const toggleMute = () => {
     if (isMuted) {
       setIsMuted(false);
-      audioSynth.setVolume(volume);
+      audioEngine.setVolume(volume);
     } else {
       setIsMuted(true);
-      audioSynth.setVolume(0);
+      audioEngine.setVolume(0);
     }
   };
 

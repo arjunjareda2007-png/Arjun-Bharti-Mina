@@ -1,0 +1,26 @@
+# robots.txt for Arjun Bharti Mina (ABM) Official Website
+# Domain: https://cai.foldedpage.in
+
+User-agent: Googlebot
+Allow: /
+Disallow: /*?tab=admin
+Disallow: /*?section=admin
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Googlebot-Video
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+Disallow: /*?tab=admin
+Disallow: /*?section=admin
+
+User-agent: *
+Allow: /
+Disallow: /*?tab=admin
+Disallow: /*?section=admin
+
+Host: https://cai.foldedpage.in
+Sitemap: https://cai.foldedpage.in/sitemap.xml

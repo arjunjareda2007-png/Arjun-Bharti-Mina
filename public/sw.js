@@ -1,5 +1,5 @@
 // Service Worker for ABM Creator Hub PWA
-const CACHE_NAME = 'abm-hub-v1';
+const CACHE_NAME = 'abm-hub-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -31,7 +31,32 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
-  
+
+  const url = new URL(event.request.url);
+  // Always serve robots.txt and sitemap.xml directly from network
+  if (url.pathname === '/robots.txt' || url.pathname === '/sitemap.xml') {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
+  // Network-first for HTML navigation so fresh SEO metadata is always served
+  if (event.request.mode === 'navigate' || url.pathname === '/' || url.pathname === '/index.html') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response && response.status === 200 && response.type === 'basic') {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseToCache);
+            });
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
