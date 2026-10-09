@@ -175,13 +175,44 @@ Still rising.`,
       appleMusic: 'https://music.apple.com/artist/arjun-bharti-mina',
       wynk: 'https://wynk.in/u/arjunbhartimina'
     },
-    youtubeEmbedId: 'dQw4w9WgXcQ',
+    youtubeEmbedId: 'fJ9rUzIMcZQ',
     audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
     audioFileName: 'rutba_master_mix.mp3',
     audioFileSize: '4.6 MB',
+    audioHostType: 'hosted_link',
     audioToneSequence: [261.63, 329.63, 392.00, 523.25, 493.88, 440.00, 392.00, 329.63],
     featured: true,
-    playCount: 14250
+    published: true,
+    playCount: 14250,
+    relatedVideos: [
+      {
+        id: 'vid-rutba-1',
+        title: 'RUTBA — Official Music Video (Street Anthem)',
+        youtubeUrl: 'https://www.youtube.com/watch?v=fJ9rUzIMcZQ',
+        youtubeEmbedId: 'fJ9rUzIMcZQ',
+        type: 'Official Music Video',
+        thumbnail: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=1200&auto=format&fit=crop',
+        duration: '3:45'
+      },
+      {
+        id: 'vid-rutba-2',
+        title: 'Inside ABM Studio’s: Making of RUTBA Beats & Bars',
+        youtubeUrl: 'https://youtube.com/watch?v=M7lc1UVf-VE',
+        youtubeEmbedId: 'M7lc1UVf-VE',
+        type: 'Behind The Scenes',
+        thumbnail: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?q=80&w=1200&auto=format&fit=crop',
+        duration: '8:20'
+      },
+      {
+        id: 'vid-rutba-3',
+        title: 'RUTBA — Lyrical Video & Rhyme Scheme Breakdown',
+        youtubeUrl: 'https://youtube.com/watch?v=dQw4w9WgXcQ',
+        youtubeEmbedId: 'dQw4w9WgXcQ',
+        type: 'Lyrical Video',
+        thumbnail: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1200&auto=format&fit=crop',
+        duration: '3:18'
+      }
+    ]
   },
   {
     id: 'jaipur-to-delhi-2025',
@@ -241,9 +272,31 @@ ABM.`,
     audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
     audioFileName: 'jaipur_to_delhi_drill_master.mp3',
     audioFileSize: '3.9 MB',
+    audioHostType: 'hosted_link',
     audioToneSequence: [220.00, 246.94, 261.63, 293.66, 329.63, 293.66, 261.63, 220.00],
     featured: true,
-    playCount: 9820
+    published: true,
+    playCount: 9820,
+    relatedVideos: [
+      {
+        id: 'vid-jtd-1',
+        title: 'JAIPUR TO DELHI — Live Hostel Room Cypher',
+        youtubeUrl: 'https://youtube.com/watch?v=5qap5aO4i9A',
+        youtubeEmbedId: '5qap5aO4i9A',
+        type: 'Live Performance',
+        thumbnail: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1200&auto=format&fit=crop',
+        duration: '2:50'
+      },
+      {
+        id: 'vid-jtd-2',
+        title: 'JAIPUR TO DELHI — Highway Visualizer Video',
+        youtubeUrl: 'https://youtube.com/watch?v=M7lc1UVf-VE',
+        youtubeEmbedId: 'M7lc1UVf-VE',
+        type: 'Official Music Video',
+        thumbnail: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1200&auto=format&fit=crop',
+        duration: '2:54'
+      }
+    ]
   },
   {
     id: 'khwabeeda-2025',
@@ -298,9 +351,31 @@ Kitne pahaad paar kiye, soch ke muskurata hoon.`,
     audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
     audioFileName: 'khwabeeda_lofi_mix.mp3',
     audioFileSize: '5.2 MB',
+    audioHostType: 'hosted_link',
     audioToneSequence: [329.63, 392.00, 440.00, 493.88, 523.25, 493.88, 440.00, 392.00],
     featured: true,
-    playCount: 16800
+    published: true,
+    playCount: 16800,
+    relatedVideos: [
+      {
+        id: 'vid-khw-1',
+        title: 'KHWABEEDA — Midnight Lo-Fi Visualizer & Lyrics',
+        youtubeUrl: 'https://youtube.com/watch?v=5qap5aO4i9A',
+        youtubeEmbedId: '5qap5aO4i9A',
+        type: 'Lyrical Video',
+        thumbnail: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=1200&auto=format&fit=crop',
+        duration: '3:45'
+      },
+      {
+        id: 'vid-khw-2',
+        title: 'KHWABEEDA — Balcony Acoustic Guitar Jam',
+        youtubeUrl: 'https://youtube.com/watch?v=L_LUpnjgPso',
+        youtubeEmbedId: 'L_LUpnjgPso',
+        type: 'Acoustic / Session',
+        thumbnail: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?q=80&w=1200&auto=format&fit=crop',
+        duration: '3:20'
+      }
+    ]
   },
   {
     id: 'aasman-ki-ore-2026',
@@ -342,9 +417,22 @@ Dono ko jodd diya, set my ultimate goals!`,
     audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3',
     audioFileName: 'aasman_ki_ore_acoustic.mp3',
     audioFileSize: '4.1 MB',
+    audioHostType: 'hosted_link',
     audioToneSequence: [392.00, 440.00, 493.88, 587.33, 523.25, 493.88, 440.00, 392.00],
     featured: false,
-    playCount: 7420
+    published: true,
+    playCount: 7420,
+    relatedVideos: [
+      {
+        id: 'vid-aasman-1',
+        title: 'AASMAN KI ORE — Official Video & SKIT Journey',
+        youtubeUrl: 'https://youtube.com/watch?v=L_LUpnjgPso',
+        youtubeEmbedId: 'L_LUpnjgPso',
+        type: 'Official Music Video',
+        thumbnail: 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?q=80&w=1200&auto=format&fit=crop',
+        duration: '3:05'
+      }
+    ]
   },
   {
     id: 'desi-flow-vol1-2024',
@@ -380,9 +468,22 @@ ABM on the verse!`,
     audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3',
     audioFileName: 'desi_flow_raw_cypher.mp3',
     audioFileSize: '3.6 MB',
+    audioHostType: 'hosted_link',
     audioToneSequence: [196.00, 220.00, 246.94, 293.66, 261.63, 246.94, 220.00, 196.00],
     featured: false,
-    playCount: 11200
+    published: true,
+    playCount: 11200,
+    relatedVideos: [
+      {
+        id: 'vid-df-1',
+        title: '1 Minute Freestyle: Desi Rhyme Speed Test #Shorts',
+        youtubeUrl: 'https://youtube.com/watch?v=kJQP7kiw5Fk',
+        youtubeEmbedId: 'kJQP7kiw5Fk',
+        type: 'Teaser',
+        thumbnail: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1200&auto=format&fit=crop',
+        duration: '1:00'
+      }
+    ]
   }
 ];
 

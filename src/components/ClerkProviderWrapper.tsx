@@ -90,7 +90,12 @@ export const ClerkProviderWrapper: React.FC<ClerkProviderWrapperProps> = ({ chil
   }
 
   return (
-    <ClerkProvider key={publishableKey} publishableKey={publishableKey} appearance={clerkAppearance}>
+    <ClerkProvider 
+      key={publishableKey} 
+      publishableKey={publishableKey} 
+      appearance={clerkAppearance}
+      clerkJSVersion="5"
+    >
       <ClerkSyncBridge>
         {children}
       </ClerkSyncBridge>

@@ -1,5 +1,12 @@
-// Unified Audio Engine supporting Owner-uploaded audio files & Web Audio synthesis fallback
+// Unified Audio Engine supporting Hosted Audio URLs, uploaded files & Web Audio synthesis fallback
 import { Song } from '../types';
+
+export interface AudioEngineCallbacks {
+  onTimeUpdate?: (time: number, duration: number) => void;
+  onEnded?: () => void;
+  onError?: (err: Error) => void;
+  onBuffering?: (isBuffering: boolean) => void;
+}
 
 class UnifiedAudioEngine {
   private audioElement: HTMLAudioElement | null = null;
@@ -7,7 +14,11 @@ class UnifiedAudioEngine {
   private currentSong: Song | null = null;
   private onTimeUpdateCallback: ((time: number, duration: number) => void) | null = null;
   private onEndedCallback: (() => void) | null = null;
-  private volume: number = 0.8;
+  private onErrorCallback: ((err: Error) => void) | null = null;
+  private onBufferingCallback: ((isBuffering: boolean) => void) | null = null;
+  private volume: number = 0.85;
+  private playbackRate: number = 1.0;
+  private isLoop: boolean = false;
   private isAudioFileActive: boolean = false;
 
   // Fallback Web Audio Synthesizer
@@ -26,33 +37,68 @@ class UnifiedAudioEngine {
         this.audioElement.preload = 'auto';
         this.audioElement.volume = this.volume;
 
+        // Native audio event listeners
         this.audioElement.addEventListener('timeupdate', () => {
           if (this.audioElement && this.isAudioFileActive && this.onTimeUpdateCallback) {
             const cur = this.audioElement.currentTime || 0;
-            const dur = this.audioElement.duration && !isNaN(this.audioElement.duration) 
+            const dur = this.audioElement.duration && !isNaN(this.audioElement.duration) && this.audioElement.duration > 0
               ? this.audioElement.duration 
               : this.synthDuration;
             this.onTimeUpdateCallback(cur, dur);
           }
         });
 
+        this.audioElement.addEventListener('loadedmetadata', () => {
+          if (this.audioElement && this.isAudioFileActive && this.onTimeUpdateCallback) {
+            const dur = this.audioElement.duration;
+            if (dur && !isNaN(dur) && dur > 0) {
+              this.onTimeUpdateCallback(this.audioElement.currentTime || 0, dur);
+            }
+          }
+        });
+
+        this.audioElement.addEventListener('waiting', () => {
+          if (this.onBufferingCallback) this.onBufferingCallback(true);
+        });
+
+        this.audioElement.addEventListener('playing', () => {
+          if (this.onBufferingCallback) this.onBufferingCallback(false);
+          this.isPlaying = true;
+          this.updateMediaSessionState();
+        });
+
+        this.audioElement.addEventListener('pause', () => {
+          if (this.audioElement && !this.audioElement.ended) {
+            this.updateMediaSessionState();
+          }
+        });
+
         this.audioElement.addEventListener('ended', () => {
+          if (this.isLoop && this.audioElement) {
+            this.audioElement.currentTime = 0;
+            this.audioElement.play().catch(() => {});
+            return;
+          }
           this.isPlaying = false;
           if (this.onEndedCallback) {
             this.onEndedCallback();
           }
         });
 
-        this.audioElement.addEventListener('error', () => {
-          // If audio file fails (e.g. invalid URL or format), gracefully fallback to synth
-          if (this.currentSong && this.isPlaying && this.isAudioFileActive) {
-            console.warn('Audio element error, falling back to synthesizer preview.');
+        this.audioElement.addEventListener('error', (e) => {
+          console.warn('Audio element playback notice:', e);
+          if (this.onBufferingCallback) this.onBufferingCallback(false);
+          if (this.onErrorCallback) {
+            this.onErrorCallback(new Error('Audio stream error'));
+          }
+          // If hosted audio fails (e.g. invalid URL, CORS issue), seamlessly fall back to synth
+          if (this.currentSong && this.isPlaying) {
             this.isAudioFileActive = false;
             this.startSynth(this.currentSong);
           }
         });
       } catch (err) {
-        console.warn('Failed to initialize HTMLAudioElement:', err);
+        console.warn('Audio initialization notice:', err);
       }
     }
   }
@@ -71,35 +117,99 @@ class UnifiedAudioEngine {
     return this.ctx;
   }
 
+  private updateMediaSessionMetadata(song: Song) {
+    if (typeof window !== 'undefined' && 'mediaSession' in navigator) {
+      try {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: song.title,
+          artist: song.artist,
+          album: 'Arjun Bharti Mina Discography',
+          artwork: [
+            { src: song.cover, sizes: '512x512', type: 'image/jpeg' }
+          ]
+        });
+      } catch (e) {
+        // Safe ignore
+      }
+    }
+  }
+
+  private updateMediaSessionState() {
+    if (typeof window !== 'undefined' && 'mediaSession' in navigator) {
+      try {
+        navigator.mediaSession.playbackState = this.isPlaying ? 'playing' : 'paused';
+      } catch (e) {
+        // Safe ignore
+      }
+    }
+  }
+
+  public setMediaSessionActionHandlers(actions: {
+    onPlay?: () => void;
+    onPause?: () => void;
+    onNext?: () => void;
+    onPrev?: () => void;
+    onSeek?: (details: MediaSessionActionDetails) => void;
+  }) {
+    if (typeof window !== 'undefined' && 'mediaSession' in navigator) {
+      try {
+        if (actions.onPlay) navigator.mediaSession.setActionHandler('play', actions.onPlay);
+        if (actions.onPause) navigator.mediaSession.setActionHandler('pause', actions.onPause);
+        if (actions.onNext) navigator.mediaSession.setActionHandler('nexttrack', actions.onNext);
+        if (actions.onPrev) navigator.mediaSession.setActionHandler('previoustrack', actions.onPrev);
+        if (actions.onSeek) navigator.mediaSession.setActionHandler('seekto', actions.onSeek);
+      } catch (e) {
+        // Safe ignore
+      }
+    }
+  }
+
   public play(
     song: Song,
     onTimeUpdate?: (time: number, duration: number) => void,
-    onEnded?: () => void
+    onEnded?: () => void,
+    onError?: (err: Error) => void,
+    onBuffering?: (isBuffering: boolean) => void
   ) {
     this.stop();
     this.currentSong = song;
     this.onTimeUpdateCallback = onTimeUpdate || null;
     this.onEndedCallback = onEnded || null;
+    this.onErrorCallback = onError || null;
+    this.onBufferingCallback = onBuffering || null;
     this.isPlaying = true;
 
-    // Check if song has an uploaded audio file (URL or Data URL)
-    if (song.audioUrl && this.audioElement) {
+    this.updateMediaSessionMetadata(song);
+
+    // If song has a hosted audio URL or data URL
+    if (song.audioUrl && song.audioUrl.trim().length > 0 && this.audioElement) {
       this.isAudioFileActive = true;
-      this.audioElement.src = song.audioUrl;
-      this.audioElement.currentTime = 0;
+      if (this.onBufferingCallback) this.onBufferingCallback(true);
+
+      this.audioElement.src = song.audioUrl.trim();
+      this.audioElement.playbackRate = this.playbackRate;
       this.audioElement.volume = this.volume;
+      this.audioElement.loop = this.isLoop;
+      this.audioElement.currentTime = 0;
+
       this.audioElement
         .play()
         .then(() => {
           this.isPlaying = true;
+          if (this.onBufferingCallback) this.onBufferingCallback(false);
+          this.updateMediaSessionState();
         })
         .catch((err) => {
-          console.warn('HTML Audio playback failed to start, falling back to synth preview:', err);
+          console.warn('Hosted audio playback failed or CORS restricted, falling back to synth preview:', err);
           this.isAudioFileActive = false;
+          if (this.onBufferingCallback) this.onBufferingCallback(false);
+          if (this.onErrorCallback) {
+            this.onErrorCallback(err);
+          }
           this.startSynth(song);
         });
     } else {
-      // No audio file uploaded yet; fallback to audio synthesis
+      // No audio URL attached; use synthesized audio tone preview
       this.isAudioFileActive = false;
       this.startSynth(song);
     }
@@ -125,7 +235,7 @@ class UnifiedAudioEngine {
     masterGain.connect(ctx.destination);
     this.synthGain = masterGain;
 
-    const tempoMs = 380; // ~79 BPM
+    const tempoMs = Math.round(380 / (this.playbackRate || 1));
 
     this.synthIntervalId = window.setInterval(() => {
       if (!this.isPlaying || !this.ctx) return;
@@ -140,7 +250,7 @@ class UnifiedAudioEngine {
       osc.frequency.setValueAtTime(freq, now);
 
       oscGain.gain.setValueAtTime(0.001, now);
-      oscGain.gain.exponentialRampToValueAtTime(0.28, now + 0.04);
+      oscGain.gain.exponentialRampToValueAtTime(0.26, now + 0.04);
       oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
 
       osc.connect(oscGain);
@@ -173,9 +283,14 @@ class UnifiedAudioEngine {
       }
 
       if (this.synthTime >= this.synthDuration) {
-        this.stop();
-        if (this.onEndedCallback) {
-          this.onEndedCallback();
+        if (this.isLoop) {
+          this.synthTime = 0;
+          this.synthStep = 0;
+        } else {
+          this.stop();
+          if (this.onEndedCallback) {
+            this.onEndedCallback();
+          }
         }
       }
     }, tempoMs);
@@ -195,6 +310,7 @@ class UnifiedAudioEngine {
     } else {
       this.stopSynth();
     }
+    this.updateMediaSessionState();
   }
 
   public resume() {
@@ -208,6 +324,7 @@ class UnifiedAudioEngine {
     } else {
       this.startSynth(this.currentSong);
     }
+    this.updateMediaSessionState();
   }
 
   public stop() {
@@ -218,6 +335,7 @@ class UnifiedAudioEngine {
     }
     this.stopSynth();
     this.synthTime = 0;
+    this.updateMediaSessionState();
   }
 
   public seek(seconds: number) {
@@ -241,12 +359,40 @@ class UnifiedAudioEngine {
     }
   }
 
+  public setPlaybackRate(rate: number) {
+    this.playbackRate = Math.max(0.25, Math.min(2.5, rate));
+    if (this.audioElement) {
+      this.audioElement.playbackRate = this.playbackRate;
+    }
+  }
+
+  public setLoop(loop: boolean) {
+    this.isLoop = loop;
+    if (this.audioElement) {
+      this.audioElement.loop = loop;
+    }
+  }
+
   public getIsPlaying(): boolean {
     return this.isPlaying;
   }
 
   public getIsAudioFileActive(): boolean {
     return this.isAudioFileActive;
+  }
+
+  public getCurrentTime(): number {
+    if (this.isAudioFileActive && this.audioElement) {
+      return this.audioElement.currentTime || 0;
+    }
+    return this.synthTime;
+  }
+
+  public getDuration(): number {
+    if (this.isAudioFileActive && this.audioElement) {
+      return this.audioElement.duration || this.synthDuration;
+    }
+    return this.synthDuration;
   }
 }
 

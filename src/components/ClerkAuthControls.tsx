@@ -1,15 +1,134 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   SignedIn, 
   SignedOut, 
   SignInButton, 
   SignUpButton, 
-  UserButton 
+  useUser,
+  useClerk
 } from '@clerk/clerk-react';
-import { isClerkKeyConfigured, CLERK_APP_ID } from '../clerkConfig';
+import { isClerkKeyConfigured } from '../clerkConfig';
 import { useStore } from '../context/StoreContext';
-import { LogIn, UserPlus, Shield, ShieldCheck, KeyRound, Sparkles, User } from 'lucide-react';
+import { LogIn, UserPlus, ShieldCheck, User, LogOut, Settings } from 'lucide-react';
 import { hapticLight, hapticMedium } from '../utils/haptics';
+
+// Resilient Custom User Avatar & Menu (Bypasses Clerk headless UI mount errors)
+export const CustomUserMenu: React.FC = () => {
+  const { user } = useUser();
+  const { signOut, openUserProfile } = useClerk();
+  const { isOwner, setCurrentTab, logout } = useStore();
+  const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSignOut = async () => {
+    setIsOpen(false);
+    hapticLight();
+    try {
+      if (signOut) {
+        await signOut();
+      }
+      await logout();
+    } catch {
+      await logout();
+    }
+  };
+
+  const displayName = user?.fullName || `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || user?.username || 'Account';
+  const email = user?.primaryEmailAddress?.emailAddress || user?.emailAddresses?.[0]?.emailAddress || '';
+  const avatarUrl = user?.imageUrl;
+
+  return (
+    <div className="relative" ref={menuRef}>
+      <button
+        type="button"
+        onClick={() => {
+          hapticLight();
+          setIsOpen(!isOpen);
+        }}
+        className="flex items-center gap-1.5 p-0.5 rounded-full hover:ring-2 hover:ring-amber-500/40 transition-all cursor-pointer"
+        title={`Logged in as ${displayName}`}
+      >
+        {avatarUrl ? (
+          <img 
+            src={avatarUrl} 
+            alt={displayName}
+            className="w-8 h-8 rounded-full object-cover border border-neutral-300 dark:border-neutral-700 ring-1 ring-amber-500/40"
+            referrerPolicy="no-referrer" 
+          />
+        ) : (
+          <div className="w-8 h-8 rounded-full bg-amber-500/20 text-amber-500 border border-amber-500/40 flex items-center justify-center font-bold text-xs">
+            {(user?.firstName?.[0] || displayName[0] || 'U').toUpperCase()}
+          </div>
+        )}
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-2xl p-2 z-50 text-neutral-800 dark:text-neutral-200 animate-in fade-in slide-in-from-top-2 duration-150">
+          <div className="px-3 py-2 border-b border-neutral-100 dark:border-neutral-800">
+            <p className="text-xs font-bold truncate text-neutral-900 dark:text-white">{displayName}</p>
+            {email && <p className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate">{email}</p>}
+            {isOwner && (
+              <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-mono text-amber-500 font-bold bg-amber-500/10 px-1.5 py-0.5 rounded-md">
+                <ShieldCheck className="w-3 h-3" /> Creator Admin
+              </span>
+            )}
+          </div>
+
+          <div className="py-1 space-y-0.5">
+            {isOwner && (
+              <button
+                type="button"
+                onClick={() => {
+                  setIsOpen(false);
+                  hapticLight();
+                  setCurrentTab('admin');
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-xs rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-left font-medium cursor-pointer"
+              >
+                <ShieldCheck className="w-4 h-4 text-amber-500" />
+                <span>Creator Admin Dashboard</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => {
+                setIsOpen(false);
+                hapticLight();
+                if (openUserProfile) {
+                  openUserProfile();
+                }
+              }}
+              className="w-full flex items-center gap-2 px-3 py-2 text-xs rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-left cursor-pointer"
+            >
+              <Settings className="w-4 h-4 text-neutral-400" />
+              <span>Manage Profile</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleSignOut}
+              className="w-full flex items-center gap-2 px-3 py-2 text-xs rounded-xl hover:bg-red-500/10 text-red-600 dark:text-red-400 transition-colors text-left cursor-pointer"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Sign Out</span>
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const ClerkNavAuthControls: React.FC = () => {
   const isConfigured = isClerkKeyConfigured();
@@ -137,15 +256,7 @@ export const ClerkNavAuthControls: React.FC = () => {
               <span>Creator Admin</span>
             </button>
           )}
-          <UserButton 
-            afterSignOutUrl="/"
-            userProfileMode="modal"
-            appearance={{
-              elements: {
-                userButtonAvatarBox: 'w-8 h-8 rounded-full ring-2 ring-amber-500/30 border border-neutral-700',
-              }
-            }}
-          />
+          <CustomUserMenu />
         </div>
       </SignedIn>
     </div>
@@ -285,7 +396,7 @@ export const ClerkDrawerAuthCard: React.FC = () => {
       <SignedIn>
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 min-w-0">
-            <UserButton afterSignOutUrl="/" userProfileMode="modal" />
+            <CustomUserMenu />
             <div className="min-w-0">
               <div className="text-xs font-semibold text-neutral-900 dark:text-white truncate">
                 {authUser?.fullName || authUser?.email || 'Account'}

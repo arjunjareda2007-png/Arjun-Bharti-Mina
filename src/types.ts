@@ -96,6 +96,16 @@ export interface SongCredits {
   featuredArtists?: string;
 }
 
+export interface SongRelatedVideo {
+  id: string;
+  title: string;
+  youtubeUrl: string;
+  youtubeEmbedId?: string;
+  type?: 'Official Music Video' | 'Lyrical Video' | 'Behind The Scenes' | 'Live Performance' | 'Acoustic / Session' | 'Teaser' | string;
+  thumbnail?: string;
+  duration?: string;
+}
+
 export interface Song {
   id: string;
   title: string;
@@ -113,15 +123,17 @@ export interface Song {
   streamingLinks: StreamingLinks;
   youtubeEmbedId?: string;
   audioPreviewUrl?: string; // Web audio synth or sample URL
-  audioUrl?: string; // Uploaded audio file (data URL, blob URL, or direct audio link)
-  audioFileName?: string; // Name of uploaded audio file (e.g. "rutba_master_mix.mp3")
-  audioFileSize?: string; // Formatted file size (e.g. "4.8 MB")
-  audioToneSequence?: number[]; // Frequencies for browser audio synthesis
+  audioUrl?: string; // Hosted audio file link (URL or data URL)
+  audioFileName?: string; // Name of hosted audio file
+  audioFileSize?: string; // Formatted file size
+  audioHostType?: 'hosted_link' | 'uploaded_file' | 'synth';
+  audioToneSequence?: number[]; // Frequencies for browser audio synthesis fallback
   featured: boolean;
   published?: boolean;
   playCount: number;
   tags?: string[];
   displayOrder?: number;
+  relatedVideos?: SongRelatedVideo[]; // Related videos for this specific song
 }
 
 export interface LyricItem {

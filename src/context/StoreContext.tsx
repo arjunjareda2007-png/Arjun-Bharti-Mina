@@ -95,6 +95,7 @@ interface StoreContextType {
   // Audio Player
   currentSong: Song | null;
   isPlaying: boolean;
+  isBuffering: boolean;
   playbackTime: number;
   duration: number;
   volume: number;
@@ -114,6 +115,7 @@ interface StoreContextType {
   setIsShuffle: (val: boolean) => void;
   isLoop: boolean;
   setIsLoop: (val: boolean) => void;
+  toggleLoop: () => void;
   playbackSpeed: number;
   setPlaybackSpeed: (speed: number) => void;
   sleepTimerMinutes: number | null;
@@ -444,7 +446,23 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const [songs, setSongs] = useState<Song[]>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}songs`);
-    return saved ? JSON.parse(saved) : initialSongs;
+    if (!saved) return initialSongs;
+    try {
+      const parsed: Song[] = JSON.parse(saved);
+      return parsed.map(song => {
+        const defaultSong = initialSongs.find(is => is.id === song.id);
+        if (!defaultSong) return song;
+        return {
+          ...defaultSong,
+          ...song,
+          audioUrl: song.audioUrl || defaultSong.audioUrl,
+          audioHostType: song.audioHostType || defaultSong.audioHostType || 'hosted_link',
+          relatedVideos: (song.relatedVideos && song.relatedVideos.length > 0) ? song.relatedVideos : defaultSong.relatedVideos
+        };
+      });
+    } catch {
+      return initialSongs;
+    }
   });
 
   const [lyrics, setLyrics] = useState<LyricItem[]>(() => {
@@ -856,6 +874,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   // Audio Player State
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [isBuffering, setIsBuffering] = useState<boolean>(false);
   const [playbackTime, setPlaybackTime] = useState<number>(0);
   const [duration, setDuration] = useState<number>(198);
   const [volume, setVolumeState] = useState<number>(0.75);
@@ -1137,6 +1156,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const playSong = (song: Song) => {
     setCurrentSong(song);
     setIsPlaying(true);
+    setIsBuffering(true);
     const dur = parseDurationToSeconds(song.duration) || 198;
     setDuration(dur);
     setPlaybackTime(0);
@@ -1151,9 +1171,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }));
 
     // Update playCount in songs list
-    setSongs(prev => prev.map(s => s.id === song.id ? { ...s, playCount: s.playCount + 1 } : s));
+    setSongs(prev => prev.map(s => s.id === song.id ? { ...s, playCount: (s.playCount || 0) + 1 } : s));
 
-    // Start playback through unified audioEngine (uploaded audio file or synth fallback)
+    // Start playback through unified audioEngine (hosted audio file or synth fallback)
     audioEngine.play(
       song,
       (time, dur) => {
@@ -1164,33 +1184,44 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       },
       () => {
         nextSong();
+      },
+      (err) => {
+        console.warn('Playback error or CORS notice:', err);
+        setIsBuffering(false);
+      },
+      (buffering) => {
+        setIsBuffering(buffering);
       }
     );
   };
 
-  // Continuous playback timer for audio and visualizer sync when active
+  const toggleLoop = () => {
+    setIsLoop(prev => {
+      const next = !prev;
+      audioEngine.setLoop(next);
+      return next;
+    });
+  };
+
+  const updatePlaybackSpeed = (speed: number) => {
+    setPlaybackSpeed(speed);
+    audioEngine.setPlaybackRate(speed);
+  };
+
+  // Sync media session controls
   useEffect(() => {
-    let timer: any = null;
-    if (isPlaying && currentSong) {
-      timer = setInterval(() => {
-        setPlaybackTime(prev => {
-          const next = prev + 1 * (playbackSpeed || 1);
-          if (duration > 0 && next >= duration) {
-            if (isLoop) {
-              return 0;
-            } else {
-              nextSong();
-              return 0;
-            }
-          }
-          return next;
-        });
-      }, 1000);
-    }
-    return () => {
-      if (timer) clearInterval(timer);
-    };
-  }, [isPlaying, currentSong?.id, duration, playbackSpeed, isLoop, nextSong]);
+    audioEngine.setMediaSessionActionHandlers({
+      onPlay: () => resumeSong(),
+      onPause: () => pauseSong(),
+      onNext: () => nextSong(),
+      onPrev: () => prevSong(),
+      onSeek: (details) => {
+        if (details.seekTime !== undefined) {
+          seekSong(details.seekTime);
+        }
+      }
+    });
+  }, [nextSong, currentSong]);
 
   // Sleep Timer Auto-pause
   useEffect(() => {
@@ -1792,6 +1823,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
         currentSong,
         isPlaying,
+        isBuffering,
         playbackTime,
         duration,
         volume,
@@ -1811,6 +1843,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         setIsShuffle,
         isLoop,
         setIsLoop,
+        toggleLoop,
         playbackSpeed,
         setPlaybackSpeed,
         sleepTimerMinutes,

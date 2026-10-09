@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useStore } from '../context/StoreContext';
-import { getSpotifyEmbedForSong, getSpotifyWebUrlForSong } from '../utils/spotifyUtils';
-import { getYouTubeIdForSong, getYouTubeWatchUrl } from '../utils/youtubeUtils';
+import { SongRelatedVideo, VideoItem } from '../types';
+import { formatTime } from '../utils/helpers';
+import { hapticLight, hapticBeat, hapticSelection, hapticSuccess } from '../utils/haptics';
 import { 
   X, 
   Play, 
@@ -12,11 +13,17 @@ import {
   Clock, 
   Music2, 
   Copy, 
-  Radio, 
   Video, 
   Check, 
   Sparkles,
-  ArrowRight
+  Link2,
+  FileText,
+  Headphones,
+  Volume2,
+  VolumeX,
+  Disc,
+  Download,
+  Film
 } from 'lucide-react';
 
 export const SongDetailModal: React.FC = () => {
@@ -25,17 +32,21 @@ export const SongDetailModal: React.FC = () => {
     setSelectedSongId, 
     songs, 
     playSong, 
+    togglePlay,
     currentSong, 
     isPlaying, 
-    togglePlay, 
+    playbackTime,
+    duration,
+    seekSong,
     openShare,
     openVideoPlayer,
-    videos,
     setCurrentTab,
-    setSelectedLyricId
+    showToast
   } = useStore();
 
-  const [copied, setCopied] = React.useState(false);
+  const [activeTab, setActiveTab] = useState<'overview' | 'videos' | 'lyrics' | 'credits'>('overview');
+  const [copiedLyrics, setCopiedLyrics] = useState(false);
+  const [copiedAudioUrl, setCopiedAudioUrl] = useState(false);
 
   if (!selectedSongId) return null;
 
@@ -43,52 +54,63 @@ export const SongDetailModal: React.FC = () => {
   if (!song) return null;
 
   const isCurrentActive = currentSong?.id === song.id;
+  const isCurrentlyPlaying = isCurrentActive && isPlaying;
   const relatedSongs = songs.filter(s => s.id !== song.id && (s.genre === song.genre || s.year === song.year)).slice(0, 3);
-  
-  const ytId = getYouTubeIdForSong(song);
-  const ytWatchUrl = getYouTubeWatchUrl(song);
-
-  const matchedVideo = videos.find(v => v.title.toLowerCase().includes(song.title.toLowerCase())) || {
-    id: `song-vid-${song.id}`,
-    title: `${song.title} (Official Music Video)`,
-    youtubeEmbedId: ytId,
-    youtubeUrl: ytWatchUrl,
-    thumbnail: song.cover,
-    category: 'Music Video' as const,
-    duration: song.duration,
-    description: `Official music video stream for "${song.title}" by ${song.artist}.`,
-    viewsCount: 'Official',
-    date: song.releaseDate,
-    featured: song.featured,
-    published: true
-  };
+  const hasVideos = song.relatedVideos && song.relatedVideos.length > 0;
 
   const handleCopyLyrics = () => {
     navigator.clipboard.writeText(song.lyrics);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopiedLyrics(true);
+    showToast('Lyrics copied to clipboard', 'success');
+    setTimeout(() => setCopiedLyrics(false), 2000);
+  };
+
+  const handleCopyAudioLink = () => {
+    if (!song.audioUrl) return;
+    navigator.clipboard.writeText(song.audioUrl);
+    setCopiedAudioUrl(true);
+    showToast('Hosted audio link copied to clipboard', 'success');
+    setTimeout(() => setCopiedAudioUrl(false), 2000);
+  };
+
+  const handleOpenRelatedVideo = (video: SongRelatedVideo) => {
+    hapticSelection();
+    const videoItem: VideoItem = {
+      id: video.id || `rel-vid-${song.id}-${Date.now()}`,
+      title: video.title || `${song.title} (${video.type || 'Video'})`,
+      youtubeUrl: video.youtubeUrl,
+      youtubeEmbedId: video.youtubeEmbedId || video.youtubeUrl.split('v=')[1]?.split('&')[0] || 'fJ9rUzIMcZQ',
+      thumbnail: video.thumbnail || song.cover,
+      category: (video.type as any) || 'Music Video',
+      duration: video.duration || song.duration || '3:30',
+      date: song.releaseDate,
+      description: `Official related video for "${song.title}" by ${song.artist}.`,
+      featured: song.featured,
+      published: true
+    };
+    openVideoPlayer(videoItem);
   };
 
   const handleShare = () => {
+    hapticLight();
     openShare({
       type: 'song',
       title: `${song.title} — Arjun Bharti Mina`,
-      text: `${song.genre} (${song.year}) by ${song.artist}. Official stream available.`,
-      url: `${window.location.origin}/#music?song=${song.id}`,
+      text: `${song.genre} (${song.year}) by ${song.artist}. Stream available directly on site.`,
+      url: `${window.location.origin}/?section=music&song=${song.id}`,
       imageUrl: song.cover,
       artist: song.artist,
       genre: song.genre,
       year: song.year,
       lyricsText: song.lyrics,
-      streamingLinks: song.streamingLinks,
-      downloadFilename: `${song.title.toLowerCase().replace(/[^a-z0-9]/g, '_')}_poster.jpg`
+      streamingLinks: song.streamingLinks
     });
   };
 
   return (
     <div 
       id="song-detail-backdrop"
-      className="fixed inset-0 z-[6000] bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-in fade-in"
+      className="fixed inset-0 z-[6000] bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-in fade-in"
       onClick={() => setSelectedSongId(null)}
     >
       <div 
@@ -96,24 +118,38 @@ export const SongDetailModal: React.FC = () => {
         className="w-full max-w-4xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl shadow-2xl overflow-hidden my-6 max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Sticky Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/80 dark:bg-neutral-950/80">
+        {/* Modal Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/90 dark:bg-neutral-950/90">
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-mono uppercase bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded font-semibold">
-              Official Track Release
+            <span className="text-[11px] font-mono uppercase bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2.5 py-0.5 rounded-full font-bold border border-amber-500/20">
+              Track Release
             </span>
+            {song.featured && (
+              <span className="text-[11px] font-mono uppercase bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1">
+                <Sparkles className="w-3 h-3" />
+                <span>Featured Anthem</span>
+              </span>
+            )}
+            {hasVideos && (
+              <span className="text-[11px] font-mono uppercase bg-red-500/10 text-red-500 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1">
+                <Film className="w-3 h-3" />
+                <span>{song.relatedVideos!.length} Videos</span>
+              </span>
+            )}
           </div>
+          
           <div className="flex items-center gap-2">
             <button
               onClick={handleShare}
-              className="p-2 rounded-full text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors"
+              className="p-2 rounded-full text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
               title="Share Track"
             >
               <Share2 className="w-4 h-4" />
             </button>
             <button
               onClick={() => setSelectedSongId(null)}
-              className="p-2 rounded-full text-neutral-500 hover:text-red-500 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors"
+              className="p-2 rounded-full text-neutral-500 hover:text-red-500 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+              title="Close modal"
             >
               <X className="w-5 h-5" />
             </button>
@@ -121,109 +157,286 @@ export const SongDetailModal: React.FC = () => {
         </div>
 
         {/* Modal Scrollable Body */}
-        <div className="overflow-y-auto p-6 sm:p-8 space-y-8">
+        <div className="overflow-y-auto p-6 sm:p-8 space-y-8 flex-1">
           
-          {/* Hero Section */}
+          {/* Track Hero Section */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
             
             {/* Album Cover Art */}
-            <div className="md:col-span-5 relative group rounded-2xl overflow-hidden shadow-xl border border-neutral-200 dark:border-neutral-800 aspect-square bg-neutral-950">
+            <div className="md:col-span-5 relative group rounded-2xl overflow-hidden shadow-2xl border border-neutral-200 dark:border-neutral-800 aspect-square bg-neutral-950">
               <img 
                 src={song.cover} 
                 alt={song.title} 
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
+              
+              {/* Spinning Disc Effect */}
+              {isCurrentlyPlaying && (
+                <div className="absolute top-3 right-3 w-14 h-14 rounded-full bg-neutral-950/90 border border-amber-500/50 flex items-center justify-center animate-spin">
+                  <Disc className="w-9 h-9 text-amber-400" />
+                </div>
+              )}
+
+              {/* Play / Pause Overlay Button */}
               <button
-                onClick={() => isCurrentActive ? togglePlay() : playSong(song)}
-                className="absolute bottom-4 right-4 w-14 h-14 rounded-full bg-amber-500 text-neutral-950 flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all"
-                title={isCurrentActive && isPlaying ? "Pause Track" : "Play Track"}
+                type="button"
+                onClick={() => {
+                  hapticBeat();
+                  if (isCurrentActive) {
+                    togglePlay();
+                  } else {
+                    playSong(song);
+                  }
+                }}
+                className="absolute inset-0 bg-black/40 group-hover:bg-black/55 flex items-center justify-center transition-colors cursor-pointer"
+                title={isCurrentlyPlaying ? 'Pause Audio' : 'Play Hosted Track'}
               >
-                {isCurrentActive && isPlaying ? (
-                  <Pause className="w-6 h-6 fill-current" />
-                ) : (
-                  <Play className="w-6 h-6 fill-current ml-1" />
-                )}
+                <div className="w-16 h-16 rounded-full bg-amber-500 hover:bg-amber-400 text-neutral-950 flex items-center justify-center shadow-2xl transform group-hover:scale-110 active:scale-95 transition-all">
+                  {isCurrentlyPlaying ? (
+                    <Pause className="w-7 h-7 fill-current" />
+                  ) : (
+                    <Play className="w-7 h-7 fill-current ml-1" />
+                  )}
+                </div>
               </button>
             </div>
 
-            {/* Song Meta Information */}
+            {/* Track Info & Hosted Audio Controls */}
             <div className="md:col-span-7 space-y-4">
               <div>
-                <span className="text-xs font-mono uppercase tracking-wider text-amber-600 dark:text-amber-400 font-semibold block">
-                  {song.genre}
-                </span>
-                <h1 className="text-2xl sm:text-4xl font-display font-extrabold text-neutral-900 dark:text-neutral-100 tracking-tight mt-1">
+                <div className="flex flex-wrap items-center gap-2 mb-2">
+                  <span className="px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-mono font-bold uppercase border border-amber-500/20">
+                    {song.genre}
+                  </span>
+                  <span className="text-xs font-mono text-neutral-400">
+                    Released {song.releaseDate}
+                  </span>
+                </div>
+                <h2 className="text-2xl sm:text-4xl font-display font-black text-neutral-900 dark:text-white tracking-tight">
                   {song.title}
-                </h1>
-                <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">
-                  By <span className="font-semibold text-neutral-900 dark:text-neutral-200">{song.artist}</span>
+                </h2>
+                <p className="text-base font-medium text-neutral-600 dark:text-neutral-300 mt-1">
+                  By {song.artist}
                 </p>
               </div>
 
-              {/* Metadata Badges */}
-              <div className="flex flex-wrap items-center gap-3 text-xs text-neutral-500 font-mono">
-                <span className="flex items-center gap-1 bg-neutral-100 dark:bg-neutral-800 px-2.5 py-1 rounded-md">
-                  <Calendar className="w-3.5 h-3.5" />
-                  {song.releaseDate}
-                </span>
-                <span className="flex items-center gap-1 bg-neutral-100 dark:bg-neutral-800 px-2.5 py-1 rounded-md">
-                  <Clock className="w-3.5 h-3.5" />
-                  {song.duration}
-                </span>
-                <span className="flex items-center gap-1 bg-neutral-100 dark:bg-neutral-800 px-2.5 py-1 rounded-md">
-                  <Music2 className="w-3.5 h-3.5 text-amber-500" />
-                  {song.language}
-                </span>
+              {/* Story / Description */}
+              {song.description && (
+                <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                  {song.description}
+                </p>
+              )}
+
+              {/* Hosted Audio Player Control Bar */}
+              <div className="p-4 rounded-2xl bg-neutral-100 dark:bg-neutral-800/80 border border-neutral-200 dark:border-neutral-700 space-y-3">
+                <div className="flex items-center justify-between text-xs font-mono text-neutral-500 dark:text-neutral-400">
+                  <div className="flex items-center gap-1.5 text-amber-500 font-bold">
+                    <Headphones className="w-4 h-4" />
+                    <span>{isCurrentActive ? formatTime(playbackTime) : '0:00'}</span>
+                  </div>
+                  <span>{song.duration}</span>
+                </div>
+
+                <input 
+                  type="range"
+                  min={0}
+                  max={isCurrentActive ? (duration || 200) : 200}
+                  value={isCurrentActive ? playbackTime : 0}
+                  onChange={(e) => seekSong(parseFloat(e.target.value))}
+                  disabled={!isCurrentActive}
+                  className="w-full h-1.5 bg-neutral-200 dark:bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                />
+
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-[11px]">
+                  <div className="flex items-center gap-1.5 text-neutral-500 truncate max-w-[200px]">
+                    <Link2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                    <span className="font-mono truncate">{song.audioFileName || (song.audioUrl ? 'Hosted Audio Link' : 'Synth Audio')}</span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {song.audioUrl && (
+                      <button
+                        type="button"
+                        onClick={handleCopyAudioLink}
+                        className="text-amber-500 hover:text-amber-400 font-mono flex items-center gap-1 transition-colors cursor-pointer"
+                        title="Copy direct audio URL"
+                      >
+                        {copiedAudioUrl ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                        <span>{copiedAudioUrl ? 'Copied' : 'Copy Audio URL'}</span>
+                      </button>
+                    )}
+
+                    {song.audioUrl && (
+                      <a
+                        href={song.audioUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        download={song.audioFileName || `${song.slug}.mp3`}
+                        className="text-neutral-600 dark:text-neutral-300 hover:text-amber-500 font-mono flex items-center gap-1 transition-colors"
+                        title="Download audio file"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Download</span>
+                      </a>
+                    )}
+                  </div>
+                </div>
               </div>
 
-              {/* Description */}
-              <p className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed">
-                {song.description}
-              </p>
-
-              {/* Quick Play & Action Button Bar */}
-              <div className="pt-2 flex flex-wrap items-center gap-3">
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center gap-2.5 pt-1">
                 <button
-                  onClick={() => isCurrentActive ? togglePlay() : playSong(song)}
-                  className="px-6 py-2.5 rounded-full bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 font-semibold text-xs flex items-center gap-2 shadow-md hover:opacity-90 transition-all"
+                  type="button"
+                  onClick={() => {
+                    hapticBeat();
+                    if (isCurrentActive) {
+                      togglePlay();
+                    } else {
+                      playSong(song);
+                    }
+                  }}
+                  className="px-5 py-2.5 rounded-full bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs flex items-center gap-2 shadow-lg shadow-amber-500/20 active:scale-95 transition-all cursor-pointer"
                 >
-                  {isCurrentActive && isPlaying ? (
+                  {isCurrentlyPlaying ? (
                     <>
                       <Pause className="w-4 h-4 fill-current" />
-                      <span>Pause Preview</span>
+                      <span>Pause Track</span>
                     </>
                   ) : (
                     <>
-                      <Play className="w-4 h-4 fill-current" />
-                      <span>Play Track Preview</span>
+                      <Play className="w-4 h-4 fill-current ml-0.5" />
+                      <span>Play Track</span>
                     </>
                   )}
                 </button>
 
-                <button
-                  onClick={handleCopyLyrics}
-                  className="px-4 py-2.5 rounded-full border border-neutral-300 dark:border-neutral-700 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center gap-1.5 transition-colors"
-                >
-                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copied ? 'Copied' : 'Copy Lyrics'}</span>
-                </button>
+                {hasVideos && (
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('videos')}
+                    className="px-4 py-2.5 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/30 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <Film className="w-3.5 h-3.5" />
+                    <span>Watch Videos ({song.relatedVideos!.length})</span>
+                  </button>
+                )}
+
+                {song.lyrics && (
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('lyrics')}
+                    className="px-4 py-2.5 rounded-full bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-200 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <FileText className="w-3.5 h-3.5 text-amber-500" />
+                    <span>View Lyrics</span>
+                  </button>
+                )}
               </div>
 
-              {/* Streaming Platforms Hub */}
-              {song.streamingLinks && Object.values(song.streamingLinks).some(Boolean) && (
-                <div className="pt-3 border-t border-neutral-200 dark:border-neutral-800">
-                  <span className="text-[11px] font-mono uppercase tracking-wider text-neutral-500 block mb-2">
-                    Stream On
-                  </span>
-                  <div className="flex flex-wrap gap-2">
+            </div>
+          </div>
+
+          {/* Tab Navigation for Extended Details */}
+          <div className="flex items-center gap-2 border-b border-neutral-200 dark:border-neutral-800 pb-2">
+            <button
+              type="button"
+              onClick={() => setActiveTab('overview')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'overview'
+                  ? 'bg-amber-500 text-neutral-950 shadow-xs'
+                  : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
+              }`}
+            >
+              Overview &amp; Credits
+            </button>
+
+            {hasVideos && (
+              <button
+                type="button"
+                onClick={() => setActiveTab('videos')}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  activeTab === 'videos'
+                    ? 'bg-red-600 text-white shadow-xs'
+                    : 'text-neutral-500 hover:text-red-500'
+                }`}
+              >
+                <Film className="w-3.5 h-3.5" />
+                <span>Related Videos ({song.relatedVideos!.length})</span>
+              </button>
+            )}
+
+            {song.lyrics && (
+              <button
+                type="button"
+                onClick={() => setActiveTab('lyrics')}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  activeTab === 'lyrics'
+                    ? 'bg-amber-500 text-neutral-950 shadow-xs'
+                    : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
+                }`}
+              >
+                <FileText className="w-3.5 h-3.5" />
+                <span>Lyrics</span>
+              </button>
+            )}
+          </div>
+
+          {/* TAB 1: OVERVIEW & CREDITS */}
+          {activeTab === 'overview' && (
+            <div className="space-y-6">
+              
+              {/* Production Credits Card */}
+              <div className="p-5 rounded-2xl bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200 dark:border-neutral-800 space-y-4">
+                <h3 className="text-xs font-mono uppercase tracking-wider text-neutral-400 font-bold">
+                  Track Credits &amp; Production
+                </h3>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
+                  <div>
+                    <span className="block text-neutral-500 dark:text-neutral-400 text-[10px] font-mono">Lead Artist</span>
+                    <span className="font-bold text-neutral-900 dark:text-white">{song.credits.artist}</span>
+                  </div>
+                  <div>
+                    <span className="block text-neutral-500 dark:text-neutral-400 text-[10px] font-mono">Lyrics By</span>
+                    <span className="font-bold text-neutral-900 dark:text-white">{song.credits.lyrics}</span>
+                  </div>
+                  <div>
+                    <span className="block text-neutral-500 dark:text-neutral-400 text-[10px] font-mono">Music &amp; Beat</span>
+                    <span className="font-bold text-neutral-900 dark:text-white">{song.credits.music}</span>
+                  </div>
+                  <div>
+                    <span className="block text-neutral-500 dark:text-neutral-400 text-[10px] font-mono">Audio Production</span>
+                    <span className="font-bold text-neutral-900 dark:text-white">{song.credits.production}</span>
+                  </div>
+                  {song.credits.mixMaster && (
+                    <div>
+                      <span className="block text-neutral-500 dark:text-neutral-400 text-[10px] font-mono">Mix &amp; Master</span>
+                      <span className="font-bold text-neutral-900 dark:text-white">{song.credits.mixMaster}</span>
+                    </div>
+                  )}
+                  {song.credits.label && (
+                    <div>
+                      <span className="block text-neutral-500 dark:text-neutral-400 text-[10px] font-mono">Record Label</span>
+                      <span className="font-bold text-neutral-900 dark:text-white">{song.credits.label}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* External Streaming Links */}
+              {song.streamingLinks && (
+                <div className="space-y-2">
+                  <h4 className="text-xs font-mono uppercase text-neutral-400 font-bold">
+                    Also Available On
+                  </h4>
+                  <div className="flex flex-wrap items-center gap-2">
                     {song.streamingLinks.spotify && (
                       <a
                         href={song.streamingLinks.spotify}
                         target="_blank"
                         rel="noreferrer"
-                        className="px-3 py-1.5 rounded-lg bg-[#1DB954]/10 hover:bg-[#1DB954]/20 text-[#1DB954] text-xs font-medium flex items-center gap-1.5 transition-colors"
+                        className="px-3 py-1.5 rounded-xl bg-neutral-100 dark:bg-neutral-800 hover:bg-[#1DB954] hover:text-neutral-950 text-xs font-semibold flex items-center gap-1.5 transition-colors"
                       >
-                        <Radio className="w-3.5 h-3.5" />
                         <span>Spotify</span>
                         <ExternalLink className="w-3 h-3" />
                       </a>
@@ -233,10 +446,20 @@ export const SongDetailModal: React.FC = () => {
                         href={song.streamingLinks.youtube}
                         target="_blank"
                         rel="noreferrer"
-                        className="px-3 py-1.5 rounded-lg bg-red-600/10 hover:bg-red-600/20 text-red-600 dark:text-red-400 text-xs font-medium flex items-center gap-1.5 transition-colors"
+                        className="px-3 py-1.5 rounded-xl bg-neutral-100 dark:bg-neutral-800 hover:bg-[#FF0000] hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-colors"
                       >
-                        <Video className="w-3.5 h-3.5" />
-                        <span>YouTube</span>
+                        <span>YouTube Music</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+                    {song.streamingLinks.appleMusic && (
+                      <a
+                        href={song.streamingLinks.appleMusic}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-3 py-1.5 rounded-xl bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                      >
+                        <span>Apple Music</span>
                         <ExternalLink className="w-3 h-3" />
                       </a>
                     )}
@@ -245,170 +468,105 @@ export const SongDetailModal: React.FC = () => {
                         href={song.streamingLinks.jiosaavn}
                         target="_blank"
                         rel="noreferrer"
-                        className="px-3 py-1.5 rounded-lg bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 text-xs font-medium flex items-center gap-1.5 transition-colors"
+                        className="px-3 py-1.5 rounded-xl bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-xs font-semibold flex items-center gap-1.5 transition-colors"
                       >
                         <span>JioSaavn</span>
                         <ExternalLink className="w-3 h-3" />
                       </a>
                     )}
-                    {song.streamingLinks.gaana && (
-                      <a
-                        href={song.streamingLinks.gaana}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="px-3 py-1.5 rounded-lg bg-rose-600/10 hover:bg-rose-600/20 text-rose-600 dark:text-rose-400 text-xs font-medium flex items-center gap-1.5 transition-colors"
-                      >
-                        <span>Gaana</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    )}
                   </div>
                 </div>
               )}
 
-            </div>
-          </div>
-
-          {/* Spotify Embedded Player Section */}
-          <div className="p-4 sm:p-5 rounded-3xl bg-neutral-950 border border-neutral-800 text-white shadow-xl space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-[#1DB954] fill-current" viewBox="0 0 24 24">
-                  <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.503 17.308c-.215.354-.677.466-1.031.251-2.822-1.724-6.374-2.114-10.558-1.159-.404.093-.807-.16-.9-.564-.093-.404.16-.807.564-.9 4.582-1.047 8.514-.606 11.674 1.341.354.215.466.677.251 1.032zm1.47-3.266c-.27.44-.848.58-1.288.31-3.23-1.985-8.154-2.559-11.974-1.4-1.498.455-.499-.33-.954-.83-.455-.499.33-.954.83-1.498 4.37-1.326 9.805-.688 13.518 1.588.44.27.58.848.31 1.288zm.126-3.414c-3.873-2.3-10.258-2.512-13.966-1.385-.594.18-1.222-.156-1.402-.75-.18-.594.156-1.222.75-1.402 4.26-1.294 11.298-1.043 15.753 1.603.534.317.708 1.01.39 1.544-.317.534-1.01.708-1.544.39z"/>
-                </svg>
-                <div>
-                  <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-white">Spotify Stream Player</h3>
-                  <p className="text-[11px] text-neutral-400">Stream "{song.title}" directly via official Spotify Web Embed</p>
-                </div>
-              </div>
-              <a
-                href={getSpotifyWebUrlForSong(song)}
-                target="_blank"
-                rel="noreferrer"
-                className="px-3 py-1.5 rounded-xl bg-[#1DB954] text-neutral-950 text-xs font-bold flex items-center gap-1.5 hover:bg-[#1ed760] transition-colors"
-              >
-                <span>Open in App</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
-
-            {/* Embedded Iframe */}
-            <div className="rounded-2xl overflow-hidden bg-neutral-900 border border-neutral-800">
-              <iframe
-                src={getSpotifyEmbedForSong(song)}
-                width="100%"
-                height="152"
-                frameBorder="0"
-                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                loading="lazy"
-                title={`Spotify Player - ${song.title}`}
-                className="rounded-2xl"
-              />
-            </div>
-          </div>
-
-          {/* Credits Matrix */}
-          <div className="p-6 rounded-2xl bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800">
-            <h3 className="text-xs font-mono uppercase tracking-wider text-neutral-500 mb-4 font-semibold">
-              Production & Songwriting Credits
-            </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 text-xs">
-              <div>
-                <span className="text-neutral-500 block text-[11px]">Lead Artist</span>
-                <span className="font-semibold text-neutral-900 dark:text-neutral-100">{song.credits?.artist || song.artist || 'Arjun Bharti Mina'}</span>
-              </div>
-              <div>
-                <span className="text-neutral-500 block text-[11px]">Lyrics & Songwriting</span>
-                <span className="font-semibold text-neutral-900 dark:text-neutral-100">{song.credits?.lyrics || 'Arjun Bharti Mina'}</span>
-              </div>
-              <div>
-                <span className="text-neutral-500 block text-[11px]">Music & Arrangement</span>
-                <span className="font-semibold text-neutral-900 dark:text-neutral-100">{song.credits?.music || 'Studio Beats'}</span>
-              </div>
-              <div>
-                <span className="text-neutral-500 block text-[11px]">Studio Production</span>
-                <span className="font-semibold text-neutral-900 dark:text-neutral-100">{song.credits?.production || 'ABM Records'}</span>
-              </div>
-              {song.credits?.mixMaster && (
-                <div>
-                  <span className="text-neutral-500 block text-[11px]">Mix & Mastering</span>
-                  <span className="font-semibold text-neutral-900 dark:text-neutral-100">{song.credits.mixMaster}</span>
-                </div>
-              )}
-              {song.credits?.label && (
-                <div>
-                  <span className="text-neutral-500 block text-[11px]">Record Label</span>
-                  <span className="font-semibold text-neutral-900 dark:text-neutral-100">{song.credits.label}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Video Section if available */}
-          {matchedVideo && (
-            <div className="p-6 rounded-2xl bg-neutral-950 border border-neutral-800 text-white space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-xs font-mono uppercase text-red-500">Official Visualizer</span>
-                  <h3 className="text-base font-bold">{matchedVideo.title}</h3>
-                </div>
-                <button
-                  onClick={() => openVideoPlayer(matchedVideo)}
-                  className="px-4 py-2 rounded-full bg-red-600 hover:bg-red-700 text-xs font-semibold flex items-center gap-1.5 transition-colors"
-                >
-                  <Play className="w-3.5 h-3.5 fill-current" />
-                  <span>Watch Video</span>
-                </button>
-              </div>
             </div>
           )}
 
-          {/* Full Lyrics View */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-neutral-200 dark:border-neutral-800">
-              <h3 className="text-sm font-bold font-display uppercase tracking-wider text-neutral-900 dark:text-neutral-100">
-                Official Lyrics
-              </h3>
-              <button
-                onClick={handleCopyLyrics}
-                className="text-xs text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1"
-              >
-                {copied ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
-                <span>{copied ? 'Copied to Clipboard' : 'Copy All'}</span>
-              </button>
-            </div>
+          {/* TAB 2: RELATED VIDEOS (CORE USER FEATURE) */}
+          {activeTab === 'videos' && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-base font-bold text-neutral-900 dark:text-white">
+                    Related Videos for "{song.title}"
+                  </h3>
+                  <p className="text-xs text-neutral-500">
+                    Official music video, lyrical breakdown, and studio making videos.
+                  </p>
+                </div>
+                <span className="text-xs font-mono text-neutral-400">
+                  {song.relatedVideos?.length || 0} Videos
+                </span>
+              </div>
 
-            <div className="p-6 rounded-2xl bg-neutral-50 dark:bg-neutral-950/60 border border-neutral-200 dark:border-neutral-800 text-sm leading-relaxed text-neutral-800 dark:text-neutral-200 font-sans whitespace-pre-line select-text">
-              {song.lyrics}
-            </div>
-          </div>
-
-          {/* Related Songs */}
-          {relatedSongs.length > 0 && (
-            <div className="pt-4 border-t border-neutral-200 dark:border-neutral-800 space-y-3">
-              <h3 className="text-xs font-mono uppercase tracking-wider text-neutral-500 font-semibold">
-                More Music by Arjun Bharti Mina
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {relatedSongs.map(rel => (
-                  <div
-                    key={rel.id}
-                    onClick={() => {
-                      setSelectedSongId(rel.id);
-                      playSong(rel);
-                    }}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 hover:border-amber-500/50 cursor-pointer transition-all group"
-                  >
-                    <img src={rel.cover} alt={rel.title} className="w-10 h-10 rounded-lg object-cover" />
-                    <div className="min-w-0 flex-1">
-                      <h4 className="text-xs font-semibold text-neutral-900 dark:text-neutral-100 group-hover:text-amber-500 transition-colors truncate">
-                        {rel.title}
-                      </h4>
-                      <p className="text-[11px] text-neutral-500 truncate">{rel.genre}</p>
+              {hasVideos ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {song.relatedVideos!.map((vid, vidIdx) => (
+                    <div
+                      key={vid.id || vidIdx}
+                      onClick={() => handleOpenRelatedVideo(vid)}
+                      className="group rounded-2xl overflow-hidden bg-neutral-100 dark:bg-neutral-800/80 border border-neutral-200 dark:border-neutral-700 hover:border-red-500/50 cursor-pointer transition-all hover:scale-[1.02] shadow-md"
+                    >
+                      <div className="relative aspect-video w-full bg-neutral-950 overflow-hidden">
+                        <img 
+                          src={vid.thumbnail || song.cover} 
+                          alt={vid.title} 
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-black/40 group-hover:bg-red-950/40 flex items-center justify-center transition-colors">
+                          <div className="w-12 h-12 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                            <Play className="w-5 h-5 fill-current ml-0.5" />
+                          </div>
+                        </div>
+                        {vid.duration && (
+                          <span className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-black/85 text-[10px] font-mono text-white font-bold">
+                            {vid.duration}
+                          </span>
+                        )}
+                        <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-black/75 backdrop-blur-md text-[9px] font-mono text-red-400 border border-red-500/30 uppercase font-bold">
+                          {vid.type || 'Video'}
+                        </span>
+                      </div>
+                      
+                      <div className="p-3.5 space-y-1">
+                        <h4 className="text-xs font-bold text-neutral-900 dark:text-white group-hover:text-red-500 transition-colors line-clamp-2">
+                          {vid.title}
+                        </h4>
+                        <p className="text-[11px] text-neutral-500 font-mono">
+                          Click to play in theatre mode
+                        </p>
+                      </div>
                     </div>
-                    <ArrowRight className="w-3.5 h-3.5 text-neutral-400 group-hover:text-amber-500" />
-                  </div>
-                ))}
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-10 bg-neutral-50 dark:bg-neutral-800/40 rounded-2xl border border-dashed border-neutral-300 dark:border-neutral-700 text-neutral-400 text-xs">
+                  No related videos added for this track yet.
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 3: LYRICS */}
+          {activeTab === 'lyrics' && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between border-b border-neutral-100 dark:border-neutral-800 pb-3">
+                <span className="text-xs font-mono uppercase text-neutral-400 font-bold">
+                  Official Lyrics
+                </span>
+                <button
+                  type="button"
+                  onClick={handleCopyLyrics}
+                  className="text-xs text-amber-500 font-semibold flex items-center gap-1 hover:text-amber-400 cursor-pointer"
+                >
+                  {copiedLyrics ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copiedLyrics ? 'Copied' : 'Copy Full Lyrics'}</span>
+                </button>
+              </div>
+
+              <div className="p-6 rounded-2xl bg-neutral-50 dark:bg-neutral-800/80 border border-neutral-200 dark:border-neutral-800 max-h-[50vh] overflow-y-auto">
+                <pre className="font-sans text-sm sm:text-base leading-relaxed text-neutral-800 dark:text-neutral-200 whitespace-pre-wrap">
+                  {song.lyrics || 'Lyrics are being transcribed for this track.'}
+                </pre>
               </div>
             </div>
           )}
